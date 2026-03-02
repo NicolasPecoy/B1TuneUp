@@ -1,0 +1,12 @@
+E:\B1TuneUp\B1TuneUp\obj\Release\net48\B1TuneUp.csproj.AssemblyReference.cache
+E:\B1TuneUp\B1TuneUp\obj\Release\net48\B1TuneUp.GeneratedMSBuildEditorConfig.editorconfig
+E:\B1TuneUp\B1TuneUp\obj\Release\net48\B1TuneUp.AssemblyInfoInputs.cache
+E:\B1TuneUp\B1TuneUp\obj\Release\net48\B1TuneUp.AssemblyInfo.cs
+E:\B1TuneUp\B1TuneUp\obj\Release\net48\B1TuneUp.csproj.CoreCompileInputs.cache
+E:\B1TuneUp\B1TuneUp\bin\Release\net48\B1TuneUp.exe.config
+E:\B1TuneUp\B1TuneUp\bin\Release\net48\B1TuneUp.exe
+E:\B1TuneUp\B1TuneUp\bin\Release\net48\B1TuneUp.pdb
+E:\B1TuneUp\B1TuneUp\bin\Release\net48\SAPBusinessOneSDK.dll
+E:\B1TuneUp\B1TuneUp\obj\Release\net48\B1TuneUp.csproj.Up2Date
+E:\B1TuneUp\B1TuneUp\obj\Release\net48\B1TuneUp.exe
+E:\B1TuneUp\B1TuneUp\obj\Release\net48\B1TuneUp.pdb

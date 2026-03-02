@@ -1,0 +1,25 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net48</TargetFramework>
+    <Platforms>AnyCPU;x64</Platforms>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- SAP Business One SDK reference removed for build in this environment; using internal stubs -->
+    <Reference Include="SAPBusinessOneSDK">
+      <HintPath>..\SAPBusinessOneSDK.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Windows.Forms" />
+  </ItemGroup>
+
+  <!-- Exclude Modules from build in this environment to avoid SDK compatibility issues.
+       The full add-on modules are not required to compile core in this environment. -->
+  <!-- Modules are compiled against the real SAP Business One SDK referenced below. -->
+
+  <ItemGroup>
+    <PackageReference Include="System.Net.Http" Version="4.3.4" />
+  </ItemGroup>
+
+</Project>

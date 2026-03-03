@@ -297,6 +297,154 @@ namespace B1TuneUp.Modules
                 {
                     PrintDeliveryManager.OpenPrintDeliveryForm();
                 }
+                else if (command.StartsWith("REST("))
+                {
+                    // REST(url, method, body, headers)
+                    string parameters = ExtractParameter(command, "REST");
+                    string[] parts = parameters.Split(',');
+                    string url = parts.Length > 0 ? parts[0].Trim('\'', ' ') : "";
+                    string method = parts.Length > 1 ? parts[1].Trim('\'', ' ') : "GET";
+                    string body = parts.Length > 2 ? parts[2].Trim('\'', ' ') : null;
+                    string headers = parts.Length > 3 ? parts[3].Trim('\'', ' ') : null;
+                    string resp = IntegrationManager.CallRest(url, method, body, headers);
+                    B1App.Instance.Application.SetStatusBarMessage(resp.Length > 200 ? resp.Substring(0, 200) + "..." : resp, BoMessageTime.bmt_Short, false);
+                }
+                else if (command.StartsWith("SOAP("))
+                {
+                    // SOAP(url, action, body)
+                    string parameters = ExtractParameter(command, "SOAP");
+                    string[] parts = parameters.Split(',');
+                    string url = parts.Length > 0 ? parts[0].Trim('\'', ' ') : "";
+                    string action = parts.Length > 1 ? parts[1].Trim('\'', ' ') : "";
+                    string body = parts.Length > 2 ? parts[2].Trim('\'', ' ') : "";
+                    string resp = IntegrationManager.CallSoap(url, action, body);
+                    B1App.Instance.Application.SetStatusBarMessage(resp.Length > 200 ? resp.Substring(0, 200) + "..." : resp, BoMessageTime.bmt_Short, false);
+                }
+                else if (command.StartsWith("StartSync("))
+                {
+                    // StartSync(id, url, intervalSeconds, handlerMacro)
+                    string parameters = ExtractParameter(command, "StartSync");
+                    string[] parts = parameters.Split(',');
+                    string id = parts.Length > 0 ? parts[0].Trim('\'', ' ') : "";
+                    string url = parts.Length > 1 ? parts[1].Trim('\'', ' ') : "";
+                    int interval = 60;
+                    int.TryParse(parts.Length > 2 ? parts[2].Trim() : "60", out interval);
+                    string handler = parts.Length > 3 ? parts[3].Trim('\'', ' ') : "";
+                    IntegrationManager.StartRealTimeSync(id, url, interval, handler);
+                    B1App.Instance.Application.SetStatusBarMessage($"Sync iniciado: {id}", BoMessageTime.bmt_Short, false);
+                }
+                else if (command.StartsWith("StopSync("))
+                {
+                    string id = ExtractParameter(command, "StopSync").Trim('\'', ' ');
+                    IntegrationManager.StopRealTimeSync(id);
+                    B1App.Instance.Application.SetStatusBarMessage($"Sync detenido: {id}", BoMessageTime.bmt_Short, false);
+                }
+                else if (command.StartsWith("ImportCsv("))
+                {
+                    // ImportCsv(filePath, mapping)
+                    string parameters = ExtractParameter(command, "ImportCsv");
+                    string[] parts = parameters.Split(',');
+                    string file = parts.Length > 0 ? parts[0].Trim('\'', ' ') : "";
+                    string mapping = parts.Length > 1 ? parts[1].Trim('\'', ' ') : "";
+                    bool ok = IntegrationManager.ImportCsvToForm(file, mapping, activeForm);
+                    B1App.Instance.Application.SetStatusBarMessage(ok ? "CSV importado" : "Error importando CSV", BoMessageTime.bmt_Short, !ok);
+                }
+                else if (command.StartsWith("ExportCsv("))
+                {
+                    // ExportCsv(filePath, gridId, mapping)
+                    string parameters = ExtractParameter(command, "ExportCsv");
+                    string[] parts = parameters.Split(',');
+                    string file = parts.Length > 0 ? parts[0].Trim('\'', ' ') : "";
+                    string gridId = parts.Length > 1 ? parts[1].Trim('\'', ' ') : "";
+                    string mapping = parts.Length > 2 ? parts[2].Trim('\'', ' ') : "";
+                    bool ok = IntegrationManager.ExportGridToCsv(file, activeForm, gridId, mapping);
+                    B1App.Instance.Application.SetStatusBarMessage(ok ? "CSV exportado" : "Error exportando CSV", BoMessageTime.bmt_Short, !ok);
+                }
+                else if (command.StartsWith("OpenReportCustomization()"))
+                {
+                    ReportManager.OpenReportCustomizationForm();
+                }
+                else if (command.StartsWith("OpenMapper()"))
+                {
+                    DynamicMapperManager.OpenMappingManagerForm();
+                }
+                else if (command.StartsWith("OpenItemPlacement()"))
+                {
+                    UIEnhancementsManager.ShowAdvancedDashboard(); // placeholder to ensure UIEnhancementsManager is touched
+                    // Open for active form
+                    try { ItemPlacementManager.OpenPlacementForm(activeForm); } catch { ItemPlacementManager.OpenPlacementForm(null); }
+                }
+                else if (command.StartsWith("OpenQueryExport()"))
+                {
+                    QueryExportManager.OpenQueryExportWindow(activeForm);
+                }
+                else if (command.StartsWith("EditItem("))
+                {
+                    string itemId = ExtractParameter(command, "EditItem");
+                    try { ItemEditorManager.OpenItemEditor(itemId, activeForm); } catch { ItemEditorManager.OpenItemEditor(itemId, null); }
+                }
+                else if (command.StartsWith("AddItem()"))
+                {
+                    ItemEditorManager.OpenAddItemForm(activeForm);
+                }
+                else if (command.StartsWith("DeleteItem("))
+                {
+                    string itemId = ExtractParameter(command, "DeleteItem");
+                    try { ItemEditorManager.DeleteItem(itemId, activeForm); } catch { ItemEditorManager.DeleteItem(itemId, null); }
+                }
+                else if (command.StartsWith("ManageItemActions()"))
+                {
+                    var f = new Forms.ItemActionsManagerForm();
+                    f.Show();
+                }
+                else if (command.StartsWith("OpenDesigner()"))
+                {
+                    try { var d = new Forms.DesignSurfaceForm(activeForm); d.Show(); } catch { var d = new Forms.DesignSurfaceForm(null); d.Show(); }
+                }
+                else if (command.StartsWith("ExportSRF("))
+                {
+                    string file = ExtractParameter(command, "ExportSRF");
+                    try { ItemPlacementManager.ExportSrf(activeForm, file); } catch { }
+                }
+                else if (command.StartsWith("ImportSRF("))
+                {
+                    string file = ExtractParameter(command, "ImportSRF");
+                    try { ItemPlacementManager.ImportSrf(file); } catch { }
+                }
+                else if (command.StartsWith("ManageLayouts()"))
+                {
+                    var f = new Forms.LayoutManagerForm();
+                    f.Show();
+                }
+                else if (command.StartsWith("ManageReports()"))
+                {
+                    ReportManager.ManageReportTemplates();
+                }
+                else if (command.StartsWith("ShowReportPreview("))
+                {
+                    string tpl = ExtractParameter(command, "ShowReportPreview");
+                    var pars = ReportManager.GetReportParameters(tpl);
+                    ReportManager.ShowAdvancedPrintPreview(tpl, pars);
+                }
+                else if (command.StartsWith("EnableDragDrop()"))
+                {
+                    UIEnhancementsManager.EnableDragAndDrop(activeForm);
+                }
+                else if (command.StartsWith("OpenRichText("))
+                {
+                    string itemId = ExtractParameter(command, "OpenRichText");
+                    UIEnhancementsManager.OpenRichTextEditor(itemId, activeForm);
+                }
+                else if (command.StartsWith("EnhanceGrid("))
+                {
+                    string gridId = ExtractParameter(command, "EnhanceGrid");
+                    UIEnhancementsManager.EnhanceGridWithPivot(activeForm, gridId);
+                }
+                else if (command.StartsWith("ScanBarcode("))
+                {
+                    string tgt = ExtractParameter(command, "ScanBarcode");
+                    UIEnhancementsManager.ScanBarcode(tgt, activeForm);
+                }
             }
             catch (Exception ex)
             {

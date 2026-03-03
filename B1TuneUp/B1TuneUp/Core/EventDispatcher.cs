@@ -16,6 +16,8 @@ namespace B1TuneUp.Core
         public static EventDispatcher Instance => _instance ?? (_instance = new EventDispatcher());
 
         private List<B1Rule> _rules;
+        // Local handlers for item changes: key = FormUID|ItemUID
+        private readonly Dictionary<string, List<Action<SAPbouiCOM.Form, string>>> _localItemChangeHandlers = new Dictionary<string, List<Action<SAPbouiCOM.Form, string>>>();
 
         private EventDispatcher()
         {
@@ -24,7 +26,6 @@ namespace B1TuneUp.Core
             MenuManager.LoadCustomMenus();
             ToolboxManager.ApplyToolboxSettings();
         }
-
         private void LoadRules()
         {
             Recordset rs = (Recordset)B1App.Instance.Company.GetBusinessObject(BoObjectTypes.BoRecordset);
@@ -85,6 +86,36 @@ namespace B1TuneUp.Core
             B1App.Instance.Application.LayoutKeyEvent += OnLayoutKeyBefore;
         }
 
+        /// <summary>
+        /// Register a local handler that will be invoked when the specified item on the given form changes.
+        /// </summary>
+        public void RegisterLocalItemChangeHandler(SAPbouiCOM.Form form, string itemId, Action<SAPbouiCOM.Form, string> handler)
+        {
+            if (form == null || string.IsNullOrEmpty(itemId) || handler == null) return;
+            string key = form.UniqueID + "|" + itemId;
+            lock (_localItemChangeHandlers)
+            {
+                if (!_localItemChangeHandlers.ContainsKey(key)) _localItemChangeHandlers[key] = new List<Action<SAPbouiCOM.Form, string>>();
+                _localItemChangeHandlers[key].Add(handler);
+            }
+        }
+
+        /// <summary>
+        /// Unregister all local handlers for a specific form and item.
+        /// </summary>
+        public void UnregisterLocalItemChangeHandler(SAPbouiCOM.Form form, string itemId)
+        {
+            if (form == null || string.IsNullOrEmpty(itemId)) return;
+            string key = form.UniqueID + "|" + itemId;
+            lock (_localItemChangeHandlers)
+            {
+                if (_localItemChangeHandlers.ContainsKey(key))
+                {
+                    _localItemChangeHandlers.Remove(key);
+                }
+            }
+        }
+
         private void OnLayoutKeyBefore(ref LayoutKeyInfo eventInfo, out bool BubbleEvent)
         {
             BubbleEvent = true;
@@ -125,8 +156,8 @@ namespace B1TuneUp.Core
                 var val = pVal;
                 var matchingRules = _rules.Where(r =>
                     (r.FormType == val.FormTypeEx || string.IsNullOrEmpty(r.FormType)) &&
-                    r.EventType == val.EventType.ToString() &&
-                    r.BeforeAction == val.BeforeAction
+                    (r.EventType == val.EventType.ToString() || r.EventType == "et_ITEM_PRESSED" || r.EventType == "et_DOUBLE_CLICK") &&
+                    (r.BeforeAction == val.BeforeAction || r.BeforeAction == false)
                 );
 
                 foreach (var rule in matchingRules)
@@ -147,6 +178,32 @@ namespace B1TuneUp.Core
                     Form oForm = B1App.Instance.Application.Forms.Item(FormUID);
                     UICustomizer.ApplyCustomization(oForm);
                     DefaultValueManager.ApplyOnLoad(oForm);
+                    // Register saved item actions for this form so they execute on item changes/clicks
+                    try
+                    {
+                        var actions = Modules.ItemActionManager.GetAllActions();
+                        foreach (var kv in actions)
+                        {
+                            var parts = kv.Key.Split('|');
+                            if (parts.Length != 2) continue;
+                            var formType = parts[0];
+                            var itemId = parts[1];
+                            if (oForm.TypeEx == formType)
+                            {
+                                // Register a local change handler that executes the saved macro
+                                RegisterLocalItemChangeHandler(oForm, itemId, (frm, id) =>
+                                {
+                                    try
+                                    {
+                                        var macro = ItemActionManager.GetAction(frm.TypeEx, id);
+                                        if (!string.IsNullOrEmpty(macro)) MacroEngine.ExecuteMacro(macro, frm);
+                                    }
+                                    catch { }
+                                });
+                            }
+                        }
+                    }
+                    catch { }
                 }
 
                 // Valores por defecto en Change (validate/combo select)
@@ -156,6 +213,24 @@ namespace B1TuneUp.Core
                     {
                         Form oForm = B1App.Instance.Application.Forms.Item(FormUID);
                         DefaultValueManager.ApplyOnChange(oForm, pVal.ItemUID);
+                        // Invoke any local handlers registered for this item
+                        try
+                        {
+                            string key = oForm.UniqueID + "|" + pVal.ItemUID;
+                            List<Action<SAPbouiCOM.Form, string>> handlers = null;
+                            lock (_localItemChangeHandlers)
+                            {
+                                if (_localItemChangeHandlers.ContainsKey(key)) handlers = new List<Action<SAPbouiCOM.Form, string>>(_localItemChangeHandlers[key]);
+                            }
+                            if (handlers != null)
+                            {
+                                foreach (var h in handlers)
+                                {
+                                    try { h(oForm, pVal.ItemUID); } catch { }
+                                }
+                            }
+                        }
+                        catch { }
                     }
                     catch { }
                 }

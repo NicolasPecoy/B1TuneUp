@@ -16,7 +16,7 @@ namespace B1TuneUp.Core
 
         private B1App() { }
 
-        public void Connect()
+        public void Connect(string language = null)
         {
             try
             {
@@ -25,14 +25,18 @@ namespace B1TuneUp.Core
                 
                 IsHana = Company.DbServerType == SAPbobsCOM.BoDataServerTypes.dst_HANADB;
 
+                // Inicializar localización y logger
+                LocalizationManager.Init(language);
+                Logger.Init();
+
                 // Configurar metadatos si es necesario
                 MetadataManager.SetupMetadata();
 
-                Application.StatusBar.SetText("B1TuneUp: Conectado con éxito", SAPbouiCOM.BoMessageTime.bmt_Short, SAPbouiCOM.BoStatusBarMessageType.smt_Success);
+                Application.StatusBar.SetText(LocalizationManager.GetString("B1TuneUp.Connected"), SAPbouiCOM.BoMessageTime.bmt_Short, SAPbouiCOM.BoStatusBarMessageType.smt_Success);
             }
             catch (Exception ex)
             {
-                System.Windows.Forms.MessageBox.Show($"Error al conectar con SAP B1: {ex.Message}");
+                System.Windows.Forms.MessageBox.Show(string.Format(LocalizationManager.GetString("Error.Connecting"), ex.Message));
                 Environment.Exit(0);
             }
         }

@@ -1,0 +1,9 @@
+{
+  "B1TuneUp.Connected":"B1TuneUp: Conectado con éxito",
+  "B1TuneUp.Metadata.Setup":"Iniciando configuración de metadatos B1TuneUp...",
+  "B1TuneUp.Metadata.Done":"Metadatos B1TuneUp configurados con éxito.",
+  "Error.Connecting":"Error al conectar con SAP B1: {0}",
+  "Error.CreatingUDT":"Error creando UDT {0}: {1}",
+  "Error.CreatingUDF":"Error creando UDF {0} en {1}: {2}",
+  "StatusBar.Message":"{0}"
+}

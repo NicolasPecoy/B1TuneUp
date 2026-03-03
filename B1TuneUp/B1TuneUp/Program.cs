@@ -16,8 +16,21 @@ namespace B1TuneUp
                 Application.EnableVisualStyles();
                 Application.SetCompatibleTextRenderingDefault(false);
 
-                // Conectar con SAP B1
-                B1App.Instance.Connect();
+                // Determine language from args or environment
+                string lang = null;
+                if (args != null && args.Length > 0)
+                {
+                    for (int i = 0; i < args.Length; i++)
+                    {
+                        if (args[i].StartsWith("--lang=", StringComparison.OrdinalIgnoreCase))
+                        {
+                            lang = args[i].Substring("--lang=".Length);
+                        }
+                    }
+                }
+
+                // Conectar con SAP B1 (pasar idioma opcional)
+                B1App.Instance.Connect(lang);
 
                 // Inicializar el despachador de eventos
                 EventDispatcher.Instance.Init();

@@ -1,0 +1,39 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="Current" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup />
+  <ItemGroup>
+    <Compile Update="B1TuneUp\Modules\Forms\AddItemForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="B1TuneUp\Modules\Forms\AdvancedDashboardForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="B1TuneUp\Modules\Forms\BarcodeScannerForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="B1TuneUp\Modules\Forms\DesignSurfaceForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="B1TuneUp\Modules\Forms\DragDropHelperForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="B1TuneUp\Modules\Forms\ItemActionsManagerForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="B1TuneUp\Modules\Forms\ItemEditorForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="B1TuneUp\Modules\Forms\ItemPlacementForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="B1TuneUp\Modules\Forms\LayoutManagerForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="B1TuneUp\Modules\Forms\PivotGridForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="B1TuneUp\Modules\Forms\RichTextEditorForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+  </ItemGroup>
+</Project>

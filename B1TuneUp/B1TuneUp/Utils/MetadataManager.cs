@@ -132,6 +132,29 @@ namespace B1TuneUp.Utils
             CreateUDF("@BTUN_UI", "FromPane", "From Pane", BoFieldTypes.db_Numeric, 5);
             CreateUDF("@BTUN_UI", "ToPane", "To Pane", BoFieldTypes.db_Numeric, 5);
 
+            // Tabla para Layouts guardados por Item Placement
+            CreateUDT("BTUN_LAYOUT", "B1TuneUp Layouts", BoUTBTableType.bott_NoObject);
+            CreateUDF("@BTUN_LAYOUT", "FormType", "Form Type", BoFieldTypes.db_Alpha, 20);
+            CreateUDF("@BTUN_LAYOUT", "Name", "Layout Name", BoFieldTypes.db_Alpha, 100);
+            CreateUDF("@BTUN_LAYOUT", "Desc", "Description", BoFieldTypes.db_Alpha, 254);
+            CreateUDF("@BTUN_LAYOUT", "Def", "Layout Definition (XML)", BoFieldTypes.db_Memo);
+            CreateUDF("@BTUN_LAYOUT", "Owner", "Owner User", BoFieldTypes.db_Alpha, 50);
+            CreateUDF("@BTUN_LAYOUT", "Role", "Role", BoFieldTypes.db_Alpha, 50);
+            CreateUDF("@BTUN_LAYOUT", "Version", "Version", BoFieldTypes.db_Numeric, 5);
+            CreateUDF("@BTUN_LAYOUT", "SRF", "SRF/Base64 or XML", BoFieldTypes.db_Memo);
+            CreateUDF("@BTUN_LAYOUT", "FileName", "SRF File Name", BoFieldTypes.db_Alpha, 254);
+            CreateUDF("@BTUN_LAYOUT", "CreatedAt", "Created At", BoFieldTypes.db_Date);
+            CreateUDF("@BTUN_LAYOUT", "UpdatedAt", "Updated At", BoFieldTypes.db_Date);
+
+            // Tabla para acciones asociadas a items (Item Actions)
+            CreateUDT("BTUN_ITEMACT", "B1TuneUp Item Actions", BoUTBTableType.bott_NoObject);
+            CreateUDF("@BTUN_ITEMACT", "FormType", "Form Type", BoFieldTypes.db_Alpha, 20);
+            CreateUDF("@BTUN_ITEMACT", "ItemID", "Item ID", BoFieldTypes.db_Alpha, 100);
+            CreateUDF("@BTUN_ITEMACT", "Event", "Event Type", BoFieldTypes.db_Alpha, 50, "Change", "Change:Change;ItemPressed:ItemPressed;DoubleClick:DoubleClick;MatrixRow:MatrixRow");
+            CreateUDF("@BTUN_ITEMACT", "Action", "Action Macro", BoFieldTypes.db_Memo);
+            CreateUDF("@BTUN_ITEMACT", "CreatedAt", "Created At", BoFieldTypes.db_Date);
+            CreateUDF("@BTUN_ITEMACT", "UpdatedAt", "Updated At", BoFieldTypes.db_Date);
+
             // Tabla para Campos Obligatorios
             CreateUDT("BTUN_MAND", "B1TuneUp Mandatory Fields", BoUTBTableType.bott_NoObject);
             CreateUDF("@BTUN_MAND", "FormType", "Form Type", BoFieldTypes.db_Alpha, 20);

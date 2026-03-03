@@ -28,15 +28,19 @@ namespace B1TuneUp.Core
                 // Inicializar localización y logger
                 LocalizationManager.Init(language);
                 Logger.Init();
+                Logger.Info("B1App starting connect...");
 
                 // Configurar metadatos si es necesario
                 MetadataManager.SetupMetadata();
 
                 Application.StatusBar.SetText(LocalizationManager.GetString("B1TuneUp.Connected"), SAPbouiCOM.BoMessageTime.bmt_Short, SAPbouiCOM.BoStatusBarMessageType.smt_Success);
+                Logger.Info("Connected to SAP B1 successfully");
             }
             catch (Exception ex)
             {
-                System.Windows.Forms.MessageBox.Show(string.Format(LocalizationManager.GetString("Error.Connecting"), ex.Message));
+                var msg = string.Format(LocalizationManager.GetString("Error.Connecting"), ex.Message);
+                Logger.Error(msg, ex);
+                System.Windows.Forms.MessageBox.Show(msg);
                 Environment.Exit(0);
             }
         }

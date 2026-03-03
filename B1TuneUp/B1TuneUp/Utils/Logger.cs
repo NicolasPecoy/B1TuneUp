@@ -1,13 +1,11 @@
 using System;
-using System.IO;
-using System.Text;
+using Serilog;
+using Serilog.Events;
 
 namespace B1TuneUp.Utils
 {
     public static class Logger
     {
-        private static readonly object _lock = new object();
-        private static string _logFolder;
         private static bool _initialized = false;
 
         public static void Init(string logFolder = null)
@@ -15,61 +13,42 @@ namespace B1TuneUp.Utils
             if (_initialized) return;
             _initialized = true;
 
-            _logFolder = logFolder;
-            if (string.IsNullOrEmpty(_logFolder))
-            {
-                var basePath = AppDomain.CurrentDomain.BaseDirectory;
-                _logFolder = Path.Combine(basePath, "Logs");
-            }
+            var basePath = AppDomain.CurrentDomain.BaseDirectory;
+            var folder = logFolder;
+            if (string.IsNullOrEmpty(folder)) folder = System.IO.Path.Combine(basePath, "Logs");
 
             try
             {
-                if (!Directory.Exists(_logFolder)) Directory.CreateDirectory(_logFolder);
+                if (!System.IO.Directory.Exists(folder)) System.IO.Directory.CreateDirectory(folder);
             }
             catch
             {
                 // ignore
             }
+
+            var logFile = System.IO.Path.Combine(folder, "B1TuneUp-.log");
+
+            Log.Logger = new LoggerConfiguration()
+                .MinimumLevel.Debug()
+                .WriteTo.File(logFile, rollingInterval: RollingInterval.Day, retainedFileCountLimit: 14)
+                .CreateLogger();
+
+            Log.Information("Logger initialized");
         }
 
         public static void Info(string message)
         {
-            Write("INFO", message);
+            Log.Information(message);
         }
 
         public static void Error(string message)
         {
-            Write("ERROR", message);
+            Log.Error(message);
         }
 
         public static void Error(string message, Exception ex)
         {
-            Write("ERROR", message + " | Exception: " + ex);
-        }
-
-        private static void Write(string level, string message)
-        {
-            try
-            {
-                if (!_initialized) Init(null);
-                var file = Path.Combine(_logFolder, DateTime.UtcNow.ToString("yyyy-MM-dd") + ".log");
-                var sb = new StringBuilder();
-                sb.Append(DateTime.UtcNow.ToString("o"));
-                sb.Append(" [");
-                sb.Append(level);
-                sb.Append("] ");
-                sb.Append(message);
-                sb.AppendLine();
-
-                lock (_lock)
-                {
-                    File.AppendAllText(file, sb.ToString());
-                }
-            }
-            catch
-            {
-                // best effort
-            }
+            Log.Error(ex, message);
         }
     }
 }

@@ -26,6 +26,11 @@ namespace B1TuneUp.Core
                 IsHana = Company.DbServerType == SAPbobsCOM.BoDataServerTypes.dst_HANADB;
 
                 // Inicializar localización y logger
+                if (string.IsNullOrEmpty(language))
+                {
+                    // try to read persisted setting
+                    try { language = Utils.SettingsManager.GetSetting("Language", null); } catch { }
+                }
                 LocalizationManager.Init(language);
                 Logger.Init();
                 Logger.Info("B1App starting connect...");
@@ -35,6 +40,20 @@ namespace B1TuneUp.Core
 
                 Application.StatusBar.SetText(LocalizationManager.GetString("B1TuneUp.Connected"), SAPbouiCOM.BoMessageTime.bmt_Short, SAPbouiCOM.BoStatusBarMessageType.smt_Success);
                 Logger.Info("Connected to SAP B1 successfully");
+                // capture unhandled exceptions globally
+                AppDomain.CurrentDomain.UnhandledException += (s, e) =>
+                {
+                    try
+                    {
+                        var ex = e.ExceptionObject as Exception;
+                        if (ex != null) Logger.Error("Unhandled exception", ex);
+                    }
+                    catch { }
+                };
+                System.Windows.Forms.Application.ThreadException += (s, e) =>
+                {
+                    try { Logger.Error("UI thread exception", e.Exception); } catch { }
+                };
             }
             catch (Exception ex)
             {

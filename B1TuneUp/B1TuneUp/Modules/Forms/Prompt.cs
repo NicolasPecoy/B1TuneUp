@@ -1,3 +1,4 @@
+using B1TuneUp.Utils;
 using System;
 using System.Windows.Forms;
 
@@ -11,13 +12,13 @@ namespace B1TuneUp.Modules.Forms
             {
                 Width = 500,
                 Height = 150,
-                Text = caption,
+                Text = LocalizationManager.GetString(caption),
                 StartPosition = FormStartPosition.CenterParent
             };
-            Label textLabel = new Label() { Left = 10, Top = 10, Text = text, Width = 460 };
+            Label textLabel = new Label() { Left = 10, Top = 10, Text = LocalizationManager.GetString(text), Width = 460 };
             TextBox textBox = new TextBox() { Left = 10, Top = 30, Width = 460, Text = defaultValue };
-            Button confirmation = new Button() { Text = "Ok", Left = 300, Width = 80, Top = 60, DialogResult = DialogResult.OK };
-            Button cancel = new Button() { Text = "Cancel", Left = 390, Width = 80, Top = 60, DialogResult = DialogResult.Cancel };
+            Button confirmation = new Button() { Text = LocalizationManager.GetString("Btn.Ok"), Left = 300, Width = 80, Top = 60, DialogResult = DialogResult.OK };
+            Button cancel = new Button() { Text = LocalizationManager.GetString("Btn.Cancel"), Left = 390, Width = 80, Top = 60, DialogResult = DialogResult.Cancel };
             confirmation.Click += (sender, e) => { prompt.Close(); };
             prompt.Controls.Add(textBox);
             prompt.Controls.Add(confirmation);

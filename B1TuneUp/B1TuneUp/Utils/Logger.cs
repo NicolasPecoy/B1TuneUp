@@ -28,10 +28,35 @@ namespace B1TuneUp.Utils
 
             var logFile = System.IO.Path.Combine(folder, "B1TuneUp-.log");
 
-            Log.Logger = new LoggerConfiguration()
+            var cfg = new LoggerConfiguration()
                 .MinimumLevel.Debug()
-                .WriteTo.File(logFile, rollingInterval: RollingInterval.Day, retainedFileCountLimit: 14)
-                .CreateLogger();
+                .WriteTo.File(logFile, rollingInterval: RollingInterval.Day, retainedFileCountLimit: 14);
+
+            // also write to console for interactive debugging
+            try
+            {
+                cfg = cfg.WriteTo.Console();
+            }
+            catch
+            {
+                // ignore platform where console sink might not be available
+            }
+
+            // if SEQ is configured via environment variable, enable it
+            var seqUrl = Environment.GetEnvironmentVariable("SEQ_URL");
+            if (!string.IsNullOrEmpty(seqUrl))
+            {
+                try
+                {
+                    cfg = cfg.WriteTo.Seq(seqUrl);
+                }
+                catch
+                {
+                    // ignore
+                }
+            }
+
+            Log.Logger = cfg.CreateLogger();
 
             Log.Information("Logger initialized");
         }

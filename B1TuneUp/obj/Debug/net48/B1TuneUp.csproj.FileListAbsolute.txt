@@ -12,3 +12,9 @@ E:\B1TuneUp\B1TuneUp\obj\Debug\net48\B1TuneUp.exe
 E:\B1TuneUp\B1TuneUp\obj\Debug\net48\B1TuneUp.pdb
 E:\B1TuneUp\B1TuneUp\bin\Debug\net48\Serilog.dll
 E:\B1TuneUp\B1TuneUp\bin\Debug\net48\Serilog.Sinks.File.dll
+E:\B1TuneUp\B1TuneUp\obj\Debug\net48\B1TuneUp.csproj.SuggestedBindingRedirects.cache
+E:\B1TuneUp\B1TuneUp\obj\Debug\net48\B1TuneUp.exe.config
+E:\B1TuneUp\B1TuneUp\bin\Debug\net48\Serilog.Formatting.Compact.dll
+E:\B1TuneUp\B1TuneUp\bin\Debug\net48\Serilog.Sinks.Console.dll
+E:\B1TuneUp\B1TuneUp\bin\Debug\net48\Serilog.Sinks.PeriodicBatching.dll
+E:\B1TuneUp\B1TuneUp\bin\Debug\net48\Serilog.Sinks.Seq.dll

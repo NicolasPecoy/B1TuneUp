@@ -2,6 +2,7 @@ using System;
 using System.Windows.Forms;
 using SAPbouiCOM;
 using B1TuneUp.Core;
+using B1TuneUp.Utils;
 
 namespace B1TuneUp.Modules.Forms
 {
@@ -15,7 +16,7 @@ namespace B1TuneUp.Modules.Forms
         public AddItemForm(SAPbouiCOM.Form b1Form)
         {
             _b1Form = b1Form;
-            Text = "Add UI Component";
+            Text = LocalizationManager.GetString("AddItem.Title");
             Width = 420; Height = 200;
 
             _txtId = new System.Windows.Forms.TextBox() { Left = 10, Top = 10, Width = 380 };
@@ -25,15 +26,15 @@ namespace B1TuneUp.Modules.Forms
             _cmbType.Items.AddRange(new string[] { "EditText", "Button", "StaticText", "ComboBox" });
             Controls.Add(_cmbType);
 
-            _btnAdd = new System.Windows.Forms.Button() { Left = 10, Top = 80, Width = 100, Text = "Add" };
+            _btnAdd = new System.Windows.Forms.Button() { Left = 10, Top = 80, Width = 100, Text = LocalizationManager.GetString("Btn.Add") };
             _btnAdd.Click += BtnAdd_Click;
             Controls.Add(_btnAdd);
 
-            var btnEditAfter = new System.Windows.Forms.Button() { Left = 120, Top = 80, Width = 140, Text = "Edit After Add" };
+            var btnEditAfter = new System.Windows.Forms.Button() { Left = 120, Top = 80, Width = 140, Text = LocalizationManager.GetString("Btn.EditAfterAdd") };
             btnEditAfter.Click += (s, e) => { BtnAdd_Click(s, e); if (!string.IsNullOrWhiteSpace(_txtId.Text) && _b1Form != null) ItemEditorManager.OpenItemEditor(_txtId.Text.Trim(), _b1Form); };
             Controls.Add(btnEditAfter);
 
-            _btnClose = new System.Windows.Forms.Button() { Left = 120, Top = 80, Width = 100, Text = "Close" };
+            _btnClose = new System.Windows.Forms.Button() { Left = 120, Top = 80, Width = 100, Text = LocalizationManager.GetString("Btn.Close") };
             _btnClose.Click += (s, e) => Close();
             Controls.Add(_btnClose);
         }

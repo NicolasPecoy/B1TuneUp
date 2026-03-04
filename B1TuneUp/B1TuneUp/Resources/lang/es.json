@@ -6,4 +6,19 @@
   "Error.CreatingUDT":"Error creando UDT {0}: {1}",
   "Error.CreatingUDF":"Error creando UDF {0} en {1}: {2}",
   "StatusBar.Message":"{0}"
+  ,"Btn.Ok":"Ok"
+  ,"Btn.Cancel":"Cancelar"
+  ,"ItemEditor.Title":"Editar Item"
+  ,"Btn.Apply":"Aplicar"
+  ,"ItemEditor.ActionHint":"Acción macro, p.ej. Click('btnOK'); Status('Done')"
+  ,"Btn.SaveAction":"Guardar Acción"
+  ,"Btn.Close":"Cerrar"
+  ,"AddItem.Title":"Agregar Componente UI"
+  ,"Btn.Add":"Agregar"
+  ,"Btn.EditAfterAdd":"Editar Después de Agregar"
+  ,"LanguageSelector.Title":"Seleccionar Idioma"
+  ,"LanguageSelector.Select":"Elija un idioma de la lista"
+  ,"Btn.Save":"Guardar"
+  ,"LanguageSelector.NoSelect":"Por favor seleccione un idioma"
+  ,"LanguageSelector.Saved":"Idioma guardado. Puede ser necesario reiniciar."
 }

@@ -26,6 +26,9 @@
     <Compile Update="B1TuneUp\Modules\Forms\ItemPlacementForm.cs">
       <SubType>Form</SubType>
     </Compile>
+    <Compile Update="B1TuneUp\Modules\Forms\LanguageSelectorForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
     <Compile Update="B1TuneUp\Modules\Forms\LayoutManagerForm.cs">
       <SubType>Form</SubType>
     </Compile>

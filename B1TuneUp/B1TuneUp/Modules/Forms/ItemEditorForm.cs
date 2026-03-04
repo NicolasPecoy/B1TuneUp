@@ -2,6 +2,7 @@ using System;
 using System.Windows.Forms;
 using SAPbouiCOM;
 using B1TuneUp.Core;
+using B1TuneUp.Utils;
 
 namespace B1TuneUp.Modules.Forms
 {
@@ -19,7 +20,7 @@ namespace B1TuneUp.Modules.Forms
         {
             _b1Form = b1Form;
             _item = item;
-            Text = "Edit Item - " + item.UniqueID;
+            Text = LocalizationManager.GetString("ItemEditor.Title") + " - " + item.UniqueID;
             Width = 420; Height = 260;
 
             _txtUid = new System.Windows.Forms.TextBox() { Left = 10, Top = 10, Width = 380, ReadOnly = true, Text = item.UniqueID };
@@ -34,18 +35,18 @@ namespace B1TuneUp.Modules.Forms
             _nudHeight = new System.Windows.Forms.NumericUpDown() { Left = 280, Top = 50, Width = 80, Minimum = 0, Maximum = 2000, Value = item.Height };
             Controls.Add(_nudHeight);
 
-            _btnApply = new System.Windows.Forms.Button() { Left = 10, Top = 100, Width = 100, Text = "Apply" };
+            _btnApply = new System.Windows.Forms.Button() { Left = 10, Top = 100, Width = 100, Text = LocalizationManager.GetString("Btn.Apply") };
             _btnApply.Click += (s, e) => Apply();
             Controls.Add(_btnApply);
             _txtAction = new System.Windows.Forms.TextBox() { Left = 10, Top = 140, Width = 360 };
             var tt = new System.Windows.Forms.ToolTip();
-            tt.SetToolTip(_txtAction, "Macro action, e.g. Click('btnOK'); Status('Done')");
+            tt.SetToolTip(_txtAction, LocalizationManager.GetString("ItemEditor.ActionHint"));
             Controls.Add(_txtAction);
-            _btnSaveAction = new System.Windows.Forms.Button() { Left = 10, Top = 170, Width = 120, Text = "Save Action" };
+            _btnSaveAction = new System.Windows.Forms.Button() { Left = 10, Top = 170, Width = 120, Text = LocalizationManager.GetString("Btn.SaveAction") };
             _btnSaveAction.Click += (s, e) => SaveAction();
             Controls.Add(_btnSaveAction);
 
-            _btnClose = new System.Windows.Forms.Button() { Left = 120, Top = 100, Width = 100, Text = "Close" };
+            _btnClose = new System.Windows.Forms.Button() { Left = 120, Top = 100, Width = 100, Text = LocalizationManager.GetString("Btn.Close") };
             _btnClose.Click += (s, e) => Close();
             Controls.Add(_btnClose);
 

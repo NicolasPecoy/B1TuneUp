@@ -1,5 +1,5 @@
 ﻿B1TuneUp
-
+1.0.0.0
 
 winexe
 C#
@@ -12,7 +12,7 @@ TRACE;DEBUG;NETFRAMEWORK;NET48;NET30_OR_GREATER;NET35_OR_GREATER;NET40_OR_GREATE
 
 6-1763594042
 
-91283315378
+93-957789911
 137-1492446796
 B1TuneUp\Modules\AuditLogViewer\AuditLogWindow.xaml;B1TuneUp\Modules\IntegrationUi\IntegrationConfiguratorWindow.xaml;B1TuneUp\Modules\ProcessDesigner\ProcessDesignerWindow.xaml;B1TuneUp\Modules\RuleBuilder\RuleBuilderWindow.xaml;B1TuneUp\Modules\SchedulerUi\SchedulerWindow.xaml;B1TuneUp\Modules\UiDesigner\UiCustomizerWindow.xaml;
 

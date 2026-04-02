@@ -7,6 +7,7 @@ using B1TuneUp.Modules.UiDesigner;
 using B1TuneUp.Modules.SchedulerUi;
 using B1TuneUp.Modules.RuleBuilder;
 using B1TuneUp.Modules.ProcessDesigner;
+using B1TuneUp.Modules.AuditLogViewer;
 using B1TuneUp.Utils;
 
 namespace B1TuneUp.Modules
@@ -18,6 +19,7 @@ namespace B1TuneUp.Modules
         private const string SchedulerMenuId = "BTUN_SCHEDUI";
         private const string RuleBuilderMenuId = "BTUN_RULESUI";
         private const string ProcessDesignerMenuId = "BTUN_PSDESIGN";
+        private const string AuditLogMenuId = "BTUN_LOGVIEW";
         private static Dictionary<string, string> _menuActions = new Dictionary<string, string>();
 
         public static void LoadCustomMenus()
@@ -62,6 +64,7 @@ namespace B1TuneUp.Modules
                 EnsureSchedulerMenu();
                 EnsureRuleBuilderMenu();
                 EnsureProcessDesignerMenu();
+                EnsureAuditLogMenu();
             }
             catch { }
         }
@@ -277,6 +280,37 @@ namespace B1TuneUp.Modules
             }
         }
 
+        private static void EnsureAuditLogMenu()
+        {
+            var app = B1App.Instance.Application;
+            var menus = app.Menus;
+            if (menus.Exists(AuditLogMenuId)) return;
+
+            string parentId = "43520";
+            MenuItem parent = null;
+            try { parent = menus.Item(parentId); } catch { }
+            if (parent == null)
+            {
+                try { parent = menus.Item("0"); } catch { }
+            }
+            if (parent == null) return;
+
+            try
+            {
+                var creationParams = (MenuCreationParams)app.CreateObject(BoCreatableObjectType.cot_MenuCreationParams);
+                creationParams.Type = BoMenuType.mt_STRING;
+                creationParams.UniqueID = AuditLogMenuId;
+                creationParams.String = LocalizationManager.GetString("Menu.AuditLog");
+                creationParams.Position = 9015;
+                parent.SubMenus.AddEx(creationParams);
+                app.SetStatusBarMessage(LocalizationManager.GetString("AuditLog.Menu.Description"), BoMessageTime.bmt_Short, false);
+            }
+            catch (Exception ex)
+            {
+                app.SetStatusBarMessage($"Error creando menú Audit Log: {ex.Message}", BoMessageTime.bmt_Short, true);
+            }
+        }
+
         public static void HandleMenuEvent(ref MenuEvent pVal)
         {
             if (!pVal.BeforeAction && _menuActions.ContainsKey(pVal.MenuUID))
@@ -325,6 +359,14 @@ namespace B1TuneUp.Modules
                 catch (Exception ex)
                 {
                     B1App.Instance.Application.SetStatusBarMessage($"Error abriendo Process Designer: {ex.Message}", BoMessageTime.bmt_Short, true);
+                }
+            }
+            else if (!pVal.BeforeAction && pVal.MenuUID == AuditLogMenuId)
+            {
+                try { AuditLogLauncher.Show(); }
+                catch (Exception ex)
+                {
+                    B1App.Instance.Application.SetStatusBarMessage($"Error abriendo Log Viewer: {ex.Message}", BoMessageTime.bmt_Short, true);
                 }
             }
         }

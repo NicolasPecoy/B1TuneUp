@@ -32,4 +32,6 @@
   ,"RuleBuilder.Menu.Description":"Edita reglas del MacroEngine con una interfaz guiada"
   ,"Menu.ProcessDesigner":"Process Designer"
   ,"ProcessDesigner.Menu.Description":"Diseña y mantiene workflows de Process Steps con interfaz visual"
+  ,"Menu.AuditLog":"Visor de Logs"
+  ,"AuditLog.Menu.Description":"Consulta el historial de acciones con filtros y búsqueda"
 }

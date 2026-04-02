@@ -9,6 +9,7 @@ using B1TuneUp.Modules.RuleBuilder;
 using B1TuneUp.Modules.ProcessDesigner;
 using B1TuneUp.Modules.AuditLogViewer;
 using B1TuneUp.Modules.TemplateReportUi;
+using B1TuneUp.Modules.EmailDesigner;
 using B1TuneUp.Utils;
 
 namespace B1TuneUp.Modules
@@ -22,6 +23,7 @@ namespace B1TuneUp.Modules
         private const string ProcessDesignerMenuId = "BTUN_PSDESIGN";
         private const string AuditLogMenuId = "BTUN_LOGVIEW";
         private const string TemplateReportMenuId = "BTUN_TMPLRPT";
+        private const string EmailDesignerMenuId = "BTUN_EMAILUI";
         private static Dictionary<string, string> _menuActions = new Dictionary<string, string>();
 
         public static void LoadCustomMenus()
@@ -68,6 +70,7 @@ namespace B1TuneUp.Modules
                 EnsureProcessDesignerMenu();
                 EnsureAuditLogMenu();
                 EnsureTemplateReportMenu();
+                EnsureEmailDesignerMenu();
             }
             catch { }
         }
@@ -350,6 +353,42 @@ namespace B1TuneUp.Modules
             }
         }
 
+        private static void EnsureEmailDesignerMenu()
+        {
+            var app = B1App.Instance.Application;
+            var menus = app.Menus;
+            if (menus.Exists(EmailDesignerMenuId)) return;
+
+            string parentId = "43520";
+            MenuItem parent = null;
+            try { parent = menus.Item(parentId); } catch { }
+            if (parent == null)
+            {
+                try { parent = menus.Item("0"); } catch { }
+            }
+            if (parent == null) return;
+
+            try
+            {
+                var creationParams = (MenuCreationParams)app.CreateObject(BoCreatableObjectType.cot_MenuCreationParams);
+                creationParams.Type = BoMenuType.mt_STRING;
+                creationParams.UniqueID = EmailDesignerMenuId;
+                string caption = LocalizationManager.GetString("Menu.EmailDesigner");
+                if (string.IsNullOrWhiteSpace(caption) || caption == "Menu.EmailDesigner")
+                {
+                    caption = "Email & Notification Designer";
+                }
+                creationParams.String = caption;
+                creationParams.Position = 9017;
+                parent.SubMenus.AddEx(creationParams);
+                app.SetStatusBarMessage("Email & Notification Designer disponible en el menú.", BoMessageTime.bmt_Short, false);
+            }
+            catch (Exception ex)
+            {
+                app.SetStatusBarMessage($"Error creando menú Email Designer: {ex.Message}", BoMessageTime.bmt_Short, true);
+            }
+        }
+
         public static void HandleMenuEvent(ref MenuEvent pVal)
         {
             if (!pVal.BeforeAction && _menuActions.ContainsKey(pVal.MenuUID))
@@ -414,6 +453,14 @@ namespace B1TuneUp.Modules
                 catch (Exception ex)
                 {
                     B1App.Instance.Application.SetStatusBarMessage($"Error abriendo Template & Report Studio: {ex.Message}", BoMessageTime.bmt_Short, true);
+                }
+            }
+            else if (!pVal.BeforeAction && pVal.MenuUID == EmailDesignerMenuId)
+            {
+                try { EmailDesignerLauncher.Show(); }
+                catch (Exception ex)
+                {
+                    B1App.Instance.Application.SetStatusBarMessage($"Error abriendo Email & Notification Designer: {ex.Message}", BoMessageTime.bmt_Short, true);
                 }
             }
         }

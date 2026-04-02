@@ -209,7 +209,13 @@ namespace B1TuneUp.Utils
             CreateUDF("@BTUN_EMAIL", "Body", "Body (HTML/Text)", BoFieldTypes.db_Memo);
             CreateUDF("@BTUN_EMAIL", "To", "Recipient Email", BoFieldTypes.db_Alpha, 254);
             CreateUDF("@BTUN_EMAIL", "CC", "CC Recipient", BoFieldTypes.db_Alpha, 254);
+            CreateUDF("@BTUN_EMAIL", "BCC", "BCC Recipient", BoFieldTypes.db_Alpha, 254);
+            CreateUDF("@BTUN_EMAIL", "Sender", "Sender Address", BoFieldTypes.db_Alpha, 254);
             CreateUDF("@BTUN_EMAIL", "Attach", "Attachment Path", BoFieldTypes.db_Alpha, 254);
+            CreateUDF("@BTUN_EMAIL", "Channel", "Delivery Channel", BoFieldTypes.db_Alpha, 20, "Email", "Email:Email;SAPMessage:SAP Message;Desktop:Desktop Toast");
+            CreateUDF("@BTUN_EMAIL", "Priority", "Priority", BoFieldTypes.db_Alpha, 10, "Normal", "Low:Low;Normal:Normal;High:High");
+            CreateUDF("@BTUN_EMAIL", "Active", "Active", BoFieldTypes.db_Alpha, 1, "Y", "Y:Yes;N:No");
+            CreateUDF("@BTUN_EMAIL", "Trigger", "Trigger/Usage Notes", BoFieldTypes.db_Memo);
 
             // Tabla para Scheduler (Tareas Programadas)
             CreateUDT("BTUN_SCHED", "B1TuneUp Scheduler", BoUTBTableType.bott_NoObject);

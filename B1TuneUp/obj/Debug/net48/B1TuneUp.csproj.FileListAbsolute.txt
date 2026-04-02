@@ -34,3 +34,5 @@ E:\B1TuneUp\B1TuneUp\obj\Debug\net48\B1TuneUp\Modules\AuditLogViewer\AuditLogWin
 E:\B1TuneUp\B1TuneUp\obj\Debug\net48\B1TuneUp\Modules\AuditLogViewer\AuditLogWindow.g.cs
 E:\B1TuneUp\B1TuneUp\obj\Debug\net48\B1TuneUp\Modules\TemplateReportUi\TemplateReportWindow.baml
 E:\B1TuneUp\B1TuneUp\obj\Debug\net48\B1TuneUp\Modules\TemplateReportUi\TemplateReportWindow.g.cs
+E:\B1TuneUp\B1TuneUp\obj\Debug\net48\B1TuneUp\Modules\EmailDesigner\EmailDesignerWindow.baml
+E:\B1TuneUp\B1TuneUp\obj\Debug\net48\B1TuneUp\Modules\EmailDesigner\EmailDesignerWindow.g.cs

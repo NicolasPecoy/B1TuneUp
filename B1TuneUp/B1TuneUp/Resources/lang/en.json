@@ -28,4 +28,6 @@
   ,"UiCustomizer.Menu.Description":"Visual editor for SAP Business One form tweaks"
   ,"Menu.SchedulerStudio":"Scheduler Studio"
   ,"Scheduler.Menu.Description":"Manage background tasks and macros visually"
+  ,"Menu.RuleBuilder":"Rule Builder"
+  ,"RuleBuilder.Menu.Description":"Edit MacroEngine rules with a guided interface"
 }

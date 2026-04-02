@@ -26,3 +26,5 @@ E:\B1TuneUp\B1TuneUp\obj\Debug\net48\B1TuneUp\Modules\SchedulerUi\SchedulerWindo
 E:\B1TuneUp\B1TuneUp\obj\Debug\net48\B1TuneUp\Modules\UiDesigner\UiCustomizerWindow.baml
 E:\B1TuneUp\B1TuneUp\obj\Debug\net48\B1TuneUp\Modules\SchedulerUi\SchedulerWindow.g.cs
 E:\B1TuneUp\B1TuneUp\obj\Debug\net48\B1TuneUp\Modules\UiDesigner\UiCustomizerWindow.g.cs
+E:\B1TuneUp\B1TuneUp\obj\Debug\net48\B1TuneUp\Modules\RuleBuilder\RuleBuilderWindow.baml
+E:\B1TuneUp\B1TuneUp\obj\Debug\net48\B1TuneUp\Modules\RuleBuilder\RuleBuilderWindow.g.cs

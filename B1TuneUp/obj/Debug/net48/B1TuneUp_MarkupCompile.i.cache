@@ -10,11 +10,11 @@ none
 false
 TRACE;DEBUG;NETFRAMEWORK;NET48;NET30_OR_GREATER;NET35_OR_GREATER;NET40_OR_GREATER;NET45_OR_GREATER;NET451_OR_GREATER;NET452_OR_GREATER;NET46_OR_GREATER;NET461_OR_GREATER;NET462_OR_GREATER;NET47_OR_GREATER;NET471_OR_GREATER;NET472_OR_GREATER;NET48_OR_GREATER
 
-31695774076
+4-970488402
 
-79-1960969121
+8366976450
 137-1492446796
-B1TuneUp\Modules\IntegrationUi\IntegrationConfiguratorWindow.xaml;B1TuneUp\Modules\SchedulerUi\SchedulerWindow.xaml;B1TuneUp\Modules\UiDesigner\UiCustomizerWindow.xaml;
+B1TuneUp\Modules\IntegrationUi\IntegrationConfiguratorWindow.xaml;B1TuneUp\Modules\RuleBuilder\RuleBuilderWindow.xaml;B1TuneUp\Modules\SchedulerUi\SchedulerWindow.xaml;B1TuneUp\Modules\UiDesigner\UiCustomizerWindow.xaml;
 
 False
 

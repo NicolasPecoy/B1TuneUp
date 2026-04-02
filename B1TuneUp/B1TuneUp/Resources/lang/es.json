@@ -28,4 +28,6 @@
   ,"UiCustomizer.Menu.Description":"Editor visual para personalizar formularios de SAP Business One"
   ,"Menu.SchedulerStudio":"Scheduler Studio"
   ,"Scheduler.Menu.Description":"Administra tareas automáticas y macros con interfaz visual"
+  ,"Menu.RuleBuilder":"Rule Builder"
+  ,"RuleBuilder.Menu.Description":"Edita reglas del MacroEngine con una interfaz guiada"
 }

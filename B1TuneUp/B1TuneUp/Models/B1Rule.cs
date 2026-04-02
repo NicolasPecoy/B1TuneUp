@@ -12,6 +12,7 @@ namespace B1TuneUp.Models
     public class B1Rule
     {
         public string ID { get; set; }
+        public string Name { get; set; }
         public string FormType { get; set; }
         public RuleType Type { get; set; }
         public string EventType { get; set; } // e.g. "et_FORM_LOAD", "et_ITEM_CLICK"

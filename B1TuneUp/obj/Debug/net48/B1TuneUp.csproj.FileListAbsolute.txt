@@ -28,3 +28,5 @@ E:\B1TuneUp\B1TuneUp\obj\Debug\net48\B1TuneUp\Modules\SchedulerUi\SchedulerWindo
 E:\B1TuneUp\B1TuneUp\obj\Debug\net48\B1TuneUp\Modules\UiDesigner\UiCustomizerWindow.g.cs
 E:\B1TuneUp\B1TuneUp\obj\Debug\net48\B1TuneUp\Modules\RuleBuilder\RuleBuilderWindow.baml
 E:\B1TuneUp\B1TuneUp\obj\Debug\net48\B1TuneUp\Modules\RuleBuilder\RuleBuilderWindow.g.cs
+E:\B1TuneUp\B1TuneUp\obj\Debug\net48\B1TuneUp\Modules\ProcessDesigner\ProcessDesignerWindow.baml
+E:\B1TuneUp\B1TuneUp\obj\Debug\net48\B1TuneUp\Modules\ProcessDesigner\ProcessDesignerWindow.g.cs

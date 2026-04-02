@@ -30,4 +30,6 @@
   ,"Scheduler.Menu.Description":"Manage background tasks and macros visually"
   ,"Menu.RuleBuilder":"Rule Builder"
   ,"RuleBuilder.Menu.Description":"Edit MacroEngine rules with a guided interface"
+  ,"Menu.ProcessDesigner":"Process Designer"
+  ,"ProcessDesigner.Menu.Description":"Design and maintain Process Steps workflows visually"
 }

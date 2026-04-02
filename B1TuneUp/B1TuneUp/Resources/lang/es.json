@@ -30,4 +30,6 @@
   ,"Scheduler.Menu.Description":"Administra tareas automáticas y macros con interfaz visual"
   ,"Menu.RuleBuilder":"Rule Builder"
   ,"RuleBuilder.Menu.Description":"Edita reglas del MacroEngine con una interfaz guiada"
+  ,"Menu.ProcessDesigner":"Process Designer"
+  ,"ProcessDesigner.Menu.Description":"Diseña y mantiene workflows de Process Steps con interfaz visual"
 }

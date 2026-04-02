@@ -24,4 +24,6 @@
   ,"Menu.Language":"Language"
   ,"Menu.IntegrationConfigurator":"Integration Studio"
   ,"Integration.Menu.Description":"Configure REST/SOAP integrations with a guided UI"
+  ,"Menu.UiCustomizer":"UI Customizer"
+  ,"UiCustomizer.Menu.Description":"Visual editor for SAP Business One form tweaks"
 }

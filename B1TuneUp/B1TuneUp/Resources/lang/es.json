@@ -24,4 +24,6 @@
   ,"Menu.Language":"Idioma"
   ,"Menu.IntegrationConfigurator":"Configurador de Integraciones"
   ,"Integration.Menu.Description":"Configura integraciones REST/SOAP con una UI guiada"
+  ,"Menu.UiCustomizer":"Editor UI"
+  ,"UiCustomizer.Menu.Description":"Editor visual para personalizar formularios de SAP Business One"
 }

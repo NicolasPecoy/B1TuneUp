@@ -366,6 +366,21 @@ namespace B1TuneUp.Utils
             CreateUDF("@BTUN_FSET", "UserCode", "User Code",  BoFieldTypes.db_Alpha, 50);
             CreateUDF("@BTUN_FSET", "Data",     "Settings (key=val;...)", BoFieldTypes.db_Memo);
 
+            // ── Tabla para configuración de Integraciones (REST/SOAP) ──────────────
+            CreateUDT("BTUN_INTCFG", "B1TuneUp Integration Config", BoUTBTableType.bott_NoObject);
+            CreateUDF("@BTUN_INTCFG", "Channel",   "Channel (REST/SOAP)",       BoFieldTypes.db_Alpha, 10, "REST", "REST:REST;SOAP:SOAP");
+            CreateUDF("@BTUN_INTCFG", "Method",    "HTTP Method",               BoFieldTypes.db_Alpha, 10);
+            CreateUDF("@BTUN_INTCFG", "Endpoint",  "Endpoint/Base URL",         BoFieldTypes.db_Memo);
+            CreateUDF("@BTUN_INTCFG", "Headers",   "HTTP Headers key=value|",   BoFieldTypes.db_Memo);
+            CreateUDF("@BTUN_INTCFG", "Body",      "Body Template",             BoFieldTypes.db_Memo);
+            CreateUDF("@BTUN_INTCFG", "AuthMode",  "Authentication Mode",       BoFieldTypes.db_Alpha, 20, "None", "None:Ninguno;Basic:Basic;Bearer:Bearer Token;ApiKey:API Key");
+            CreateUDF("@BTUN_INTCFG", "AuthUser",  "Auth User",                 BoFieldTypes.db_Alpha, 100);
+            CreateUDF("@BTUN_INTCFG", "AuthSecret","Auth Secret/Token",         BoFieldTypes.db_Memo);
+            CreateUDF("@BTUN_INTCFG", "Schedule",  "Scheduler Interval (min)",  BoFieldTypes.db_Numeric, 11);
+            CreateUDF("@BTUN_INTCFG", "Handler",   "Macro Handler",             BoFieldTypes.db_Memo);
+            CreateUDF("@BTUN_INTCFG", "Notes",     "Notes/Description",         BoFieldTypes.db_Memo);
+            CreateUDF("@BTUN_INTCFG", "Active",    "Active",                    BoFieldTypes.db_Alpha, 1, "Y", "Y:Yes;N:No");
+
             // ── Tabla para Process Steps – cabecera ────────────────────────────────
             CreateUDT("BTUN_PSTEP", "B1TuneUp Process Steps", BoUTBTableType.bott_NoObject);
             CreateUDF("@BTUN_PSTEP", "Name",     "Process Name",          BoFieldTypes.db_Alpha, 100);

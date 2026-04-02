@@ -90,9 +90,14 @@ namespace B1TuneUp.Modules
         }
 
         // Real-time sync using polling - calls a macro when new data is detected (simple change-detection by response content hash)
-        public static void StartRealTimeSync(string id, string url, int intervalSeconds, string handlerMacro)
+        public static void StartRealTimeSync(string id, string url, int intervalSeconds, string handlerMacro, string method = "GET", string headersSerialized = null, string body = null)
         {
-            if (string.IsNullOrEmpty(id) || string.IsNullOrEmpty(url) || intervalSeconds <= 0) return;
+            StartRealTimeSync(id, () => CallRest(url, method ?? "GET", body, headersSerialized), intervalSeconds, handlerMacro);
+        }
+
+        public static void StartRealTimeSync(string id, Func<string> fetcher, int intervalSeconds, string handlerMacro)
+        {
+            if (string.IsNullOrEmpty(id) || fetcher == null || intervalSeconds <= 0) return;
             lock (_syncLock)
             {
                 if (_syncTimers.ContainsKey(id)) return; // already running
@@ -101,7 +106,7 @@ namespace B1TuneUp.Modules
                 {
                     try
                     {
-                        var content = CallRest(url, "GET");
+                        var content = fetcher();
                         var hash = content ?? "";
                         if (lastHash == null) lastHash = hash;
                         else if (hash != lastHash)

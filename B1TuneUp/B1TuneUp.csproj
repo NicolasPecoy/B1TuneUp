@@ -4,6 +4,7 @@
     <OutputType>WinExe</OutputType>
     <TargetFramework>net48</TargetFramework>
     <Platforms>AnyCPU;x64</Platforms>
+    <UseWPF>true</UseWPF>
   </PropertyGroup>
 
   <ItemGroup>
@@ -15,8 +16,10 @@
     <Reference Include="SAPBusinessOneSDK">
       <HintPath>..\SAPBusinessOneSDK.dll</HintPath>
     </Reference>
+    <Reference Include="System.Web" />
     <Reference Include="System.Web.Extensions" />
     <Reference Include="System.Windows.Forms" />
+    <Reference Include="WindowsFormsIntegration" />
   </ItemGroup>
 
   <!-- Exclude Modules from build in this environment to avoid SDK compatibility issues.

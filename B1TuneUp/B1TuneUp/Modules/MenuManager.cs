@@ -2,12 +2,14 @@
 using System.Collections.Generic;
 using SAPbouiCOM;
 using B1TuneUp.Core;
-using B1TuneUp.Modules;
+using B1TuneUp.Modules.IntegrationUi;
+using B1TuneUp.Utils;
 
 namespace B1TuneUp.Modules
 {
     public class MenuManager
     {
+        private const string IntegrationMenuId = "BTUN_INTUI";
         private static Dictionary<string, string> _menuActions = new Dictionary<string, string>();
 
         public static void LoadCustomMenus()
@@ -44,7 +46,12 @@ namespace B1TuneUp.Modules
             }
 
             // Ensure default language menu is available
-            try { EnsureLanguageMenu(); } catch { }
+            try
+            {
+                EnsureLanguageMenu();
+                EnsureIntegrationMenu();
+            }
+            catch { }
         }
 
         private static void AddMenuItem(string parentId, string menuId, string name, int position)
@@ -102,6 +109,38 @@ namespace B1TuneUp.Modules
             catch { }
         }
 
+        private static void EnsureIntegrationMenu()
+        {
+            var app = B1App.Instance.Application;
+            var menus = app.Menus;
+            if (menus.Exists(IntegrationMenuId)) return;
+
+            const string defaultParent = "43520";
+            MenuItem parentMenu = null;
+            try { parentMenu = menus.Item(defaultParent); } catch { }
+            if (parentMenu == null)
+            {
+                try { parentMenu = menus.Item("0"); } catch { }
+            }
+            if (parentMenu == null) return;
+
+            try
+            {
+                var creationParams = (MenuCreationParams)app.CreateObject(BoCreatableObjectType.cot_MenuCreationParams);
+                creationParams.Type = BoMenuType.mt_STRING;
+                creationParams.UniqueID = IntegrationMenuId;
+                creationParams.String = LocalizationManager.GetString("Menu.IntegrationConfigurator");
+                creationParams.Enabled = true;
+                creationParams.Position = 9010;
+                parentMenu.SubMenus.AddEx(creationParams);
+                app.SetStatusBarMessage(LocalizationManager.GetString("Integration.Menu.Description"), BoMessageTime.bmt_Short, false);
+            }
+            catch (Exception ex)
+            {
+                app.SetStatusBarMessage($"Error creando menú de integraciones: {ex.Message}", BoMessageTime.bmt_Short, true);
+            }
+        }
+
         public static void HandleMenuEvent(ref MenuEvent pVal)
         {
             if (!pVal.BeforeAction && _menuActions.ContainsKey(pVal.MenuUID))
@@ -111,6 +150,14 @@ namespace B1TuneUp.Modules
             else if (!pVal.BeforeAction && pVal.MenuUID == "BTUN_LANG")
             {
                 try { new Forms.LanguageSelectorForm().ShowDialog(); } catch { }
+            }
+            else if (!pVal.BeforeAction && pVal.MenuUID == IntegrationMenuId)
+            {
+                try { IntegrationConfiguratorLauncher.Show(); }
+                catch (Exception ex)
+                {
+                    B1App.Instance.Application.SetStatusBarMessage($"Error abriendo Integration Studio: {ex.Message}", BoMessageTime.bmt_Short, true);
+                }
             }
         }
     }

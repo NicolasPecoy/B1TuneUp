@@ -22,4 +22,6 @@
   ,"LanguageSelector.NoSelect":"Por favor seleccione un idioma"
   ,"LanguageSelector.Saved":"Idioma guardado. Puede ser necesario reiniciar."
   ,"Menu.Language":"Idioma"
+  ,"Menu.IntegrationConfigurator":"Configurador de Integraciones"
+  ,"Integration.Menu.Description":"Configura integraciones REST/SOAP con una UI guiada"
 }

@@ -1,11 +1,11 @@
 using System;
 using System.Windows;
 
-namespace B1TuneUp.Modules.UiDesigner
+namespace B1TuneUp.Modules.SchedulerUi
 {
-    public static class UiCustomizerLauncher
+    public static class SchedulerLauncher
     {
-        private static UiCustomizerWindow _window;
+        private static SchedulerWindow _window;
 
         public static void Show()
         {
@@ -19,7 +19,7 @@ namespace B1TuneUp.Modules.UiDesigner
                 return;
             }
 
-            _window = new UiCustomizerWindow();
+            _window = new SchedulerWindow();
             _window.Closed += OnWindowClosed;
             _window.Show();
         }

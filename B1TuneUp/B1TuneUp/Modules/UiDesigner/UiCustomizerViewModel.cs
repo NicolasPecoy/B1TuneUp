@@ -192,7 +192,8 @@ namespace B1TuneUp.Modules.UiDesigner
 
         private bool FilterEntries(object obj)
         {
-            if (obj is not UiCustomizationEntry entry) return false;
+            var entry = obj as UiCustomizationEntry;
+            if (entry == null) return false;
             bool matchForm = string.IsNullOrWhiteSpace(FormFilter) || (entry.FormType?.IndexOf(FormFilter, StringComparison.OrdinalIgnoreCase) >= 0);
             if (!matchForm) return false;
             if (string.IsNullOrWhiteSpace(SearchFilter)) return true;

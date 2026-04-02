@@ -4,6 +4,7 @@ using SAPbouiCOM;
 using B1TuneUp.Core;
 using B1TuneUp.Modules.IntegrationUi;
 using B1TuneUp.Modules.UiDesigner;
+using B1TuneUp.Modules.SchedulerUi;
 using B1TuneUp.Utils;
 
 namespace B1TuneUp.Modules
@@ -12,6 +13,7 @@ namespace B1TuneUp.Modules
     {
         private const string IntegrationMenuId = "BTUN_INTUI";
         private const string UiDesignerMenuId = "BTUN_UICFG";
+        private const string SchedulerMenuId = "BTUN_SCHEDUI";
         private static Dictionary<string, string> _menuActions = new Dictionary<string, string>();
 
         public static void LoadCustomMenus()
@@ -53,6 +55,7 @@ namespace B1TuneUp.Modules
                 EnsureLanguageMenu();
                 EnsureIntegrationMenu();
                 EnsureUiDesignerMenu();
+                EnsureSchedulerMenu();
             }
             catch { }
         }
@@ -175,6 +178,37 @@ namespace B1TuneUp.Modules
             }
         }
 
+        private static void EnsureSchedulerMenu()
+        {
+            var app = B1App.Instance.Application;
+            var menus = app.Menus;
+            if (menus.Exists(SchedulerMenuId)) return;
+
+            string parentId = "43520";
+            MenuItem parentMenu = null;
+            try { parentMenu = menus.Item(parentId); } catch { }
+            if (parentMenu == null)
+            {
+                try { parentMenu = menus.Item("0"); } catch { }
+            }
+            if (parentMenu == null) return;
+
+            try
+            {
+                MenuCreationParams creationParams = (MenuCreationParams)app.CreateObject(BoCreatableObjectType.cot_MenuCreationParams);
+                creationParams.Type = BoMenuType.mt_STRING;
+                creationParams.UniqueID = SchedulerMenuId;
+                creationParams.String = LocalizationManager.GetString("Menu.SchedulerStudio");
+                creationParams.Position = 9012;
+                parentMenu.SubMenus.AddEx(creationParams);
+                app.SetStatusBarMessage(LocalizationManager.GetString("Scheduler.Menu.Description"), BoMessageTime.bmt_Short, false);
+            }
+            catch (Exception ex)
+            {
+                app.SetStatusBarMessage($"Error creando menú Scheduler Studio: {ex.Message}", BoMessageTime.bmt_Short, true);
+            }
+        }
+
         public static void HandleMenuEvent(ref MenuEvent pVal)
         {
             if (!pVal.BeforeAction && _menuActions.ContainsKey(pVal.MenuUID))
@@ -199,6 +233,14 @@ namespace B1TuneUp.Modules
                 catch (Exception ex)
                 {
                     B1App.Instance.Application.SetStatusBarMessage($"Error abriendo UI Customizer: {ex.Message}", BoMessageTime.bmt_Short, true);
+                }
+            }
+            else if (!pVal.BeforeAction && pVal.MenuUID == SchedulerMenuId)
+            {
+                try { SchedulerUi.SchedulerLauncher.Show(); }
+                catch (Exception ex)
+                {
+                    B1App.Instance.Application.SetStatusBarMessage($"Error abriendo Scheduler Studio: {ex.Message}", BoMessageTime.bmt_Short, true);
                 }
             }
         }

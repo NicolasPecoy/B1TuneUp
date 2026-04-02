@@ -380,11 +380,6 @@ namespace B1TuneUp.Modules
             {
                 // Business Services are not available in this build environment; return null.
                 return null; // Placeholder - actual implementation would use DI API Services
-
-                // Based on the document type, create the appropriate draft document
-                // This is a simplified implementation - in a real scenario, you would copy the source document
-                // and create a template from it
-                return null; // Placeholder - actual implementation would depend on specific requirements
             }
             catch (Exception ex)
             {

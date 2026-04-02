@@ -22,3 +22,7 @@ E:\B1TuneUp\B1TuneUp\obj\Debug\net48\B1TuneUp_MarkupCompile.cache
 E:\B1TuneUp\B1TuneUp\obj\Debug\net48\B1TuneUp\Modules\IntegrationUi\IntegrationConfiguratorWindow.baml
 E:\B1TuneUp\B1TuneUp\obj\Debug\net48\B1TuneUp\Modules\IntegrationUi\IntegrationConfiguratorWindow.g.cs
 E:\B1TuneUp\B1TuneUp\obj\Debug\net48\B1TuneUp.g.resources
+E:\B1TuneUp\B1TuneUp\obj\Debug\net48\B1TuneUp\Modules\SchedulerUi\SchedulerWindow.baml
+E:\B1TuneUp\B1TuneUp\obj\Debug\net48\B1TuneUp\Modules\UiDesigner\UiCustomizerWindow.baml
+E:\B1TuneUp\B1TuneUp\obj\Debug\net48\B1TuneUp\Modules\SchedulerUi\SchedulerWindow.g.cs
+E:\B1TuneUp\B1TuneUp\obj\Debug\net48\B1TuneUp\Modules\UiDesigner\UiCustomizerWindow.g.cs

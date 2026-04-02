@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Release</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+
+    <!-- Package metadata - override from command line or CI -->
+    <ProductVersion Condition=" '$(ProductVersion)' == '' ">1.0.0</ProductVersion>
+    <ProductCode Condition=" '$(ProductCode)' == '' ">{PUT-PRODUCT-GUID-HERE}</ProductCode>
+    <UpgradeCode Condition=" '$(UpgradeCode)' == '' ">{PUT-UPGRADE-GUID-HERE}</UpgradeCode>
+    <Manufacturer Condition=" '$(Manufacturer)' == '' ">B1TuneUp</Manufacturer>
+    <AddonCode Condition=" '$(AddonCode)' == '' ">B1TuneUp</AddonCode>
+
+    <OutputName>$(MSBuildProjectName)</OutputName>
+
+    <!-- Path to WiX tools folder - pass via /p:WixToolPath or set default here -->
+    <WixToolPath Condition=" '$(WixToolPath)' == '' ">C:\Program Files (x86)\WiX Toolset v3.11\bin</WixToolPath>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <WixSource Include="Product.wxs" />
+    <WixSource Include="RegisterAddOn.wxs" />
+    <WixSource Include="Components.wxs" />
+  </ItemGroup>
+
+  <Target Name="BeforeBuild">
+    <!-- Harvest build output into Components.wxs using heat.exe -->
+    <Message Text="Harvesting files from: $(ProjectDir)..\..\..\B1TuneUp\B1TuneUp\bin\$(Configuration)" Importance="high" />
+    <Exec Command='&quot;$(WixToolPath)\heat.exe&quot; dir &quot;$(ProjectDir)..\..\..\B1TuneUp\B1TuneUp\bin\$(Configuration)&quot; -ag -scom -sreg -dr INSTALLFOLDER -cg B1TuneUpComponents -var var.SourceDir -out &quot;$(ProjectDir)Components.wxs&quot;' />
+  </Target>
+
+  <Import Project="$(WixToolPath)\Wix.targets" />
+
+  <Target Name="AfterBuild">
+    <Message Text="Build finished. MSI: $(OutputPath)$(OutputName).msi" Importance="high" />
+  </Target>
+</Project>

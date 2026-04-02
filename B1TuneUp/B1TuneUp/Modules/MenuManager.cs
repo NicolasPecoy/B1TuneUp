@@ -42,6 +42,9 @@ namespace B1TuneUp.Modules
             {
                 Utils.ComObjectManager.Release(rs);
             }
+
+            // Ensure default language menu is available
+            try { EnsureLanguageMenu(); } catch { }
         }
 
         private static void AddMenuItem(string parentId, string menuId, string name, int position)
@@ -66,11 +69,48 @@ namespace B1TuneUp.Modules
             }
         }
 
+        private static void EnsureLanguageMenu()
+        {
+            var app = B1App.Instance.Application;
+            var menus = app.Menus;
+            const string langMenuId = "BTUN_LANG";
+            if (menus.Exists(langMenuId)) return;
+
+            // try to attach under Modules menu (43520) or fallback to root
+            string parentId = "43520"; // typical Modules menu id
+            MenuItem parentMenu = null;
+            try
+            {
+                parentMenu = menus.Item(parentId);
+            }
+            catch
+            {
+                try { parentMenu = menus.Item(0); } catch { parentMenu = null; }
+            }
+
+            if (parentMenu == null) return;
+
+            try
+            {
+                MenuCreationParams creationParams = (MenuCreationParams)app.CreateObject(BoCreatableObjectType.cot_MenuCreationParams);
+                creationParams.Type = BoMenuType.mt_STRING;
+                creationParams.UniqueID = langMenuId;
+                creationParams.String = Utils.LocalizationManager.GetString("Menu.Language");
+                creationParams.Position = 9999;
+                parentMenu.SubMenus.AddEx(creationParams);
+            }
+            catch { }
+        }
+
         public static void HandleMenuEvent(ref MenuEvent pVal)
         {
             if (!pVal.BeforeAction && _menuActions.ContainsKey(pVal.MenuUID))
             {
                 MacroEngine.ExecuteMacro(_menuActions[pVal.MenuUID]);
+            }
+            else if (!pVal.BeforeAction && pVal.MenuUID == "BTUN_LANG")
+            {
+                try { new Forms.LanguageSelectorForm().ShowDialog(); } catch { }
             }
         }
     }

@@ -29,6 +29,9 @@ namespace B1TuneUp.Modules.Forms
             _btnSave.Click += BtnSave_Click;
             _btnCancel.Click += (s, e) => Close();
 
+            // Localize the dialog using FormLocalizer
+            try { FormLocalizer.LocalizeForm(this); } catch { }
+
             Controls.Add(_btnSave); Controls.Add(_btnCancel);
 
             LoadLanguages();

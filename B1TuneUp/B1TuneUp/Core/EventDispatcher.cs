@@ -178,6 +178,10 @@ namespace B1TuneUp.Core
                     Form oForm = B1App.Instance.Application.Forms.Item(FormUID);
                     UICustomizer.ApplyCustomization(oForm);
                     DefaultValueManager.ApplyOnLoad(oForm);
+                    LockFieldManager.ApplyOnLoad(oForm);
+                    FormSettingsManager.RestoreSettings(oForm);
+                    QuickCopyManager.AddQuickCopyButtons(oForm);
+                    ProcessStepsManager.CheckAndShowAutoProcess(oForm);
                     // Register saved item actions for this form so they execute on item changes/clicks
                     try
                     {
@@ -206,6 +210,24 @@ namespace B1TuneUp.Core
                     catch { }
                 }
 
+                // Guardar ajustes de formulario al cerrarse
+                if (pVal.EventType == BoEventTypes.et_FORM_CLOSE && pVal.BeforeAction)
+                {
+                    OnFormCloseSaveSettings(FormUID, pVal.BeforeAction);
+                }
+
+                // Clic en botones de Quick Copy
+                if (pVal.EventType == BoEventTypes.et_CLICK && !pVal.BeforeAction
+                    && pVal.ItemUID.StartsWith("BTQC"))
+                {
+                    try
+                    {
+                        Form oForm = B1App.Instance.Application.Forms.Item(FormUID);
+                        QuickCopyManager.HandleButtonClick(FormUID, pVal.ItemUID, oForm);
+                    }
+                    catch { }
+                }
+
                 // Valores por defecto en Change (validate/combo select)
                 if (!pVal.BeforeAction && (pVal.EventType == BoEventTypes.et_VALIDATE || pVal.EventType == BoEventTypes.et_COMBO_SELECT))
                 {
@@ -213,6 +235,7 @@ namespace B1TuneUp.Core
                     {
                         Form oForm = B1App.Instance.Application.Forms.Item(FormUID);
                         DefaultValueManager.ApplyOnChange(oForm, pVal.ItemUID);
+                        LockFieldManager.ApplyOnChange(oForm, pVal.ItemUID);
                         // Invoke any local handlers registered for this item
                         try
                         {
@@ -297,6 +320,18 @@ namespace B1TuneUp.Core
             {
                 Environment.Exit(0);
             }
+        }
+
+        // Guarda ajustes visuales cuando el formulario se cierra (BeforeAction = true → el form aún existe)
+        private void OnFormCloseSaveSettings(string formUID, bool beforeAction)
+        {
+            if (!beforeAction) return;
+            try
+            {
+                Form oForm = B1App.Instance.Application.Forms.Item(formUID);
+                FormSettingsManager.SaveSettings(oForm);
+            }
+            catch { }
         }
 
         private void OnRightClickEvent(ref ContextMenuInfo eventInfo, out bool BubbleEvent)

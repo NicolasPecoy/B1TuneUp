@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
+  <Bundle Name="B1TuneUp Installer" Version="1.0.0.0" Manufacturer="B1TuneUp" UpgradeCode="PUT-GUID-HERE">
+    <BootstrapperApplicationRef Id="WixStandardBootstrapperApplication.HyperlinkLicense" />
+    <Chain>
+      <MsiPackage SourceFile="$(var.OutputPath)\B1TuneUp.msi" DisplayName="B1TuneUp" />
+    </Chain>
+  </Bundle>
+</Wix>

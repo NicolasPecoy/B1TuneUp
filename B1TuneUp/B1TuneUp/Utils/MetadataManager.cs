@@ -339,6 +339,51 @@ namespace B1TuneUp.Utils
             CreateUDF("@BTUN_PD", "CreatedAt", "Created At", BoFieldTypes.db_Date);
             CreateUDF("@BTUN_PD", "UpdatedAt", "Updated At", BoFieldTypes.db_Date);
 
+            // ── Tabla para Lock Fields (Bloqueo dinámico de campos) ────────────────
+            CreateUDT("BTUN_LOCK", "B1TuneUp Lock Fields", BoUTBTableType.bott_NoObject);
+            CreateUDF("@BTUN_LOCK", "FormType",    "Form Type",                    BoFieldTypes.db_Alpha, 20);
+            CreateUDF("@BTUN_LOCK", "ItemID",      "Item ID",                      BoFieldTypes.db_Alpha, 20);
+            CreateUDF("@BTUN_LOCK", "ColID",       "Column ID (if Matrix)",        BoFieldTypes.db_Alpha, 20);
+            CreateUDF("@BTUN_LOCK", "LockType",    "Lock Type",                    BoFieldTypes.db_Alpha, 15, "ReadOnly", "ReadOnly:Read Only;Hidden:Hidden;Disabled:Disabled");
+            CreateUDF("@BTUN_LOCK", "Condition",   "Condition SQL (empty=always)", BoFieldTypes.db_Memo);
+            CreateUDF("@BTUN_LOCK", "TriggerItem", "Trigger Item ID (Change)",     BoFieldTypes.db_Alpha, 20);
+            CreateUDF("@BTUN_LOCK", "OnEvent",     "On Event",                     BoFieldTypes.db_Alpha, 10, "Load", "Load:Form Load;Change:Item Change");
+
+            // ── Tabla para Quick Copy (Copia rápida de documentos) ─────────────────
+            CreateUDT("BTUN_QCOPY", "B1TuneUp Quick Copy", BoUTBTableType.bott_NoObject);
+            CreateUDF("@BTUN_QCOPY", "Name",        "Config Name",                 BoFieldTypes.db_Alpha, 50);
+            CreateUDF("@BTUN_QCOPY", "SrcFormType", "Source Form Type",              BoFieldTypes.db_Alpha, 20);
+            CreateUDF("@BTUN_QCOPY", "SrcObjType",  "Source DI Object Type (enum)", BoFieldTypes.db_Alpha, 30);
+            CreateUDF("@BTUN_QCOPY", "TgtObjType",  "Target DI Object Type (enum)", BoFieldTypes.db_Alpha, 30);
+            CreateUDF("@BTUN_QCOPY", "BtnLabel",    "Button Label",                BoFieldTypes.db_Alpha, 50);
+            CreateUDF("@BTUN_QCOPY", "CopyMode",    "Copy Mode",                   BoFieldTypes.db_Alpha, 15, "Full", "Full:Full Copy;HeaderOnly:Header Only");
+            CreateUDF("@BTUN_QCOPY", "PostMacro",   "Post-Copy Macro",             BoFieldTypes.db_Memo);
+            CreateUDF("@BTUN_QCOPY", "Active",      "Active",                      BoFieldTypes.db_Alpha, 1, "Y", "Y:Yes;N:No");
+
+            // ── Tabla para Form Settings (Ajustes visuales por usuario) ────────────
+            CreateUDT("BTUN_FSET", "B1TuneUp Form Settings", BoUTBTableType.bott_NoObject);
+            CreateUDF("@BTUN_FSET", "FormType", "Form Type",  BoFieldTypes.db_Alpha, 20);
+            CreateUDF("@BTUN_FSET", "UserCode", "User Code",  BoFieldTypes.db_Alpha, 50);
+            CreateUDF("@BTUN_FSET", "Data",     "Settings (key=val;...)", BoFieldTypes.db_Memo);
+
+            // ── Tabla para Process Steps – cabecera ────────────────────────────────
+            CreateUDT("BTUN_PSTEP", "B1TuneUp Process Steps", BoUTBTableType.bott_NoObject);
+            CreateUDF("@BTUN_PSTEP", "Name",     "Process Name",          BoFieldTypes.db_Alpha, 100);
+            CreateUDF("@BTUN_PSTEP", "FormType", "Form Type",             BoFieldTypes.db_Alpha, 20);
+            CreateUDF("@BTUN_PSTEP", "Desc",     "Description",           BoFieldTypes.db_Alpha, 254);
+            CreateUDF("@BTUN_PSTEP", "Active",   "Active",                BoFieldTypes.db_Alpha, 1, "Y", "Y:Yes;N:No");
+            CreateUDF("@BTUN_PSTEP", "AutoShow", "Auto Show on Form Load",BoFieldTypes.db_Alpha, 1, "N", "Y:Yes;N:No");
+
+            // ── Tabla para Process Steps – detalle ─────────────────────────────────
+            CreateUDT("BTUN_PSTEPD", "B1TuneUp Process Step Details", BoUTBTableType.bott_NoObject);
+            CreateUDF("@BTUN_PSTEPD", "ProcessEntry", "Process Entry ID (DocEntry de BTUN_PSTEP)", BoFieldTypes.db_Alpha, 20);
+            CreateUDF("@BTUN_PSTEPD", "StepOrder",    "Step Order",                                BoFieldTypes.db_Numeric, 5);
+            CreateUDF("@BTUN_PSTEPD", "StepName",     "Step Name",                                 BoFieldTypes.db_Alpha, 100);
+            CreateUDF("@BTUN_PSTEPD", "StepDesc",     "Step Description",                          BoFieldTypes.db_Alpha, 254);
+            CreateUDF("@BTUN_PSTEPD", "DoneCondition","Completion Condition SQL",                   BoFieldTypes.db_Memo);
+            CreateUDF("@BTUN_PSTEPD", "Action",       "Step Action Macro",                         BoFieldTypes.db_Memo);
+            CreateUDF("@BTUN_PSTEPD", "Mandatory",    "Mandatory Step",                            BoFieldTypes.db_Alpha, 1, "Y", "Y:Yes;N:No");
+
             B1App.Instance.Application.SetStatusBarMessage("Metadatos B1TuneUp configurados con éxito.", SAPbouiCOM.BoMessageTime.bmt_Short, false);
         }
     }

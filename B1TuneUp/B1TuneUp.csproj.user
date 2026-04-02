@@ -35,6 +35,9 @@
     <Compile Update="B1TuneUp\Modules\Forms\PivotGridForm.cs">
       <SubType>Form</SubType>
     </Compile>
+    <Compile Update="B1TuneUp\Modules\Forms\ProcessStepsForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
     <Compile Update="B1TuneUp\Modules\Forms\RichTextEditorForm.cs">
       <SubType>Form</SubType>
     </Compile>

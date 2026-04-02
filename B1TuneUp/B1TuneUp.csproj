@@ -7,6 +7,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Include="installer\wix\B1TuneUp.wixproj" />
+  </ItemGroup>
+
+  <ItemGroup>
     <!-- SAP Business One SDK reference removed for build in this environment; using internal stubs -->
     <Reference Include="SAPBusinessOneSDK">
       <HintPath>..\SAPBusinessOneSDK.dll</HintPath>

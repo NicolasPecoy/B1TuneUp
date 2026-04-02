@@ -1,0 +1,6 @@
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Target Name="GenerateHeatComponents">
+    <!-- Use heat.exe to harvest the files from the build output into a .wxs fragment -->
+    <Exec Command="heat dir &quot;$(ProjectDir)..\B1TuneUp\bin\$(Configuration)" -ag -scom -sreg -dr INSTALLFOLDER -cg B1TuneUpComponents -var var.SourceDir -out $(ProjectDir)Components.wxs" />
+  </Target>
+</Project>

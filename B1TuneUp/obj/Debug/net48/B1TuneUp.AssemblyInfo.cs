@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("B1TuneUp")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+28c3e8549c1293c0c498250589fb49521bc73e55")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+0f9f169287ac3211e3f50ab9a528b27ceb9dcb55")]
 [assembly: System.Reflection.AssemblyProductAttribute("B1TuneUp")]
 [assembly: System.Reflection.AssemblyTitleAttribute("B1TuneUp")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

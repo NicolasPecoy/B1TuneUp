@@ -32,3 +32,5 @@ E:\B1TuneUp\B1TuneUp\obj\Debug\net48\B1TuneUp\Modules\ProcessDesigner\ProcessDes
 E:\B1TuneUp\B1TuneUp\obj\Debug\net48\B1TuneUp\Modules\ProcessDesigner\ProcessDesignerWindow.g.cs
 E:\B1TuneUp\B1TuneUp\obj\Debug\net48\B1TuneUp\Modules\AuditLogViewer\AuditLogWindow.baml
 E:\B1TuneUp\B1TuneUp\obj\Debug\net48\B1TuneUp\Modules\AuditLogViewer\AuditLogWindow.g.cs
+E:\B1TuneUp\B1TuneUp\obj\Debug\net48\B1TuneUp\Modules\TemplateReportUi\TemplateReportWindow.baml
+E:\B1TuneUp\B1TuneUp\obj\Debug\net48\B1TuneUp\Modules\TemplateReportUi\TemplateReportWindow.g.cs

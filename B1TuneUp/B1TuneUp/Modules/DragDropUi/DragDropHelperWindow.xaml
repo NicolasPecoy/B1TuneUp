@@ -1,9 +1,11 @@
-<Window x:Class="B1TuneUp.Modules.DragDropUi.DragDropHelperWindow"
+﻿<Window x:Class="B1TuneUp.Modules.DragDropUi.DragDropHelperWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="B1TuneUp - Drag &amp; Drop Helper"
-        Width="520"
-        Height="360"
+        Title="B1TuneUp · Drag &amp; Drop Helper"
+        Width="576"
+        Height="532"
+        MinWidth="460"
+        MinHeight="320"
         Background="{DynamicResource WindowBackgroundBrush}"
         WindowStartupLocation="CenterScreen"
         Topmost="True"
@@ -11,8 +13,19 @@
     <Window.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
-                <ResourceDictionary Source="pack://application:,,,/B1TuneUp;component/Resources/B1Theme.xaml" />
+                <ResourceDictionary Source="pack://application:,,,/B1TuneUp;component/B1TuneUp/Resources/B1Theme.xaml" />
             </ResourceDictionary.MergedDictionaries>
+
+            <Style TargetType="TextBlock" BasedOn="{StaticResource LabelTextBlockStyle}">
+                <Setter Property="Margin" Value="0,12,0,4" />
+            </Style>
+            <Style TargetType="TextBox" BasedOn="{StaticResource B1TextBoxStyle}" />
+            <Style TargetType="Button" BasedOn="{StaticResource B1PrimaryButtonStyle}">
+                <Setter Property="Width" Value="220" />
+            </Style>
+            <Style TargetType="Border" BasedOn="{StaticResource B1CardBorderStyle}">
+                <Setter Property="Padding" Value="20" />
+            </Style>
         </ResourceDictionary>
     </Window.Resources>
     <Grid>
@@ -27,26 +40,24 @@
                            Foreground="White"
                            FontSize="22"
                            FontWeight="Bold" />
-                <TextBlock Text="Vincula dos items y replica automáticamente los valores ingresados."
+                <TextBlock Text="Vincula dos ítems y replica automáticamente los valores ingresados."
                            Foreground="#CCFFFFFF"
                            Margin="0,6,0,0" />
             </StackPanel>
         </Border>
 
         <Border Grid.Row="1"
-                Margin="24"
-                Style="{StaticResource B1CardBorderStyle}">
+                Margin="24">
             <ScrollViewer>
                 <StackPanel>
-                    <TextBlock Text="Configura los IDs de los items que querés vincular (Source → Target)."
+                    <TextBlock Text="Configura los IDs de los ítems que querés vincular (Source → Target)."
                                Foreground="{DynamicResource TextSecondaryBrush}"
                                Margin="0,0,0,12" />
-                    <TextBlock Text="Source Item ID" Style="{StaticResource LabelTextBlockStyle}" />
+                    <TextBlock Text="Source Item ID" />
                     <TextBox Text="{Binding SourceItemId, UpdateSourceTrigger=PropertyChanged}" />
-                    <TextBlock Text="Target Item ID" Style="{StaticResource LabelTextBlockStyle}" />
+                    <TextBlock Text="Target Item ID" />
                     <TextBox Text="{Binding TargetItemId, UpdateSourceTrigger=PropertyChanged}" />
-                    <Button Content="Registrar Bind"
-                            Width="200"
+                    <Button Content="Registrar vínculo"
                             Command="{Binding BindCommand}" />
                     <TextBlock Text="{Binding StatusMessage}"
                                Foreground="{DynamicResource TextPrimaryBrush}"
@@ -57,3 +68,5 @@
         </Border>
     </Grid>
 </Window>
+
+

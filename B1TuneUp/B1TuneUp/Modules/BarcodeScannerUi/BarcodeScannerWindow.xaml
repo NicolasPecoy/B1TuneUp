@@ -1,16 +1,31 @@
-<Window x:Class="B1TuneUp.Modules.BarcodeScannerUi.BarcodeScannerWindow"
+﻿<Window x:Class="B1TuneUp.Modules.BarcodeScannerUi.BarcodeScannerWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="B1TuneUp - Barcode Scanner"
-        Width="460"
-        Height="280"
+        Title="B1TuneUp · Barcode Scanner"
+        Width="480"
+        Height="494"
+        MinWidth="420"
+        MinHeight="260"
         Background="{DynamicResource WindowBackgroundBrush}"
-        WindowStartupLocation="CenterScreen">
+        WindowStartupLocation="CenterScreen"
+        Topmost="True"
+        ShowInTaskbar="False">
     <Window.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
-                <ResourceDictionary Source="pack://application:,,,/B1TuneUp;component/Resources/B1Theme.xaml" />
+                <ResourceDictionary Source="pack://application:,,,/B1TuneUp;component/B1TuneUp/Resources/B1Theme.xaml" />
             </ResourceDictionary.MergedDictionaries>
+
+            <Style TargetType="TextBlock" BasedOn="{StaticResource LabelTextBlockStyle}">
+                <Setter Property="Margin" Value="0,12,0,4" />
+            </Style>
+            <Style TargetType="TextBox" BasedOn="{StaticResource B1TextBoxStyle}" />
+            <Style TargetType="Button" BasedOn="{StaticResource B1PrimaryButtonStyle}">
+                <Setter Property="Width" Value="200" />
+            </Style>
+            <Style TargetType="Border" BasedOn="{StaticResource B1CardBorderStyle}">
+                <Setter Property="Padding" Value="20" />
+            </Style>
         </ResourceDictionary>
     </Window.Resources>
 
@@ -33,15 +48,13 @@
         </Border>
 
         <Border Grid.Row="1"
-                Margin="24"
-                Style="{StaticResource B1CardBorderStyle}">
+                Margin="24">
             <StackPanel>
-                <TextBlock Text="Target Item ID" Style="{StaticResource LabelTextBlockStyle}" />
+                <TextBlock Text="Target Item ID" />
                 <TextBox Text="{Binding TargetItemId, UpdateSourceTrigger=PropertyChanged}" />
-                <TextBlock Text="Valor escaneado" Style="{StaticResource LabelTextBlockStyle}" />
+                <TextBlock Text="Valor escaneado" />
                 <TextBox Text="{Binding ScannedValue, UpdateSourceTrigger=PropertyChanged}" />
                 <Button Content="Insertar en SAP"
-                        Width="180"
                         Command="{Binding InjectCommand}" />
                 <TextBlock Text="{Binding StatusMessage}"
                            Margin="0,12,0,0"
@@ -51,3 +64,5 @@
         </Border>
     </Grid>
 </Window>
+
+

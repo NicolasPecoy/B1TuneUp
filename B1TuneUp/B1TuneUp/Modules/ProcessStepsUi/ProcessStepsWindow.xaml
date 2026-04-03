@@ -1,21 +1,33 @@
-<Window x:Class="B1TuneUp.Modules.ProcessStepsUi.ProcessStepsWindow"
+﻿<Window x:Class="B1TuneUp.Modules.ProcessStepsUi.ProcessStepsWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:local="clr-namespace:B1TuneUp.Modules.ProcessStepsUi"
-        Title="B1TuneUp - Process Steps"
-        Width="620"
-        Height="560"
-        MinWidth="520"
+        Title="B1TuneUp · Process Steps"
+        Width="626"
+        Height="649"
+        MinWidth="540"
         MinHeight="440"
         Background="{DynamicResource WindowBackgroundBrush}"
-        WindowStartupLocation="CenterScreen">
+        WindowStartupLocation="CenterScreen"
+        Topmost="True"
+        ShowInTaskbar="False">
     <Window.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
-                <ResourceDictionary Source="pack://application:,,,/B1TuneUp;component/Resources/B1Theme.xaml" />
+                <ResourceDictionary Source="pack://application:,,,/B1TuneUp;component/B1TuneUp/Resources/B1Theme.xaml" />
             </ResourceDictionary.MergedDictionaries>
             <local:ProcessStepStateConverter x:Key="ProcessStepStateConverter" />
             <local:MandatoryFlagConverter x:Key="MandatoryFlagConverter" />
+
+            <Style TargetType="TextBlock" BasedOn="{StaticResource LabelTextBlockStyle}">
+                <Setter Property="Margin" Value="0,8,0,4" />
+            </Style>
+            <Style TargetType="Button" BasedOn="{StaticResource B1PrimaryButtonStyle}">
+                <Setter Property="Width" Value="150" />
+            </Style>
+            <Style TargetType="Border" BasedOn="{StaticResource B1CardBorderStyle}">
+                <Setter Property="Padding" Value="20" />
+            </Style>
         </ResourceDictionary>
     </Window.Resources>
 
@@ -40,9 +52,7 @@
             </StackPanel>
         </Border>
 
-        <Border Grid.Row="1"
-                Margin="24"
-                Style="{StaticResource B1CardBorderStyle}">
+        <Border Grid.Row="1" Margin="24">
             <Grid>
                 <Grid.RowDefinitions>
                     <RowDefinition Height="*" />
@@ -57,7 +67,7 @@
                     <ListView.View>
                         <GridView>
                             <GridViewColumn Header="#" Width="40" DisplayMemberBinding="{Binding Order}" />
-                            <GridViewColumn Header="Paso" Width="240" DisplayMemberBinding="{Binding Name}" />
+                            <GridViewColumn Header="Paso" Width="220" DisplayMemberBinding="{Binding Name}" />
                             <GridViewColumn Header="Estado" Width="120">
                                 <GridViewColumn.CellTemplate>
                                     <DataTemplate>
@@ -65,7 +75,7 @@
                                     </DataTemplate>
                                 </GridViewColumn.CellTemplate>
                             </GridViewColumn>
-                            <GridViewColumn Header="Obligatorio" Width="100">
+                            <GridViewColumn Header="Obligatorio" Width="110">
                                 <GridViewColumn.CellTemplate>
                                     <DataTemplate>
                                         <TextBlock Text="{Binding Mandatory, Converter={StaticResource MandatoryFlagConverter}}" />
@@ -85,9 +95,8 @@
                                TextWrapping="Wrap" />
                 </Border>
 
-                <StackPanel Grid.Row="2" Orientation="Horizontal" Margin="0,12,0,0" HorizontalAlignment="Right">
+                <StackPanel Grid.Row="2" Orientation="Horizontal" Margin="0,16,0,0" HorizontalAlignment="Right">
                     <Button Content="Ejecutar paso"
-                            Width="150"
                             Command="{Binding ExecuteCommand}" />
                     <Button Content="Actualizar"
                             Width="130"
@@ -98,3 +107,5 @@
         </Border>
     </Grid>
 </Window>
+
+

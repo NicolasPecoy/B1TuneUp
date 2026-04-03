@@ -53,7 +53,8 @@ namespace B1TuneUp.Modules.EmailDesigner {
                 return;
             }
             _contentLoaded = true;
-            System.Uri resourceLocater = new System.Uri("/B1TuneUp;component/b1tuneup/modules/emaildesigner/emaildesignerwindow.xaml", System.UriKind.Relative);
+            System.Uri resourceLocater = new System.Uri("/B1TuneUp;V1.0.0.0;component/b1tuneup/modules/emaildesigner/emaildesignerwindow.x" +
+                    "aml", System.UriKind.Relative);
             
             #line 1 "..\..\..\..\..\..\B1TuneUp\Modules\EmailDesigner\EmailDesignerWindow.xaml"
             System.Windows.Application.LoadComponent(this, resourceLocater);

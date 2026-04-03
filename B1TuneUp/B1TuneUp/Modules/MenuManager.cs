@@ -15,6 +15,7 @@ using B1TuneUp.Modules.ValidationUi;
 using B1TuneUp.Modules.DashboardSearchMacroUi;
 using B1TuneUp.Modules.ActionQuickUi;
 using B1TuneUp.Modules.MacroEngineUi;
+using B1TuneUp.Modules.FormEnhancementUi;
 using B1TuneUp.Utils;
 
 namespace B1TuneUp.Modules
@@ -34,6 +35,7 @@ namespace B1TuneUp.Modules
         private const string DashboardSearchMacroMenuId = "BTUN_DSHMC";
         private const string ActionQuickMenuId = "BTUN_ACTPAD";
         private const string MacroEngineMenuId = "BTUN_MACENG";
+        private const string FormEnhancementMenuId = "BTUN_FORMEX";
         private static Dictionary<string, string> _menuActions = new Dictionary<string, string>();
 
         public static void LoadCustomMenus()
@@ -86,6 +88,7 @@ namespace B1TuneUp.Modules
                 EnsureDashboardSearchMacroMenu();
                 EnsureActionQuickMenu();
                 EnsureMacroEngineMenu();
+                EnsureFormEnhancementMenu();
             }
             catch { }
         }
@@ -584,6 +587,42 @@ namespace B1TuneUp.Modules
             }
         }
 
+        private static void EnsureFormEnhancementMenu()
+        {
+            var app = B1App.Instance.Application;
+            var menus = app.Menus;
+            if (menus.Exists(FormEnhancementMenuId)) return;
+
+            string parentId = "43520";
+            MenuItem parentMenu = null;
+            try { parentMenu = menus.Item(parentId); } catch { }
+            if (parentMenu == null)
+            {
+                try { parentMenu = menus.Item("0"); } catch { }
+            }
+            if (parentMenu == null) return;
+
+            try
+            {
+                MenuCreationParams creationParams = (MenuCreationParams)app.CreateObject(BoCreatableObjectType.cot_MenuCreationParams);
+                creationParams.Type = BoMenuType.mt_STRING;
+                creationParams.UniqueID = FormEnhancementMenuId;
+                string caption = LocalizationManager.GetString("Menu.FormEnhancementStudio");
+                if (string.IsNullOrWhiteSpace(caption) || caption == "Menu.FormEnhancementStudio")
+                {
+                    caption = "Form Enhancements Studio";
+                }
+                creationParams.String = caption;
+                creationParams.Position = 9023;
+                parentMenu.SubMenus.AddEx(creationParams);
+                app.SetStatusBarMessage("Form Enhancements Studio disponible en el menu.", BoMessageTime.bmt_Short, false);
+            }
+            catch (Exception ex)
+            {
+                app.SetStatusBarMessage($"Error creando menu Form Enhancements: {ex.Message}", BoMessageTime.bmt_Short, true);
+            }
+        }
+
         public static void HandleMenuEvent(ref MenuEvent pVal)
         {
             if (!pVal.BeforeAction && _menuActions.ContainsKey(pVal.MenuUID))
@@ -696,6 +735,14 @@ namespace B1TuneUp.Modules
                 catch (Exception ex)
                 {
                     B1App.Instance.Application.SetStatusBarMessage($"Error abriendo Macro Engine Studio: {ex.Message}", BoMessageTime.bmt_Short, true);
+                }
+            }
+            else if (!pVal.BeforeAction && pVal.MenuUID == FormEnhancementMenuId)
+            {
+                try { FormEnhancementLauncher.Show(); }
+                catch (Exception ex)
+                {
+                    B1App.Instance.Application.SetStatusBarMessage($"Error abriendo Form Enhancements Studio: {ex.Message}", BoMessageTime.bmt_Short, true);
                 }
             }
         }

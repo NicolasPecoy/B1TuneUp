@@ -46,3 +46,5 @@ E:\B1TuneUp\B1TuneUp\obj\Debug\net48\B1TuneUp\Modules\ActionQuickUi\ActionQuickW
 E:\B1TuneUp\B1TuneUp\obj\Debug\net48\B1TuneUp\Modules\ActionQuickUi\ActionQuickWindow.g.cs
 E:\B1TuneUp\B1TuneUp\obj\Debug\net48\B1TuneUp\Modules\MacroEngineUi\MacroEngineWindow.baml
 E:\B1TuneUp\B1TuneUp\obj\Debug\net48\B1TuneUp\Modules\MacroEngineUi\MacroEngineWindow.g.cs
+E:\B1TuneUp\B1TuneUp\obj\Debug\net48\B1TuneUp\Modules\FormEnhancementUi\FormEnhancementWindow.baml
+E:\B1TuneUp\B1TuneUp\obj\Debug\net48\B1TuneUp\Modules\FormEnhancementUi\FormEnhancementWindow.g.cs

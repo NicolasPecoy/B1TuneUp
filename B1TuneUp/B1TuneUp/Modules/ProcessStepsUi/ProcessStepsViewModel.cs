@@ -30,6 +30,8 @@ namespace B1TuneUp.Modules.ProcessStepsUi
 
         public ObservableCollection<ProcessStep> Steps { get; }
 
+        public string ProcessTitle => string.IsNullOrWhiteSpace(_processInfo?.Name) ? "Process Steps" : _processInfo.Name;
+
         public ProcessStep SelectedStep
         {
             get => _selectedStep;

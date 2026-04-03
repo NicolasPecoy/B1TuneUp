@@ -2,10 +2,12 @@
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         Title="B1TuneUp - Drag &amp; Drop Helper"
-        Width="420"
-        Height="260"
+        Width="520"
+        Height="360"
         Background="{DynamicResource WindowBackgroundBrush}"
-        WindowStartupLocation="CenterScreen">
+        WindowStartupLocation="CenterScreen"
+        Topmost="True"
+        ShowInTaskbar="False">
     <Window.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
@@ -13,24 +15,45 @@
             </ResourceDictionary.MergedDictionaries>
         </ResourceDictionary>
     </Window.Resources>
-    <Border Margin="16"
-            Padding="16"
-            Background="{DynamicResource SurfaceBrush}"
-            BorderBrush="{DynamicResource BorderBrush}"
-            BorderThickness="1"
-            CornerRadius="12">
-        <StackPanel>
-            <TextBlock Text="Source Item ID" Style="{StaticResource LabelTextBlockStyle}" />
-            <TextBox Text="{Binding SourceItemId, UpdateSourceTrigger=PropertyChanged}" />
-            <TextBlock Text="Target Item ID" Style="{StaticResource LabelTextBlockStyle}" />
-            <TextBox Text="{Binding TargetItemId, UpdateSourceTrigger=PropertyChanged}" />
-            <Button Content="Registrar Bind"
-                    Width="160"
-                    Command="{Binding BindCommand}" />
-            <TextBlock Text="{Binding StatusMessage}"
-                       Foreground="{DynamicResource TextPrimaryBrush}"
-                       Margin="0,12,0,0"
-                       TextWrapping="Wrap" />
-        </StackPanel>
-    </Border>
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <Border Background="{DynamicResource PrimaryBrush}" Padding="24" CornerRadius="0,0,24,24">
+            <StackPanel>
+                <TextBlock Text="B1TuneUp · Drag &amp; Drop Helper"
+                           Foreground="White"
+                           FontSize="22"
+                           FontWeight="Bold" />
+                <TextBlock Text="Vincula dos items y replica automáticamente los valores ingresados."
+                           Foreground="#CCFFFFFF"
+                           Margin="0,6,0,0" />
+            </StackPanel>
+        </Border>
+
+        <Border Grid.Row="1"
+                Margin="24"
+                Style="{StaticResource B1CardBorderStyle}">
+            <ScrollViewer>
+                <StackPanel>
+                    <TextBlock Text="Configura los IDs de los items que querés vincular (Source → Target)."
+                               Foreground="{DynamicResource TextSecondaryBrush}"
+                               Margin="0,0,0,12" />
+                    <TextBlock Text="Source Item ID" Style="{StaticResource LabelTextBlockStyle}" />
+                    <TextBox Text="{Binding SourceItemId, UpdateSourceTrigger=PropertyChanged}" />
+                    <TextBlock Text="Target Item ID" Style="{StaticResource LabelTextBlockStyle}" />
+                    <TextBox Text="{Binding TargetItemId, UpdateSourceTrigger=PropertyChanged}" />
+                    <Button Content="Registrar Bind"
+                            Width="200"
+                            Command="{Binding BindCommand}" />
+                    <TextBlock Text="{Binding StatusMessage}"
+                               Foreground="{DynamicResource TextPrimaryBrush}"
+                               Margin="0,12,0,0"
+                               TextWrapping="Wrap" />
+                </StackPanel>
+            </ScrollViewer>
+        </Border>
+    </Grid>
 </Window>

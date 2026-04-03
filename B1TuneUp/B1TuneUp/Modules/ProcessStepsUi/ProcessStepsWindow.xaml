@@ -3,10 +3,10 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:local="clr-namespace:B1TuneUp.Modules.ProcessStepsUi"
         Title="B1TuneUp - Process Steps"
-        Width="520"
-        Height="520"
-        MinWidth="460"
-        MinHeight="420"
+        Width="620"
+        Height="560"
+        MinWidth="520"
+        MinHeight="440"
         Background="{DynamicResource WindowBackgroundBrush}"
         WindowStartupLocation="CenterScreen">
     <Window.Resources>
@@ -18,71 +18,83 @@
             <local:MandatoryFlagConverter x:Key="MandatoryFlagConverter" />
         </ResourceDictionary>
     </Window.Resources>
-    <Border Margin="16"
-            Padding="16"
-            Background="{DynamicResource SurfaceBrush}"
-            BorderBrush="{DynamicResource BorderBrush}"
-            BorderThickness="1"
-            CornerRadius="12">
-        <Grid>
-            <Grid.RowDefinitions>
-                <RowDefinition Height="Auto" />
-                <RowDefinition Height="Auto" />
-                <RowDefinition Height="*" />
-                <RowDefinition Height="Auto" />
-            </Grid.RowDefinitions>
 
-            <StackPanel Orientation="Vertical">
-                <TextBlock Text="{Binding Path=_processInfo.Name, FallbackValue=Processo}"
-                           FontSize="18"
-                           FontWeight="SemiBold"
-                           Foreground="{DynamicResource TextPrimaryBrush}" />
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <Border Background="{DynamicResource PrimaryBrush}" Padding="24" CornerRadius="0,0,24,24">
+            <StackPanel>
+                <TextBlock Text="{Binding ProcessTitle}"
+                           Foreground="White"
+                           FontSize="24"
+                           FontWeight="Bold" />
                 <TextBlock Text="{Binding ProgressText}"
-                           Margin="0,4,0,0"
-                           Foreground="{DynamicResource TextSecondaryBrush}" />
-                <ProgressBar Value="{Binding ProgressValue}" Height="10" Margin="0,8,0,12" />
+                           Foreground="#CCFFFFFF"
+                           Margin="0,6,0,0" />
+                <ProgressBar Value="{Binding ProgressValue}"
+                             Height="10"
+                             Margin="0,10,0,0" />
             </StackPanel>
+        </Border>
 
-            <ListView Grid.Row="1"
-                      Grid.RowSpan="2"
-                      ItemsSource="{Binding Steps}"
-                      SelectedItem="{Binding SelectedStep}"
-                      Margin="0,90,0,120">
-                <ListView.View>
-                    <GridView>
-                        <GridViewColumn Header="#" Width="40" DisplayMemberBinding="{Binding Order}" />
-                        <GridViewColumn Header="Paso" Width="220" DisplayMemberBinding="{Binding Name}" />
-                        <GridViewColumn Header="Estado" Width="120">
-                            <GridViewColumn.CellTemplate>
-                                <DataTemplate>
-                                    <TextBlock Text="{Binding IsDone, Converter={StaticResource ProcessStepStateConverter}}" />
-                                </DataTemplate>
-                            </GridViewColumn.CellTemplate>
-                        </GridViewColumn>
-                        <GridViewColumn Header="Obligatorio" Width="90">
-                            <GridViewColumn.CellTemplate>
-                                <DataTemplate>
-                                    <TextBlock Text="{Binding Mandatory, Converter={StaticResource MandatoryFlagConverter}}" />
-                                </DataTemplate>
-                            </GridViewColumn.CellTemplate>
-                        </GridViewColumn>
-                    </GridView>
-                </ListView.View>
-            </ListView>
+        <Border Grid.Row="1"
+                Margin="24"
+                Style="{StaticResource B1CardBorderStyle}">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="*" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
 
-            <Border Grid.Row="2"
-                    Padding="12"
-                    Background="{DynamicResource SurfaceAltBrush}"
-                    BorderBrush="{DynamicResource BorderBrush}"
-                    BorderThickness="1">
-                <TextBlock Text="{Binding Description}"
-                           TextWrapping="Wrap" />
-            </Border>
+                <ListView ItemsSource="{Binding Steps}"
+                          SelectedItem="{Binding SelectedStep}"
+                          Grid.Row="0"
+                          Margin="0,0,0,12">
+                    <ListView.View>
+                        <GridView>
+                            <GridViewColumn Header="#" Width="40" DisplayMemberBinding="{Binding Order}" />
+                            <GridViewColumn Header="Paso" Width="240" DisplayMemberBinding="{Binding Name}" />
+                            <GridViewColumn Header="Estado" Width="120">
+                                <GridViewColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <TextBlock Text="{Binding IsDone, Converter={StaticResource ProcessStepStateConverter}}" />
+                                    </DataTemplate>
+                                </GridViewColumn.CellTemplate>
+                            </GridViewColumn>
+                            <GridViewColumn Header="Obligatorio" Width="100">
+                                <GridViewColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <TextBlock Text="{Binding Mandatory, Converter={StaticResource MandatoryFlagConverter}}" />
+                                    </DataTemplate>
+                                </GridViewColumn.CellTemplate>
+                            </GridViewColumn>
+                        </GridView>
+                    </ListView.View>
+                </ListView>
 
-            <StackPanel Grid.Row="3" Orientation="Horizontal" Margin="0,12,0,0" HorizontalAlignment="Right">
-                <Button Content="Ejecutar paso" Width="140" Command="{Binding ExecuteCommand}" />
-                <Button Content="Actualizar" Width="120" Margin="12,0,0,0" Command="{Binding RefreshCommand}" />
-            </StackPanel>
-        </Grid>
-    </Border>
+                <Border Grid.Row="1"
+                        Padding="12"
+                        Background="{DynamicResource SurfaceAltBrush}"
+                        BorderBrush="{DynamicResource BorderBrush}"
+                        BorderThickness="1">
+                    <TextBlock Text="{Binding Description}"
+                               TextWrapping="Wrap" />
+                </Border>
+
+                <StackPanel Grid.Row="2" Orientation="Horizontal" Margin="0,12,0,0" HorizontalAlignment="Right">
+                    <Button Content="Ejecutar paso"
+                            Width="150"
+                            Command="{Binding ExecuteCommand}" />
+                    <Button Content="Actualizar"
+                            Width="130"
+                            Margin="12,0,0,0"
+                            Command="{Binding RefreshCommand}" />
+                </StackPanel>
+            </Grid>
+        </Border>
+    </Grid>
 </Window>

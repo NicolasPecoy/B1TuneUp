@@ -44,3 +44,5 @@ E:\B1TuneUp\B1TuneUp\obj\Debug\net48\B1TuneUp\Modules\DashboardSearchMacroUi\Das
 E:\B1TuneUp\B1TuneUp\obj\Debug\net48\B1TuneUp\Modules\DashboardSearchMacroUi\DashboardSearchMacroWindow.g.cs
 E:\B1TuneUp\B1TuneUp\obj\Debug\net48\B1TuneUp\Modules\ActionQuickUi\ActionQuickWindow.baml
 E:\B1TuneUp\B1TuneUp\obj\Debug\net48\B1TuneUp\Modules\ActionQuickUi\ActionQuickWindow.g.cs
+E:\B1TuneUp\B1TuneUp\obj\Debug\net48\B1TuneUp\Modules\MacroEngineUi\MacroEngineWindow.baml
+E:\B1TuneUp\B1TuneUp\obj\Debug\net48\B1TuneUp\Modules\MacroEngineUi\MacroEngineWindow.g.cs

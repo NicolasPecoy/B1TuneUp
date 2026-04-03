@@ -10,6 +10,7 @@ using B1TuneUp.Modules.ProcessDesigner;
 using B1TuneUp.Modules.AuditLogViewer;
 using B1TuneUp.Modules.TemplateReportUi;
 using B1TuneUp.Modules.EmailDesigner;
+using B1TuneUp.Modules.ToolboxUi;
 using B1TuneUp.Utils;
 
 namespace B1TuneUp.Modules
@@ -24,6 +25,7 @@ namespace B1TuneUp.Modules
         private const string AuditLogMenuId = "BTUN_LOGVIEW";
         private const string TemplateReportMenuId = "BTUN_TMPLRPT";
         private const string EmailDesignerMenuId = "BTUN_EMAILUI";
+        private const string ToolboxMenuId = "BTUN_TOOLBOX";
         private static Dictionary<string, string> _menuActions = new Dictionary<string, string>();
 
         public static void LoadCustomMenus()
@@ -71,6 +73,7 @@ namespace B1TuneUp.Modules
                 EnsureAuditLogMenu();
                 EnsureTemplateReportMenu();
                 EnsureEmailDesignerMenu();
+                EnsureToolboxMenu();
             }
             catch { }
         }
@@ -389,6 +392,42 @@ namespace B1TuneUp.Modules
             }
         }
 
+        private static void EnsureToolboxMenu()
+        {
+            var app = B1App.Instance.Application;
+            var menus = app.Menus;
+            if (menus.Exists(ToolboxMenuId)) return;
+
+            string parentId = "43520";
+            MenuItem parent = null;
+            try { parent = menus.Item(parentId); } catch { }
+            if (parent == null)
+            {
+                try { parent = menus.Item("0"); } catch { }
+            }
+            if (parent == null) return;
+
+            try
+            {
+                var creationParams = (MenuCreationParams)app.CreateObject(BoCreatableObjectType.cot_MenuCreationParams);
+                creationParams.Type = BoMenuType.mt_STRING;
+                creationParams.UniqueID = ToolboxMenuId;
+                string caption = LocalizationManager.GetString("Menu.ToolboxDesigner");
+                if (string.IsNullOrWhiteSpace(caption) || caption == "Menu.ToolboxDesigner")
+                {
+                    caption = "Toolbox / Settings";
+                }
+                creationParams.String = caption;
+                creationParams.Position = 9018;
+                parent.SubMenus.AddEx(creationParams);
+                app.SetStatusBarMessage("Toolbox / Settings disponible en el menú.", BoMessageTime.bmt_Short, false);
+            }
+            catch (Exception ex)
+            {
+                app.SetStatusBarMessage($"Error creando menú Toolbox: {ex.Message}", BoMessageTime.bmt_Short, true);
+            }
+        }
+
         public static void HandleMenuEvent(ref MenuEvent pVal)
         {
             if (!pVal.BeforeAction && _menuActions.ContainsKey(pVal.MenuUID))
@@ -461,6 +500,14 @@ namespace B1TuneUp.Modules
                 catch (Exception ex)
                 {
                     B1App.Instance.Application.SetStatusBarMessage($"Error abriendo Email & Notification Designer: {ex.Message}", BoMessageTime.bmt_Short, true);
+                }
+            }
+            else if (!pVal.BeforeAction && pVal.MenuUID == ToolboxMenuId)
+            {
+                try { ToolboxDesignerLauncher.Show(); }
+                catch (Exception ex)
+                {
+                    B1App.Instance.Application.SetStatusBarMessage($"Error abriendo Toolbox Settings: {ex.Message}", BoMessageTime.bmt_Short, true);
                 }
             }
         }

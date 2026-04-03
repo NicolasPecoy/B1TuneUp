@@ -82,7 +82,7 @@
         <Border Background="{DynamicResource PrimaryBrush}" Padding="24" CornerRadius="0,0,24,24">
             <StackPanel>
                 <TextBlock Text="B1TuneUp Estudio MacroEngine" Foreground="White" FontSize="26" FontWeight="Bold" />
-                <TextBlock Text="Crea, edita y prueba macros de MacroEngine con el estilo SAP." Foreground="#CCFFFFFF" FontSize="14" Margin="0,6,0,0" />
+                <TextBlock Text="Crea, edita y prueba macros con el estilo visual de SAP Business One." Foreground="#CCFFFFFF" FontSize="14" Margin="0,6,0,0" />
                 <TextBlock Text="{Binding StatusMessage}" Foreground="#CCFFFFFF" FontSize="13" Margin="0,8,0,0" />
             </StackPanel>
         </Border>
@@ -109,16 +109,16 @@
                             <DataTemplate>
                                 <StackPanel Margin="4">
                                     <TextBlock Text="{Binding Name}" FontWeight="SemiBold" />
-                                    <TextBlock Text="{Binding Descripcion}" Foreground="{DynamicResource TextSecondaryBrush}" FontSize="12" />
+                                    <TextBlock Text="{Binding Description}" Foreground="{DynamicResource TextSecondaryBrush}" FontSize="12" />
                                 </StackPanel>
                             </DataTemplate>
                         </ListBox.ItemTemplate>
                     </ListBox>
                     <WrapPanel Margin="0,16,0,0">
-                        <Button Content="Nuevo" Command="{Binding NuevoCommand}" Background="{DynamicResource AccentAltBrush}" />
-                        <Button Content="Duplicar" Command="{Binding DuplicarCommand}" Background="{DynamicResource AccentAltBrush}" />
-                        <Button Content="Eliminar" Command="{Binding EliminarCommand}" Background="#FFB33939" />
-                        <Button Content="Actualizar" Command="{Binding ActualizarCommand}" Background="{DynamicResource PrimaryDarkBrush}" />
+                        <Button Content="Nueva" Command="{Binding NewCommand}" Background="{DynamicResource AccentAltBrush}" />
+                        <Button Content="Duplicar" Command="{Binding DuplicateCommand}" Background="{DynamicResource AccentAltBrush}" />
+                        <Button Content="Eliminar" Command="{Binding DeleteCommand}" Background="#FFB33939" />
+                        <Button Content="Actualizar" Command="{Binding RefreshCommand}" Background="{DynamicResource PrimaryDarkBrush}" />
                     </WrapPanel>
                 </StackPanel>
             </Border>
@@ -137,33 +137,33 @@
                             <ColumnDefinition Width="*" />
                         </Grid.ColumnDefinitions>
                         <StackPanel Grid.Column="0" Margin="0,0,12,0">
-                            <TextBlock Text="Nombre de macro" Style="{StaticResource LabelStyle}" />
+                            <TextBlock Text="Nombre" Style="{StaticResource LabelStyle}" />
                             <TextBox Text="{Binding SelectedMacro.Name, UpdateSourceTrigger=PropertyChanged}" />
                             <TextBlock Text="Descripcion" Style="{StaticResource LabelStyle}" />
-                            <TextBox Text="{Binding SelectedMacro.Descripcion, UpdateSourceTrigger=PropertyChanged}" />
+                            <TextBox Text="{Binding SelectedMacro.Description, UpdateSourceTrigger=PropertyChanged}" />
                         </StackPanel>
                         <StackPanel Grid.Column="1">
                             <TextBlock Text="Codigo" Style="{StaticResource LabelStyle}" />
-                            <TextBox Text="{Binding SelectedMacro.Codigo}" IsReadOnly="True" Background="{DynamicResource SurfaceAltBrush}" />
+                            <TextBox Text="{Binding SelectedMacro.Code}" IsReadOnly="True" Background="{DynamicResource SurfaceAltBrush}" />
                             <TextBlock Text="Parametros" Style="{StaticResource LabelStyle}" />
-                            <TextBox Text="{Binding SelectedMacro.Parametros, UpdateSourceTrigger=PropertyChanged}" />
+                            <TextBox Text="{Binding SelectedMacro.Parameters, UpdateSourceTrigger=PropertyChanged}" />
                         </StackPanel>
                     </Grid>
 
                     <StackPanel Grid.Row="1">
-                        <TextBlock Text="Codigo de la macro" Style="{StaticResource LabelStyle}" />
+                        <TextBlock Text="Fuente" Style="{StaticResource LabelStyle}" />
                         <TextBox Text="{Binding SelectedMacro.Source, UpdateSourceTrigger=PropertyChanged}" AcceptsReturn="True" VerticalScrollBarVisibility="Auto" Height="320" FontFamily="Consolas" />
                     </StackPanel>
 
                     <StackPanel Grid.Row="2">
                         <WrapPanel>
-                            <Button Content="Guardar" Command="{Binding GuardarCommand}" />
+                            <Button Content="Guardar" Command="{Binding SaveCommand}" />
                             <Button Content="Ejecutar" Command="{Binding RunCommand}" Background="{DynamicResource AccentAltBrush}" />
-                            <Button Content="Copiar codigo" Command="{Binding CopyCommand}" Background="{DynamicResource PrimaryDarkBrush}" />
+                            <Button Content="Copiar" Command="{Binding CopyCommand}" Background="{DynamicResource PrimaryDarkBrush}" />
                         </WrapPanel>
                         <Border Background="{DynamicResource SurfaceAltBrush}" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1" CornerRadius="8" Padding="12" Margin="0,12,0,0">
                             <StackPanel>
-                                <TextBlock Text="Resultado de la ultima prueba" Style="{StaticResource LabelStyle}" />
+                                <TextBlock Text="Resultado de prueba" Style="{StaticResource LabelStyle}" />
                                 <TextBlock Text="{Binding TestResult}" TextWrapping="Wrap" Foreground="{DynamicResource TextPrimaryBrush}" />
                             </StackPanel>
                         </Border>
@@ -174,7 +174,7 @@
 
         <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Margin="24,0,24,16">
             <TextBlock Text="{Binding BusyMessage}" Foreground="{DynamicResource TextSecondaryBrush}" VerticalAlignment="Center" Margin="0,0,16,0" />
-            <Button Content="Cerrar" Click="OnCerrarClick" Background="{DynamicResource PrimaryDarkBrush}" />
+            <Button Content="Cerrar" Click="OnCloseClick" Background="{DynamicResource PrimaryDarkBrush}" />
         </StackPanel>
 
         <Grid Background="#80000000" Visibility="{Binding IsBusy, Converter={StaticResource BooleanToVisibilityConverter}}" Grid.RowSpan="3">

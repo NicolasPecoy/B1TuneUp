@@ -48,3 +48,5 @@ E:\B1TuneUp\B1TuneUp\obj\Debug\net48\B1TuneUp\Modules\MacroEngineUi\MacroEngineW
 E:\B1TuneUp\B1TuneUp\obj\Debug\net48\B1TuneUp\Modules\MacroEngineUi\MacroEngineWindow.g.cs
 E:\B1TuneUp\B1TuneUp\obj\Debug\net48\B1TuneUp\Modules\FormEnhancementUi\FormEnhancementWindow.baml
 E:\B1TuneUp\B1TuneUp\obj\Debug\net48\B1TuneUp\Modules\FormEnhancementUi\FormEnhancementWindow.g.cs
+E:\B1TuneUp\B1TuneUp\obj\Debug\net48\B1TuneUp\Modules\AutomationDashboardUi\AutomationDashboardWindow.baml
+E:\B1TuneUp\B1TuneUp\obj\Debug\net48\B1TuneUp\Modules\AutomationDashboardUi\AutomationDashboardWindow.g.cs

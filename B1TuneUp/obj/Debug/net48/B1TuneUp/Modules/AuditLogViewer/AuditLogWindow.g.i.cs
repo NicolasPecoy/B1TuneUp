@@ -53,7 +53,7 @@ namespace B1TuneUp.Modules.AuditLogViewer {
                 return;
             }
             _contentLoaded = true;
-            System.Uri resourceLocater = new System.Uri("/B1TuneUp;V1.0.0.0;component/b1tuneup/modules/auditlogviewer/auditlogwindow.xaml", System.UriKind.Relative);
+            System.Uri resourceLocater = new System.Uri("/B1TuneUp;component/b1tuneup/modules/auditlogviewer/auditlogwindow.xaml", System.UriKind.Relative);
             
             #line 1 "..\..\..\..\..\..\B1TuneUp\Modules\AuditLogViewer\AuditLogWindow.xaml"
             System.Windows.Application.LoadComponent(this, resourceLocater);

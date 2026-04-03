@@ -12,6 +12,7 @@ using B1TuneUp.Modules.TemplateReportUi;
 using B1TuneUp.Modules.EmailDesigner;
 using B1TuneUp.Modules.ToolboxUi;
 using B1TuneUp.Modules.ValidationUi;
+using B1TuneUp.Modules.DashboardSearchMacroUi;
 using B1TuneUp.Utils;
 
 namespace B1TuneUp.Modules
@@ -28,6 +29,7 @@ namespace B1TuneUp.Modules
         private const string EmailDesignerMenuId = "BTUN_EMAILUI";
         private const string ToolboxMenuId = "BTUN_TOOLBOX";
         private const string ValidationMenuId = "BTUN_VALMAND";
+        private const string DashboardSearchMacroMenuId = "BTUN_DSHMC";
         private static Dictionary<string, string> _menuActions = new Dictionary<string, string>();
 
         public static void LoadCustomMenus()
@@ -77,6 +79,7 @@ namespace B1TuneUp.Modules
                 EnsureEmailDesignerMenu();
                 EnsureToolboxMenu();
                 EnsureValidationMenu();
+                EnsureDashboardSearchMacroMenu();
             }
             catch { }
         }
@@ -467,6 +470,42 @@ namespace B1TuneUp.Modules
             }
         }
 
+        private static void EnsureDashboardSearchMacroMenu()
+        {
+            var app = B1App.Instance.Application;
+            var menus = app.Menus;
+            if (menus.Exists(DashboardSearchMacroMenuId)) return;
+
+            string parentId = "43520";
+            MenuItem parentMenu = null;
+            try { parentMenu = menus.Item(parentId); } catch { }
+            if (parentMenu == null)
+            {
+                try { parentMenu = menus.Item("0"); } catch { }
+            }
+            if (parentMenu == null) return;
+
+            try
+            {
+                MenuCreationParams creationParams = (MenuCreationParams)app.CreateObject(BoCreatableObjectType.cot_MenuCreationParams);
+                creationParams.Type = BoMenuType.mt_STRING;
+                creationParams.UniqueID = DashboardSearchMacroMenuId;
+                string caption = LocalizationManager.GetString("Menu.DashboardSearchMacroStudio");
+                if (string.IsNullOrWhiteSpace(caption) || caption == "Menu.DashboardSearchMacroStudio")
+                {
+                    caption = "Dashboard / Search / Macro Studio";
+                }
+                creationParams.String = caption;
+                creationParams.Position = 9020;
+                parentMenu.SubMenus.AddEx(creationParams);
+                app.SetStatusBarMessage("Dashboard / Search / Macro Studio disponible en el menu.", BoMessageTime.bmt_Short, false);
+            }
+            catch (Exception ex)
+            {
+                app.SetStatusBarMessage($"Error creando menu Dashboard/Search/Macro: {ex.Message}", BoMessageTime.bmt_Short, true);
+            }
+        }
+
         public static void HandleMenuEvent(ref MenuEvent pVal)
         {
             if (!pVal.BeforeAction && _menuActions.ContainsKey(pVal.MenuUID))
@@ -555,6 +594,14 @@ namespace B1TuneUp.Modules
                 catch (Exception ex)
                 {
                     B1App.Instance.Application.SetStatusBarMessage($"Error abriendo Validation Designer: {ex.Message}", BoMessageTime.bmt_Short, true);
+                }
+            }
+            else if (!pVal.BeforeAction && pVal.MenuUID == DashboardSearchMacroMenuId)
+            {
+                try { DashboardSearchMacroLauncher.Show(); }
+                catch (Exception ex)
+                {
+                    B1App.Instance.Application.SetStatusBarMessage($"Error abriendo Dashboard/Search/Macro Studio: {ex.Message}", BoMessageTime.bmt_Short, true);
                 }
             }
         }

@@ -40,3 +40,5 @@ E:\B1TuneUp\B1TuneUp\obj\Debug\net48\B1TuneUp\Modules\ToolboxUi\ToolboxDesignerW
 E:\B1TuneUp\B1TuneUp\obj\Debug\net48\B1TuneUp\Modules\ToolboxUi\ToolboxDesignerWindow.g.cs
 E:\B1TuneUp\B1TuneUp\obj\Debug\net48\B1TuneUp\Modules\ValidationUi\ValidationDesignerWindow.baml
 E:\B1TuneUp\B1TuneUp\obj\Debug\net48\B1TuneUp\Modules\ValidationUi\ValidationDesignerWindow.g.cs
+E:\B1TuneUp\B1TuneUp\obj\Debug\net48\B1TuneUp\Modules\DashboardSearchMacroUi\DashboardSearchMacroWindow.baml
+E:\B1TuneUp\B1TuneUp\obj\Debug\net48\B1TuneUp\Modules\DashboardSearchMacroUi\DashboardSearchMacroWindow.g.cs

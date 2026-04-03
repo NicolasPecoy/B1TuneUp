@@ -7,6 +7,7 @@ using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Data;
+using System.Windows.Threading;
 using Microsoft.Win32;
 using B1TuneUp.Core;
 using B1TuneUp.Models;
@@ -19,6 +20,7 @@ namespace B1TuneUp.Modules.PlacementEnhancementUi
     {
         private readonly ObservableCollection<LayoutDefinitionEntry> _layouts = new ObservableCollection<LayoutDefinitionEntry>();
         private readonly ICollectionView _layoutsView;
+        private readonly Dispatcher _dispatcher;
 
         private LayoutDefinitionEntry _selectedLayout;
         private string _layoutSearch;
@@ -37,6 +39,7 @@ namespace B1TuneUp.Modules.PlacementEnhancementUi
 
         public PlacementEnhancementViewModel()
         {
+            _dispatcher = Application.Current?.Dispatcher ?? Dispatcher.CurrentDispatcher;
             _layoutsView = CollectionViewSource.GetDefaultView(_layouts);
             _layoutsView.Filter = obj => FilterLayout(obj as LayoutDefinitionEntry);
 
@@ -398,7 +401,8 @@ namespace B1TuneUp.Modules.PlacementEnhancementUi
         private async Task ReloadLayoutsInternalAsync()
         {
             var table = await Task.Run(() => ItemPlacementManager.GetLayouts(null));
-            await Application.Current.Dispatcher.InvokeAsync(() =>
+            var dispatcher = _dispatcher ?? Application.Current?.Dispatcher ?? Dispatcher.CurrentDispatcher;
+            await dispatcher.InvokeAsync(() =>
             {
                 _layouts.Clear();
                 foreach (DataRow row in table.Rows)

@@ -1,0 +1,147 @@
+<Window x:Class="B1TuneUp.Modules.ItemEditorUi.ItemEditorWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d"
+        Title="B1TuneUp · Editor de Ítem"
+        Width="640"
+        Height="520"
+        MinWidth="580"
+        MinHeight="460"
+        Background="{DynamicResource WindowBackgroundBrush}"
+        WindowStartupLocation="CenterScreen"
+        Topmost="True"
+        ShowInTaskbar="False">
+    <Window.Resources>
+        <Color x:Key="PrimaryColor">#1F4E79</Color>
+        <Color x:Key="PrimaryDarkColor">#0F263D</Color>
+        <Color x:Key="AccentColor">#F39C12</Color>
+        <Color x:Key="AccentAltColor">#2E75B6</Color>
+        <Color x:Key="SurfaceColor">#FFFFFFFF</Color>
+        <Color x:Key="SurfaceAltColor">#F4F6F9</Color>
+        <Color x:Key="BorderColor">#D7DCE3</Color>
+        <Color x:Key="TextPrimaryColor">#10263C</Color>
+        <Color x:Key="TextSecondaryColor">#516173</Color>
+
+        <SolidColorBrush x:Key="PrimaryBrush" Color="{DynamicResource PrimaryColor}" />
+        <SolidColorBrush x:Key="PrimaryDarkBrush" Color="{DynamicResource PrimaryDarkColor}" />
+        <SolidColorBrush x:Key="AccentBrush" Color="{DynamicResource AccentColor}" />
+        <SolidColorBrush x:Key="AccentAltBrush" Color="{DynamicResource AccentAltColor}" />
+        <SolidColorBrush x:Key="SurfaceBrush" Color="{DynamicResource SurfaceColor}" />
+        <SolidColorBrush x:Key="SurfaceAltBrush" Color="{DynamicResource SurfaceAltColor}" />
+        <SolidColorBrush x:Key="BorderBrush" Color="{DynamicResource BorderColor}" />
+        <SolidColorBrush x:Key="TextPrimaryBrush" Color="{DynamicResource TextPrimaryColor}" />
+        <SolidColorBrush x:Key="TextSecondaryBrush" Color="{DynamicResource TextSecondaryColor}" />
+        <SolidColorBrush x:Key="WindowBackgroundBrush" Color="#E9EDF3" />
+
+        <Style TargetType="TextBlock">
+            <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}" />
+            <Setter Property="FontSize" Value="13" />
+            <Setter Property="Margin" Value="0,10,0,4" />
+        </Style>
+
+        <Style TargetType="TextBox">
+            <Setter Property="Padding" Value="8,4" />
+            <Setter Property="Margin" Value="0,0,0,12" />
+            <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="Background" Value="{DynamicResource SurfaceBrush}" />
+            <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}" />
+        </Style>
+
+        <Style TargetType="Button">
+            <Setter Property="Padding" Value="12,6" />
+            <Setter Property="Margin" Value="0,8,12,0" />
+            <Setter Property="Background" Value="{DynamicResource AccentBrush}" />
+            <Setter Property="Foreground" Value="White" />
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="HorizontalAlignment" Value="Left" />
+        </Style>
+
+        <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
+    </Window.Resources>
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <Border Background="{DynamicResource PrimaryBrush}" Padding="20" CornerRadius="0,0,18,18">
+            <StackPanel>
+                <TextBlock Text="{Binding HeaderTitle}"
+                           Foreground="White"
+                           FontSize="22"
+                           FontWeight="Bold"
+                           Margin="0" />
+                <TextBlock Text="{Binding HeaderSubtitle}"
+                           Foreground="#CCFFFFFF"
+                           Margin="0,4,0,0" />
+            </StackPanel>
+        </Border>
+
+        <Border Grid.Row="1"
+                Margin="20"
+                Background="{DynamicResource SurfaceBrush}"
+                Padding="24"
+                CornerRadius="14"
+                BorderBrush="{DynamicResource BorderBrush}"
+                BorderThickness="1">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="1*" />
+                    <ColumnDefinition Width="1*" />
+                </Grid.ColumnDefinitions>
+
+                <StackPanel Margin="0,0,12,0">
+                    <TextBlock Text="Posición y tamaño" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,12" />
+                    <TextBlock Text="Left" />
+                    <TextBox Text="{Binding Left, UpdateSourceTrigger=PropertyChanged}" />
+                    <TextBlock Text="Top" />
+                    <TextBox Text="{Binding Top, UpdateSourceTrigger=PropertyChanged}" />
+                    <TextBlock Text="Width" />
+                    <TextBox Text="{Binding Width, UpdateSourceTrigger=PropertyChanged}" />
+                    <TextBlock Text="Height" />
+                    <TextBox Text="{Binding Height, UpdateSourceTrigger=PropertyChanged}" />
+                    <StackPanel Orientation="Horizontal">
+                        <Button Content="Aplicar" Command="{Binding ApplyCommand}" />
+                    </StackPanel>
+                </StackPanel>
+
+                <StackPanel Grid.Column="1" Margin="12,0,0,0">
+                    <TextBlock Text="Macro (acciones del ítem)" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,12" />
+                    <TextBox Text="{Binding MacroScript, UpdateSourceTrigger=PropertyChanged}"
+                             Height="180"
+                             AcceptsReturn="True"
+                             VerticalScrollBarVisibility="Auto"
+                             TextWrapping="Wrap" />
+                    <StackPanel Orientation="Horizontal">
+                        <Button Content="Guardar Macro" Command="{Binding SaveActionCommand}" />
+                    </StackPanel>
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <StackPanel Grid.Row="2"
+                    Orientation="Horizontal"
+                    HorizontalAlignment="Right"
+                    Margin="20,0,20,16">
+            <TextBlock Text="{Binding StatusMessage}" VerticalAlignment="Center" Margin="0,0,16,0" />
+            <Button Content="Cerrar" Click="OnCloseClick" Background="{DynamicResource PrimaryDarkBrush}" />
+        </StackPanel>
+
+        <Grid Visibility="{Binding IsBusy, Converter={StaticResource BooleanToVisibilityConverter}}"
+              Background="#60000000">
+            <Viewbox Width="100" Height="100" HorizontalAlignment="Center" VerticalAlignment="Center">
+                <StackPanel>
+                    <TextBlock Text="{Binding BusyMessage}" Foreground="White" HorizontalAlignment="Center" Margin="0,0,0,8" />
+                    <ProgressBar IsIndeterminate="True" Width="100" Height="6" />
+                </StackPanel>
+            </Viewbox>
+        </Grid>
+    </Grid>
+</Window>

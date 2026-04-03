@@ -1,8 +1,8 @@
 using System;
-using System.Windows.Forms;
 using SAPbouiCOM;
 using B1TuneUp.Core;
 using B1TuneUp.Utils;
+using B1TuneUp.Modules.ItemEditorUi;
 
 namespace B1TuneUp.Modules
 {
@@ -12,17 +12,19 @@ namespace B1TuneUp.Modules
         {
             try
             {
-                if (form == null) form = B1App.Instance.Application.Forms.ActiveForm;
-                if (form == null) return;
-                if (!form.Items.Exists(itemId))
+                var targetForm = form ?? B1App.Instance.Application.Forms.ActiveForm;
+                if (targetForm == null)
                 {
-                    B1App.Instance.Application.SetStatusBarMessage($"Item {itemId} no encontrado.", SAPbouiCOM.BoMessageTime.bmt_Short, true);
+                    B1App.Instance.Application.SetStatusBarMessage("No hay un formulario activo.", BoMessageTime.bmt_Short, true);
+                    return;
+                }
+                if (!targetForm.Items.Exists(itemId))
+                {
+                    B1App.Instance.Application.SetStatusBarMessage($"Item {itemId} no encontrado.", BoMessageTime.bmt_Short, true);
                     return;
                 }
 
-                var it = form.Items.Item(itemId);
-                var dlg = new Forms.ItemEditorForm(form, it);
-                dlg.ShowDialog();
+                ItemEditorLauncher.ShowItemEditor(targetForm.UniqueID, itemId);
             }
             catch (Exception ex)
             {
@@ -34,9 +36,14 @@ namespace B1TuneUp.Modules
         {
             try
             {
-                if (form == null) form = B1App.Instance.Application.Forms.ActiveForm;
-                var dlg = new Forms.AddItemForm(form);
-                dlg.ShowDialog();
+                var targetForm = form ?? B1App.Instance.Application.Forms.ActiveForm;
+                if (targetForm == null)
+                {
+                    B1App.Instance.Application.SetStatusBarMessage("No hay un formulario activo en SAP Business One.", BoMessageTime.bmt_Short, true);
+                    return;
+                }
+
+                ItemEditorLauncher.ShowAddItem(targetForm.UniqueID);
             }
             catch (Exception ex)
             {

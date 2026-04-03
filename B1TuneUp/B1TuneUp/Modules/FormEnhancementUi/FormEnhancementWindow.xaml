@@ -10,7 +10,9 @@
         MinWidth="1220"
         MinHeight="720"
         Background="{DynamicResource WindowBackgroundBrush}"
-        WindowStartupLocation="CenterScreen">
+        WindowStartupLocation="CenterScreen"
+        Topmost="True"
+        ShowInTaskbar="False">
     <Window.Resources>
         <Color x:Key="PrimaryColor">#1F4E79</Color>
         <Color x:Key="PrimaryDarkColor">#0F263D</Color>

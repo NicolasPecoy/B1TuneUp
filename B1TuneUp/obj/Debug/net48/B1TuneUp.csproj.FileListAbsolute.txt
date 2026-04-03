@@ -56,3 +56,7 @@ E:\B1TuneUp\B1TuneUp\obj\Debug\net48\B1TuneUp\Modules\ItemActionsUi\ItemActionsW
 E:\B1TuneUp\B1TuneUp\obj\Debug\net48\B1TuneUp\Modules\LayoutManagerUi\LayoutManagerWindow.baml
 E:\B1TuneUp\B1TuneUp\obj\Debug\net48\B1TuneUp\Modules\ItemActionsUi\ItemActionsWindow.g.cs
 E:\B1TuneUp\B1TuneUp\obj\Debug\net48\B1TuneUp\Modules\LayoutManagerUi\LayoutManagerWindow.g.cs
+E:\B1TuneUp\B1TuneUp\obj\Debug\net48\B1TuneUp\Modules\ItemEditorUi\AddItemWindow.baml
+E:\B1TuneUp\B1TuneUp\obj\Debug\net48\B1TuneUp\Modules\ItemEditorUi\ItemEditorWindow.baml
+E:\B1TuneUp\B1TuneUp\obj\Debug\net48\B1TuneUp\Modules\ItemEditorUi\AddItemWindow.g.cs
+E:\B1TuneUp\B1TuneUp\obj\Debug\net48\B1TuneUp\Modules\ItemEditorUi\ItemEditorWindow.g.cs

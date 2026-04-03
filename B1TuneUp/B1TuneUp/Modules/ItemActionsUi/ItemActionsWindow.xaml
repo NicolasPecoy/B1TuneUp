@@ -13,74 +13,39 @@
         WindowStartupLocation="CenterScreen"
         Topmost="True"
         ShowInTaskbar="False">
-    <Window.Resources>
-        <Color x:Key="PrimaryColor">#1F4E79</Color>
-        <Color x:Key="PrimaryDarkColor">#0F263D</Color>
-        <Color x:Key="AccentColor">#F39C12</Color>
-        <Color x:Key="AccentAltColor">#2E75B6</Color>
-        <Color x:Key="SurfaceColor">#FFFFFFFF</Color>
-        <Color x:Key="SurfaceAltColor">#F4F6F9</Color>
-        <Color x:Key="BorderColor">#D7DCE3</Color>
-        <Color x:Key="TextPrimaryColor">#10263C</Color>
-        <Color x:Key="TextSecondaryColor">#516173</Color>
+        <Window.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="pack://application:,,,/B1TuneUp;component/Resources/B1Theme.xaml" />
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
 
-        <SolidColorBrush x:Key="PrimaryBrush" Color="{DynamicResource PrimaryColor}" />
-        <SolidColorBrush x:Key="PrimaryDarkBrush" Color="{DynamicResource PrimaryDarkColor}" />
-        <SolidColorBrush x:Key="AccentBrush" Color="{DynamicResource AccentColor}" />
-        <SolidColorBrush x:Key="AccentAltBrush" Color="{DynamicResource AccentAltColor}" />
-        <SolidColorBrush x:Key="SurfaceBrush" Color="{DynamicResource SurfaceColor}" />
-        <SolidColorBrush x:Key="SurfaceAltBrush" Color="{DynamicResource SurfaceAltColor}" />
-        <SolidColorBrush x:Key="BorderBrush" Color="{DynamicResource BorderColor}" />
-        <SolidColorBrush x:Key="TextPrimaryBrush" Color="{DynamicResource TextPrimaryColor}" />
-        <SolidColorBrush x:Key="TextSecondaryBrush" Color="{DynamicResource TextSecondaryColor}" />
-        <SolidColorBrush x:Key="WindowBackgroundBrush" Color="#E9EDF3" />
-
-        <Style TargetType="Button">
+        <Style TargetType="Button" BasedOn="{StaticResource B1PrimaryButtonStyle}">
             <Setter Property="Padding" Value="12,6" />
             <Setter Property="Margin" Value="0,8,12,0" />
-            <Setter Property="Background" Value="{DynamicResource AccentBrush}" />
-            <Setter Property="Foreground" Value="White" />
-            <Setter Property="BorderThickness" Value="0" />
-            <Setter Property="FontWeight" Value="SemiBold" />
-            <Setter Property="Cursor" Value="Hand" />
             <Setter Property="HorizontalAlignment" Value="Left" />
         </Style>
 
-        <Style TargetType="TextBlock">
-            <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}" />
-            <Setter Property="FontSize" Value="13" />
+        <Style TargetType="TextBlock" BasedOn="{StaticResource LabelTextBlockStyle}">
             <Setter Property="Margin" Value="0,16,0,6" />
         </Style>
 
-        <Style TargetType="TextBox">
-            <Setter Property="Padding" Value="8,4" />
-            <Setter Property="Margin" Value="0,0,0,12" />
-            <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}" />
-            <Setter Property="BorderThickness" Value="1" />
-            <Setter Property="Background" Value="{DynamicResource SurfaceBrush}" />
-            <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}" />
+        <Style TargetType="TextBox" BasedOn="{StaticResource B1TextBoxStyle}">
+            <Setter Property="AcceptsReturn" Value="False" />
         </Style>
 
-        <Style TargetType="ComboBox">
+        <Style TargetType="ComboBox" BasedOn="{StaticResource B1ComboBoxStyle}">
             <Setter Property="Padding" Value="6,2" />
-            <Setter Property="Margin" Value="0,0,0,12" />
-            <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}" />
-            <Setter Property="BorderThickness" Value="1" />
-            <Setter Property="Background" Value="{DynamicResource SurfaceBrush}" />
-            <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}" />
         </Style>
 
-        <Style TargetType="Border" x:Key="CardStyle">
-            <Setter Property="CornerRadius" Value="12" />
-            <Setter Property="Background" Value="{DynamicResource SurfaceBrush}" />
+        <Style TargetType="Border" x:Key="CardStyle" BasedOn="{StaticResource B1CardBorderStyle}">
             <Setter Property="Padding" Value="20" />
             <Setter Property="Margin" Value="0,0,24,0" />
-            <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}" />
-            <Setter Property="BorderThickness" Value="1" />
         </Style>
 
         <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
     </Window.Resources>
+
 
     <Grid>
         <Grid.RowDefinitions>

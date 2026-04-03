@@ -400,14 +400,27 @@ namespace B1TuneUp.Modules.PlacementEnhancementUi
 
         private async Task ReloadLayoutsInternalAsync()
         {
-            var table = await Task.Run(() => ItemPlacementManager.GetLayouts(null));
+            var table = await Task.Run(() =>
+            {
+                try
+                {
+                    return ItemPlacementManager.GetLayouts(null);
+                }
+                catch
+                {
+                    return null;
+                }
+            });
             var dispatcher = _dispatcher ?? Application.Current?.Dispatcher ?? Dispatcher.CurrentDispatcher;
             await dispatcher.InvokeAsync(() =>
             {
                 _layouts.Clear();
-                foreach (DataRow row in table.Rows)
+                if (table != null)
                 {
-                    _layouts.Add(MapLayout(row));
+                    foreach (DataRow row in table.Rows)
+                    {
+                        _layouts.Add(MapLayout(row));
+                    }
                 }
                 _layoutsView.Refresh();
             });

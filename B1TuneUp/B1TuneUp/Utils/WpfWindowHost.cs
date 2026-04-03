@@ -63,6 +63,10 @@ namespace B1TuneUp.Utils
                     {
                         var dispatcher = Dispatcher.CurrentDispatcher;
                         var window = factory();
+                        window.ShowInTaskbar = false;
+                        window.WindowStartupLocation = WindowStartupLocation.CenterScreen;
+                        window.Topmost = true;
+                        window.Loaded += (_, __) => window.Topmost = true;
 
                         EventHandler closedHandler = null;
                         closedHandler = (_, __) =>

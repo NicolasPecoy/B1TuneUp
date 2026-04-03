@@ -53,8 +53,7 @@ namespace B1TuneUp.Modules.ActionQuickUi {
                 return;
             }
             _contentLoaded = true;
-            System.Uri resourceLocater = new System.Uri("/B1TuneUp;V1.0.0.0;component/b1tuneup/modules/actionquickui/actionquickwindow.xam" +
-                    "l", System.UriKind.Relative);
+            System.Uri resourceLocater = new System.Uri("/B1TuneUp;component/b1tuneup/modules/actionquickui/actionquickwindow.xaml", System.UriKind.Relative);
             
             #line 1 "..\..\..\..\..\..\B1TuneUp\Modules\ActionQuickUi\ActionQuickWindow.xaml"
             System.Windows.Application.LoadComponent(this, resourceLocater);

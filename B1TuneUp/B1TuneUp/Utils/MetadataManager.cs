@@ -297,7 +297,7 @@ namespace B1TuneUp.Utils
             CreateUDT("BTUN_EXCH", "B1TuneUp Exchange Rates", BoUTBTableType.bott_NoObject);
             CreateUDF("@BTUN_EXCH", "FromCurr", "From Currency", BoFieldTypes.db_Alpha, 3);
             CreateUDF("@BTUN_EXCH", "ToCurr", "To Currency", BoFieldTypes.db_Alpha, 3);
-            CreateUDF("@BTUN_EXCH", "Rate", "Exchange Rate", BoFieldTypes.db_Float, 15, "1.000000", subType: BoFldSubTypes.st_Rate);
+            CreateUDF("@BTUN_EXCH", "Rate", "Exchange Rate", BoFieldTypes.db_Float, 15, "1.000000");
             CreateUDF("@BTUN_EXCH", "LastUpdate", "Last Update Date", BoFieldTypes.db_Date);
             CreateUDF("@BTUN_EXCH", "Source", "Data Source", BoFieldTypes.db_Alpha, 20, "Manual", "Manual:Manual;ECB:European Central Bank;Fixer:Fixer.io");
             CreateUDF("@BTUN_EXCH", "Desc", "Description", BoFieldTypes.db_Alpha, 254);

@@ -5,6 +5,7 @@ using SAPbouiCOM;
 using SAPbobsCOM;
 using B1TuneUp.Core;
 using B1TuneUp.Utils;
+using B1TuneUp.Modules.PlacementEnhancementUi;
 
 namespace B1TuneUp.Modules
 {
@@ -24,8 +25,7 @@ namespace B1TuneUp.Modules
                     }
                 }
 
-                var dlg = new Forms.ItemPlacementForm(form);
-                dlg.Show();
+                PlacementEnhancementLauncher.Show();
             }
             catch (Exception ex)
             {

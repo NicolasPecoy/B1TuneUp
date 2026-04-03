@@ -4,6 +4,7 @@ using SAPbouiCOM;
 using SAPbobsCOM;
 using B1TuneUp.Core;
 using B1TuneUp.Utils;
+using B1TuneUp.Modules.ProcessStepsUi;
 using B1TuneUp.Modules.Forms;
 
 namespace B1TuneUp.Modules
@@ -56,9 +57,7 @@ namespace B1TuneUp.Modules
                 if (processInfo == null) return;
 
                 var steps = LoadSteps(processEntry, oForm);
-
-                var form = new ProcessStepsForm(processInfo.Name, oForm, steps, processEntry);
-                form.Show();
+                ProcessStepsUi.ProcessStepsLauncher.Show(processInfo, steps, oForm, processEntry);
             }
             catch (Exception ex)
             {

@@ -3,6 +3,11 @@ using System.Windows.Forms;
 using SAPbouiCOM;
 using B1TuneUp.Core;
 using System.Threading;
+using B1TuneUp.Modules.DragDropUi;
+using B1TuneUp.Modules.PlacementEnhancementUi;
+using B1TuneUp.Modules.RichTextEditorUi;
+using B1TuneUp.Modules.BarcodeScannerUi;
+using B1TuneUp.Modules.AutomationDashboardUi;
 
 namespace B1TuneUp.Modules
 {
@@ -14,10 +19,8 @@ namespace B1TuneUp.Modules
             {
                 if (form == null) form = B1App.Instance.Application.Forms.ActiveForm;
                 // Enable basic drag and drop between fields by opening a small helper form that captures drag source and target
-                var helper = new Forms.DragDropHelperForm(form);
-                helper.Show();
-                // Open Item Placement manager for the form
-                ItemPlacementManager.OpenPlacementForm(form);
+                DragDropHelperLauncher.Show();
+                PlacementEnhancementLauncher.Show();
             }
             catch (Exception ex)
             {
@@ -41,8 +44,7 @@ namespace B1TuneUp.Modules
                 }
                 catch { }
 
-                var rte = new Forms.RichTextEditorForm(itemId, form, initial);
-                rte.Show();
+                RichTextEditorUi.RichTextEditorLauncher.Show(itemId);
             }
             catch (Exception ex)
             {
@@ -83,8 +85,7 @@ namespace B1TuneUp.Modules
             try
             {
                 if (form == null) form = B1App.Instance.Application.Forms.ActiveForm;
-                var scanner = new Forms.BarcodeScannerForm(form, targetItemId);
-                scanner.Show();
+                BarcodeScannerUi.BarcodeScannerLauncher.Show(targetItemId);
             }
             catch (Exception ex)
             {
@@ -96,8 +97,7 @@ namespace B1TuneUp.Modules
         {
             try
             {
-                var dash = new Forms.AdvancedDashboardForm(sqlQuery);
-                dash.Show();
+                AutomationDashboardUi.AutomationDashboardLauncher.Show();
             }
             catch (Exception ex)
             {

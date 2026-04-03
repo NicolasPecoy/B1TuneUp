@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Drawing;
 using SAPbouiCOM;
 using B1TuneUp.Core;
 using B1TuneUp.Modules.IntegrationUi;
@@ -19,6 +20,7 @@ using B1TuneUp.Modules.FormEnhancementUi;
 using B1TuneUp.Modules.AutomationDashboardUi;
 using B1TuneUp.Modules.PlacementEnhancementUi;
 using B1TuneUp.Utils;
+using B1TuneUp.Modules.LanguageSelectorUi;
 
 namespace B1TuneUp.Modules
 {
@@ -41,6 +43,8 @@ namespace B1TuneUp.Modules
         private const string AutomationDashboardMenuId = "BTUN_AUTOD";
         private const string PlacementEnhancementMenuId = "BTUN_ITEMUI";
         private static Dictionary<string, string> _menuActions = new Dictionary<string, string>();
+        private static readonly Color MenuIconBackground = ColorTranslator.FromHtml("#1F4E79");
+        private static readonly Color MenuIconForeground = Color.White;
 
         public static void LoadCustomMenus()
         {
@@ -706,6 +710,15 @@ namespace B1TuneUp.Modules
             }
         }
 
+        private static void ApplyMenuIcon(SAPbouiCOM.MenuCreationParams creationParams, string key, string label)
+        {
+            try
+            {
+                creationParams.Image = MenuIconProvider.GetIcon(key, label, MenuIconBackground, MenuIconForeground);
+            }
+            catch { }
+        }
+
         public static void HandleMenuEvent(ref MenuEvent pVal)
         {
             if (!pVal.BeforeAction && _menuActions.ContainsKey(pVal.MenuUID))
@@ -714,7 +727,7 @@ namespace B1TuneUp.Modules
             }
             else if (!pVal.BeforeAction && pVal.MenuUID == "BTUN_LANG")
             {
-                try { new Forms.LanguageSelectorForm().ShowDialog(); } catch { }
+                try { LanguageSelectorUi.LanguageSelectorLauncher.Show(); } catch { }
             }
             else if (!pVal.BeforeAction && pVal.MenuUID == IntegrationMenuId)
             {

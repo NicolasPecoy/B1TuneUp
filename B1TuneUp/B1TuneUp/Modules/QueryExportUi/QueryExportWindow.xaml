@@ -1,0 +1,51 @@
+<Window x:Class="B1TuneUp.Modules.QueryExportUi.QueryExportWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="B1TuneUp - Query Exporter"
+        Width="960"
+        Height="620"
+        MinWidth="720"
+        MinHeight="480"
+        Background="{DynamicResource WindowBackgroundBrush}"
+        WindowStartupLocation="CenterScreen">
+    <Window.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="pack://application:,,,/B1TuneUp;component/Resources/B1Theme.xaml" />
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </Window.Resources>
+    <Border Margin="16"
+            Padding="16"
+            Background="{DynamicResource SurfaceBrush}"
+            BorderBrush="{DynamicResource BorderBrush}"
+            BorderThickness="1"
+            CornerRadius="12">
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="*" />
+                <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
+
+            <StackPanel Orientation="Horizontal" Grid.Row="0" Margin="0,0,0,12">
+                <Button Content="Cargar desde formulario" Width="220" Command="{Binding LoadFromActiveFormCommand}" />
+                <TextBlock Text="{Binding StatusMessage}" Margin="12,0,0,0" VerticalAlignment="Center" Foreground="{DynamicResource TextPrimaryBrush}" />
+            </StackPanel>
+
+            <TextBox Grid.Row="1"
+                     Text="{Binding SqlText, UpdateSourceTrigger=PropertyChanged}"
+                     AcceptsReturn="True"
+                     VerticalScrollBarVisibility="Auto"
+                     HorizontalScrollBarVisibility="Auto"
+                     FontFamily="Consolas"
+                     TextWrapping="Wrap" />
+
+            <StackPanel Grid.Row="2" Orientation="Horizontal" Margin="0,12,0,0">
+                <Button Content="Exportar CSV" Width="140" Command="{Binding ExportCsvCommand}" />
+                <Button Content="Exportar JSON" Width="140" Margin="12,0,0,0" Command="{Binding ExportJsonCommand}" />
+                <Button Content="Exportar XML" Width="140" Margin="12,0,0,0" Command="{Binding ExportXmlCommand}" />
+            </StackPanel>
+        </Grid>
+    </Border>
+</Window>

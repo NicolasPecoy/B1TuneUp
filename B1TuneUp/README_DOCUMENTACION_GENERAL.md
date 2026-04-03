@@ -554,6 +554,66 @@ Hemos creado **más de 4,000 líneas de documentación profesional** que cubre *
 
 ---
 
+## 🆕 Novedades 2026 Q1-Q2
+
+### Estudios WPF estilo SAP Business One
+
+- Los estudios **Integration Studio, Scheduler Studio, Rule Builder, Process Designer, Validation Studio, Email/Template Studios, Automation Dashboard, Form Enhancements** y el nuevo **Item Placement & UI Enhancer** comparten ahora el mismo tema SAP (paleta SQL/HANA automática, cabeceras, tarjetas y overlay de progreso).
+- Cada estudio quedó vinculado a su menú localizado en SAP. Si una entrada desaparece, basta con reiniciar el add-on para que `MenuManager.LoadCustomMenus()` recree todas las opciones.
+- Todos los WPF trabajan sobre datos reales sin cerrar el cliente SAP y respetan la localización (ES/EN) a través de `Resources/lang`.
+
+#### Item Placement & UI Enhancer (nuevo módulo)
+1. Abrí SAP y cualquier formulario (por ejemplo, ORDR). Desde el menú de B1TuneUp elige **“Item Placement y UI Enhancer”**.
+2. Columna izquierda: biblioteca de layouts (`@BTUN_LAYOUT`) con filtros por formulario y búsqueda textual. Cada tarjeta muestra versión, propietario y fechas.
+3. Columna central: captura/importación/exportación. Puedes detectar el formulario activo, guardar SRF/XML en la tabla, importar desde archivo local o exportar para compartir.
+4. Columna derecha: accesos a helpers de UI Enhancements (Item Placement clásico, drag & drop helper, editor enriquecido, pivots, escáner de códigos, dashboard SQL y visual designer).
+5. Todas las operaciones largas activan el overlay “Procesando…” para dar feedback al usuario final.
+
+> Con este estudio el flujo de mover ítems, versionar layouts y aplicar mejoras queda centralizado en una sola UI moderna.
+
+### MacroEngine con `InvokeHandler`
+
+Ahora puedes asignar lógica SDK avanzada a un botón agregado desde el UiCustomizer sin recompilar el core:
+
+1. **Define la macro** en Item Actions / MacroEngine Studio:
+   ```
+   InvokeHandler('B1TuneUp.CustomLogic.LogisticsHandler','Enviar','$[$8.0.0]|Urgente','B1TuneUp')
+   ```
+   - Parámetro 1: tipo completo.
+   - Parámetro 2 (opcional): método (por defecto `Execute`).
+   - Parámetro 3: payload libre (separa con `|`; admite variables `$[$Item.Col.Mode]`).
+   - Parámetro 4 (opcional): nombre o ruta de la asamblea donde vive el handler.
+2. **Implementa el handler**:
+   ```csharp
+   namespace B1TuneUp.CustomLogic
+   {
+       public class LogisticsHandler
+       {
+           public void Enviar(SAPbouiCOM.Form form, string[] args, SAPbobsCOM.Company company)
+           {
+               var docEntry = args?.Length > 0 ? args[0] : string.Empty;
+               var orders = (SAPbobsCOM.Documents)company.GetBusinessObject(SAPbobsCOM.BoObjectTypes.oOrders);
+               if (orders.GetByKey(int.Parse(docEntry)))
+               {
+                   orders.UserFields.Fields.Item("U_LogisticsStatus").Value = "READY";
+                   orders.Update();
+                   B1App.Instance.Application.SetStatusBarMessage($"Pedido {docEntry} enviado a logística.", SAPbouiCOM.BoMessageTime.bmt_Short, false);
+               }
+           }
+       }
+   }
+   ```
+3. `InvokeHandler` detecta automáticamente parámetros de tipo `SAPbouiCOM.Form`, `SAPbouiCOM.Application`, `SAPbobsCOM.Company`, `string[]`, `string` (payload completo) e `int` (rowOverride). Soporta métodos estáticos o de instancia y puede cargar tipos desde DLLs externas usando reflection.
+4. Cualquier error se muestra en la barra de estado indicando si falló la reflexión o el handler.
+
+### Checklist sugerido
+
+1. Guardar/restaurar un layout desde el nuevo estudio para validar que `@BTUN_LAYOUT` mantiene versiones.
+2. Ejecutar las herramientas auxiliares (drag & drop, editor enriquecido, dashboard) desde la tercera columna.
+3. Configurar un botón con `InvokeHandler`, presionarlo en SAP y confirmar que el handler manipula el documento mediante el SDK.
+
+---
+
 ## 📬 Contacto
 
 ¿Preguntas sobre la documentación?  

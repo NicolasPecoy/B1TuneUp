@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Reflection;
 using SAPbobsCOM;
 using SAPbouiCOM;
 using B1TuneUp.Core;
@@ -549,6 +550,105 @@ namespace B1TuneUp.Modules
                 }
             }
             catch { }
+        }
+
+        private static void InvokeCustomHandler(string parameters, Form activeForm, int rowOverride)
+        {
+            if (string.IsNullOrWhiteSpace(parameters)) return;
+
+            try
+            {
+                var parts = parameters.Split(',');
+                string typeName = parts.Length > 0 ? parts[0].Trim('\'', ' ', '\t') : string.Empty;
+                string methodName = parts.Length > 1 ? parts[1].Trim('\'', ' ', '\t') : "Execute";
+                string argPayload = parts.Length > 2 ? parts[2].Trim() : string.Empty;
+                string assemblyHint = parts.Length > 3 ? parts[3].Trim('\'', ' ', '\t') : null;
+
+                if (string.IsNullOrWhiteSpace(typeName))
+                {
+                    B1App.Instance.Application.SetStatusBarMessage("InvokeHandler: tipo no especificado.", BoMessageTime.bmt_Short, true);
+                    return;
+                }
+
+                if (!string.IsNullOrEmpty(argPayload))
+                {
+                    argPayload = ProcessSqlVariables(argPayload.Trim('\'', ' ', '\t'), activeForm, rowOverride);
+                }
+
+                string[] handlerArgs = string.IsNullOrEmpty(argPayload) ? Array.Empty<string>() : argPayload.Split('|');
+                Type handlerType = ResolveHandlerType(typeName, assemblyHint);
+                if (handlerType == null)
+                {
+                    B1App.Instance.Application.SetStatusBarMessage($"InvokeHandler: tipo '{typeName}' no encontrado.", BoMessageTime.bmt_Short, true);
+                    return;
+                }
+
+                var binding = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Static;
+                MethodInfo methodInfo = handlerType.GetMethod(methodName, binding);
+                if (methodInfo == null)
+                {
+                    B1App.Instance.Application.SetStatusBarMessage($"InvokeHandler: metodo '{methodName}' no encontrado en {typeName}.", BoMessageTime.bmt_Short, true);
+                    return;
+                }
+
+                object instance = methodInfo.IsStatic ? null : Activator.CreateInstance(handlerType);
+                object[] invokeParams = BuildHandlerParameters(methodInfo.GetParameters(), activeForm, handlerArgs, rowOverride);
+                methodInfo.Invoke(instance, invokeParams);
+            }
+            catch (TargetInvocationException tex)
+            {
+                B1App.Instance.Application.SetStatusBarMessage($"InvokeHandler error: {tex.InnerException?.Message ?? tex.Message}", BoMessageTime.bmt_Short, true);
+            }
+            catch (Exception ex)
+            {
+                B1App.Instance.Application.SetStatusBarMessage($"InvokeHandler error: {ex.Message}", BoMessageTime.bmt_Short, true);
+            }
+        }
+
+        private static object[] BuildHandlerParameters(ParameterInfo[] parameters, Form activeForm, string[] handlerArgs, int rowOverride)
+        {
+            if (parameters == null || parameters.Length == 0) return Array.Empty<object>();
+            var values = new object[parameters.Length];
+            for (int i = 0; i < parameters.Length; i++)
+            {
+                var p = parameters[i];
+                if (p.ParameterType == typeof(Form)) values[i] = activeForm;
+                else if (p.ParameterType == typeof(Application)) values[i] = B1App.Instance.Application;
+                else if (p.ParameterType == typeof(SAPbobsCOM.Company)) values[i] = B1App.Instance.Company;
+                else if (p.ParameterType == typeof(string[])) values[i] = handlerArgs;
+                else if (p.ParameterType == typeof(string)) values[i] = handlerArgs != null ? string.Join("|", handlerArgs) : string.Empty;
+                else if (p.ParameterType == typeof(int)) values[i] = rowOverride;
+                else values[i] = null;
+            }
+            return values;
+        }
+
+        private static Type ResolveHandlerType(string typeName, string assemblyHint)
+        {
+            Type resolved = null;
+            try
+            {
+                resolved = Type.GetType(typeName, false);
+                if (resolved != null) return resolved;
+                if (!string.IsNullOrWhiteSpace(assemblyHint))
+                {
+                    resolved = Type.GetType($"{typeName}, {assemblyHint}", false);
+                    if (resolved != null) return resolved;
+                    if (System.IO.File.Exists(assemblyHint))
+                    {
+                        try
+                        {
+                            var asm = Assembly.LoadFrom(assemblyHint);
+                            resolved = asm.GetType(typeName, false);
+                            if (resolved != null) return resolved;
+                        }
+                        catch { }
+                    }
+                }
+                resolved = typeof(MacroEngine).Assembly.GetType(typeName, false);
+            }
+            catch { }
+            return resolved;
         }
 
         private static void ProcessLoop(string matrixId, string innerMacro, Form activeForm)

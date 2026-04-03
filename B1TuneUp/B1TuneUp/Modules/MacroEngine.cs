@@ -5,6 +5,8 @@ using SAPbouiCOM;
 using B1TuneUp.Core;
 using B1TuneUp.Utils;
 using B1TuneUp.B1TuneUp.Modules;
+using B1TuneUp.Modules.ItemActionsUi;
+using B1TuneUp.Modules.LayoutManagerUi;
 
 namespace B1TuneUp.Modules
 {
@@ -395,8 +397,7 @@ namespace B1TuneUp.Modules
                 }
                 else if (command.StartsWith("ManageItemActions()"))
                 {
-                    var f = new Forms.ItemActionsManagerForm();
-                    f.Show();
+                    ItemActionsLauncher.Show();
                 }
                 else if (command.StartsWith("OpenDesigner()"))
                 {
@@ -414,8 +415,7 @@ namespace B1TuneUp.Modules
                 }
                 else if (command.StartsWith("ManageLayouts()"))
                 {
-                    var f = new Forms.LayoutManagerForm();
-                    f.Show();
+                    LayoutManagerLauncher.Show();
                 }
                 else if (command.StartsWith("ManageReports()"))
                 {

@@ -52,3 +52,7 @@ E:\B1TuneUp\B1TuneUp\obj\Debug\net48\B1TuneUp\Modules\AutomationDashboardUi\Auto
 E:\B1TuneUp\B1TuneUp\obj\Debug\net48\B1TuneUp\Modules\AutomationDashboardUi\AutomationDashboardWindow.g.cs
 E:\B1TuneUp\B1TuneUp\obj\Debug\net48\B1TuneUp\Modules\PlacementEnhancementUi\PlacementEnhancementWindow.baml
 E:\B1TuneUp\B1TuneUp\obj\Debug\net48\B1TuneUp\Modules\PlacementEnhancementUi\PlacementEnhancementWindow.g.cs
+E:\B1TuneUp\B1TuneUp\obj\Debug\net48\B1TuneUp\Modules\ItemActionsUi\ItemActionsWindow.baml
+E:\B1TuneUp\B1TuneUp\obj\Debug\net48\B1TuneUp\Modules\LayoutManagerUi\LayoutManagerWindow.baml
+E:\B1TuneUp\B1TuneUp\obj\Debug\net48\B1TuneUp\Modules\ItemActionsUi\ItemActionsWindow.g.cs
+E:\B1TuneUp\B1TuneUp\obj\Debug\net48\B1TuneUp\Modules\LayoutManagerUi\LayoutManagerWindow.g.cs

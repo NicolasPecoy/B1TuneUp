@@ -52,7 +52,7 @@ namespace B1TuneUp.Modules.SchedulerUi {
                 return;
             }
             _contentLoaded = true;
-            System.Uri resourceLocater = new System.Uri("/B1TuneUp;component/b1tuneup/modules/schedulerui/schedulerwindow.xaml", System.UriKind.Relative);
+            System.Uri resourceLocater = new System.Uri("/B1TuneUp;V1.0.0.0;component/b1tuneup/modules/schedulerui/schedulerwindow.xaml", System.UriKind.Relative);
             
             #line 1 "..\..\..\..\..\..\B1TuneUp\Modules\SchedulerUi\SchedulerWindow.xaml"
             System.Windows.Application.LoadComponent(this, resourceLocater);

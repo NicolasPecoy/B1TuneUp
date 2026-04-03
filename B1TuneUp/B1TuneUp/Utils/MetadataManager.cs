@@ -31,7 +31,7 @@ namespace B1TuneUp.Utils
             }
         }
 
-        public static void CreateUDF(string tableName, string fieldName, string fieldDesc, BoFieldTypes type, int size = 0, string defaultValue = "", string validValues = "")
+        public static void CreateUDF(string tableName, string fieldName, string fieldDesc, BoFieldTypes type, int size = 0, string defaultValue = "", string validValues = "", BoFldSubTypes subType = BoFldSubTypes.st_None)
         {
             UserFieldsMD userFieldMD = (UserFieldsMD)B1App.Instance.Company.GetBusinessObject(BoObjectTypes.oUserFields);
             try
@@ -43,6 +43,10 @@ namespace B1TuneUp.Utils
                     userFieldMD.Name = fieldName;
                     userFieldMD.Description = fieldDesc;
                     userFieldMD.Type = type;
+                    if (subType != BoFldSubTypes.st_None)
+                    {
+                        userFieldMD.SubType = subType;
+                    }
                     if (size > 0) userFieldMD.EditSize = size;
                     if (!string.IsNullOrEmpty(defaultValue)) userFieldMD.DefaultValue = defaultValue;
 
@@ -293,7 +297,7 @@ namespace B1TuneUp.Utils
             CreateUDT("BTUN_EXCH", "B1TuneUp Exchange Rates", BoUTBTableType.bott_NoObject);
             CreateUDF("@BTUN_EXCH", "FromCurr", "From Currency", BoFieldTypes.db_Alpha, 3);
             CreateUDF("@BTUN_EXCH", "ToCurr", "To Currency", BoFieldTypes.db_Alpha, 3);
-            CreateUDF("@BTUN_EXCH", "Rate", "Exchange Rate", BoFieldTypes.db_Float, 15, "1.000000");
+            CreateUDF("@BTUN_EXCH", "Rate", "Exchange Rate", BoFieldTypes.db_Float, 15, "1.000000", subType: BoFldSubTypes.st_Rate);
             CreateUDF("@BTUN_EXCH", "LastUpdate", "Last Update Date", BoFieldTypes.db_Date);
             CreateUDF("@BTUN_EXCH", "Source", "Data Source", BoFieldTypes.db_Alpha, 20, "Manual", "Manual:Manual;ECB:European Central Bank;Fixer:Fixer.io");
             CreateUDF("@BTUN_EXCH", "Desc", "Description", BoFieldTypes.db_Alpha, 254);

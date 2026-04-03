@@ -52,8 +52,8 @@ namespace B1TuneUp.Modules.DashboardSearchMacroUi {
                 return;
             }
             _contentLoaded = true;
-            System.Uri resourceLocater = new System.Uri(("/B1TuneUp;V1.0.0.0;component/b1tuneup/modules/dashboardsearchmacroui/dashboardsea" +
-                    "rchmacrowindow.xaml"), System.UriKind.Relative);
+            System.Uri resourceLocater = new System.Uri(("/B1TuneUp;component/b1tuneup/modules/dashboardsearchmacroui/dashboardsearchmacrow" +
+                    "indow.xaml"), System.UriKind.Relative);
             
             #line 1 "..\..\..\..\..\..\B1TuneUp\Modules\DashboardSearchMacroUi\DashboardSearchMacroWindow.xaml"
             System.Windows.Application.LoadComponent(this, resourceLocater);

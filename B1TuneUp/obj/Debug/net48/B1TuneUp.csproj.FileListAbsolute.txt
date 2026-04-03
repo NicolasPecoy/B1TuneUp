@@ -38,3 +38,5 @@ E:\B1TuneUp\B1TuneUp\obj\Debug\net48\B1TuneUp\Modules\EmailDesigner\EmailDesigne
 E:\B1TuneUp\B1TuneUp\obj\Debug\net48\B1TuneUp\Modules\EmailDesigner\EmailDesignerWindow.g.cs
 E:\B1TuneUp\B1TuneUp\obj\Debug\net48\B1TuneUp\Modules\ToolboxUi\ToolboxDesignerWindow.baml
 E:\B1TuneUp\B1TuneUp\obj\Debug\net48\B1TuneUp\Modules\ToolboxUi\ToolboxDesignerWindow.g.cs
+E:\B1TuneUp\B1TuneUp\obj\Debug\net48\B1TuneUp\Modules\ValidationUi\ValidationDesignerWindow.baml
+E:\B1TuneUp\B1TuneUp\obj\Debug\net48\B1TuneUp\Modules\ValidationUi\ValidationDesignerWindow.g.cs

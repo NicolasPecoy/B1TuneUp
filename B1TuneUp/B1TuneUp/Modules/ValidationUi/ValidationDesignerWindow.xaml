@@ -1,0 +1,315 @@
+<Window x:Class="B1TuneUp.Modules.ValidationUi.ValidationDesignerWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d"
+        Title="B1TuneUp Validation &amp; Mandatory Fields"
+        Width="1280"
+        Height="820"
+        MinWidth="1120"
+        MinHeight="720"
+        Background="{DynamicResource WindowBackgroundBrush}"
+        WindowStartupLocation="CenterScreen">
+    <Window.Resources>
+        <Color x:Key="PrimaryColor">#1F4E79</Color>
+        <Color x:Key="PrimaryDarkColor">#0F263D</Color>
+        <Color x:Key="AccentColor">#F39C12</Color>
+        <Color x:Key="AccentAltColor">#2E75B6</Color>
+        <Color x:Key="SurfaceColor">#FFFFFFFF</Color>
+        <Color x:Key="SurfaceAltColor">#F4F6F9</Color>
+        <Color x:Key="BorderColor">#D7DCE3</Color>
+        <Color x:Key="TextPrimaryColor">#10263C</Color>
+        <Color x:Key="TextSecondaryColor">#516173</Color>
+
+        <SolidColorBrush x:Key="PrimaryBrush" Color="{DynamicResource PrimaryColor}" />
+        <SolidColorBrush x:Key="PrimaryDarkBrush" Color="{DynamicResource PrimaryDarkColor}" />
+        <SolidColorBrush x:Key="AccentBrush" Color="{DynamicResource AccentColor}" />
+        <SolidColorBrush x:Key="AccentAltBrush" Color="{DynamicResource AccentAltColor}" />
+        <SolidColorBrush x:Key="SurfaceBrush" Color="{DynamicResource SurfaceColor}" />
+        <SolidColorBrush x:Key="SurfaceAltBrush" Color="{DynamicResource SurfaceAltColor}" />
+        <SolidColorBrush x:Key="BorderBrush" Color="{DynamicResource BorderColor}" />
+        <SolidColorBrush x:Key="TextPrimaryBrush" Color="{DynamicResource TextPrimaryColor}" />
+        <SolidColorBrush x:Key="TextSecondaryBrush" Color="{DynamicResource TextSecondaryColor}" />
+        <SolidColorBrush x:Key="WindowBackgroundBrush" Color="#E9EDF3" />
+
+        <Style TargetType="TextBlock" x:Key="LabelStyle">
+            <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}" />
+            <Setter Property="FontSize" Value="13" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="Margin" Value="0,0,0,4" />
+        </Style>
+
+        <Style TargetType="TextBox">
+            <Setter Property="Padding" Value="8,4" />
+            <Setter Property="Margin" Value="0,0,0,12" />
+            <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="Background" Value="{DynamicResource SurfaceBrush}" />
+            <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}" />
+        </Style>
+
+        <Style TargetType="ComboBox">
+            <Setter Property="Padding" Value="8,4" />
+            <Setter Property="Margin" Value="0,0,0,12" />
+            <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}" />
+            <Setter Property="Background" Value="{DynamicResource SurfaceBrush}" />
+            <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}" />
+        </Style>
+
+        <Style TargetType="Button">
+            <Setter Property="Padding" Value="12,6" />
+            <Setter Property="Margin" Value="0,8,8,0" />
+            <Setter Property="Background" Value="{DynamicResource AccentBrush}" />
+            <Setter Property="Foreground" Value="White" />
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="Cursor" Value="Hand" />
+        </Style>
+
+        <Style TargetType="Border" x:Key="CardStyle">
+            <Setter Property="CornerRadius" Value="12" />
+            <Setter Property="Background" Value="{DynamicResource SurfaceBrush}" />
+            <Setter Property="Padding" Value="16" />
+            <Setter Property="Margin" Value="0,0,0,20" />
+            <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}" />
+            <Setter Property="BorderThickness" Value="1" />
+        </Style>
+
+        <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
+    </Window.Resources>
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <Border Background="{DynamicResource PrimaryBrush}" Padding="24,24,24,28" CornerRadius="0,0,24,24">
+            <StackPanel>
+                <TextBlock Text="B1TuneUp · Validation &amp; Mandatory Fields"
+                           Foreground="White"
+                           FontSize="26"
+                           FontWeight="Bold" />
+                <TextBlock Text="Administra las reglas de validación y campos obligatorios con una interfaz coherente al estilo SAP Business One."
+                           Foreground="#CCFFFFFF"
+                           FontSize="14"
+                           Margin="0,6,0,0" />
+                <TextBlock Text="{Binding StatusMessage}"
+                           Foreground="#CCFFFFFF"
+                           FontSize="13"
+                           Margin="0,8,0,0" />
+            </StackPanel>
+        </Border>
+
+        <TabControl Grid.Row="1" Margin="24" Background="Transparent" BorderThickness="0">
+            <TabItem Header="Validaciones" Padding="16,8">
+                <Grid Margin="0,12,0,0">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="340" />
+                        <ColumnDefinition Width="24" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+
+                    <Border Style="{StaticResource CardStyle}">
+                        <StackPanel>
+                            <TextBlock Text="Filtros" FontSize="16" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,12" />
+                            <TextBlock Text="Form Type" Style="{StaticResource LabelStyle}" />
+                            <TextBox Text="{Binding ValidationFormFilter, UpdateSourceTrigger=PropertyChanged}" />
+                            <TextBlock Text="Buscar (Form, Item, condición...)" Style="{StaticResource LabelStyle}" />
+                            <TextBox Text="{Binding ValidationSearch, UpdateSourceTrigger=PropertyChanged}" />
+
+                            <ListBox ItemsSource="{Binding ValidationView}"
+                                     SelectedItem="{Binding SelectedValidation}"
+                                     DisplayMemberPath="Name"
+                                     Height="420"
+                                     Margin="0,8,0,0"
+                                     Background="{DynamicResource SurfaceAltBrush}"
+                                     BorderBrush="{DynamicResource BorderBrush}"
+                                     BorderThickness="1" />
+
+                            <WrapPanel Margin="0,16,0,0">
+                                <Button Content="Actualizar" Command="{Binding RefreshCommand}" Background="{DynamicResource PrimaryDarkBrush}" />
+                                <Button Content="Nuevo" Command="{Binding NewValidationCommand}" Background="{DynamicResource AccentAltBrush}" />
+                                <Button Content="Duplicar" Command="{Binding DuplicateValidationCommand}" Background="{DynamicResource AccentAltBrush}" />
+                                <Button Content="Eliminar" Command="{Binding DeleteValidationCommand}" Background="#FFB33939" />
+                            </WrapPanel>
+                        </StackPanel>
+                    </Border>
+
+                    <ScrollViewer Grid.Column="2" VerticalScrollBarVisibility="Auto">
+                        <StackPanel>
+                            <Border Style="{StaticResource CardStyle}">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="*" />
+                                    </Grid.ColumnDefinitions>
+                                    <StackPanel Grid.Column="0" Margin="0,0,16,0">
+                                        <TextBlock Text="Nombre" Style="{StaticResource LabelStyle}" />
+                                        <TextBox Text="{Binding SelectedValidation.Name, UpdateSourceTrigger=PropertyChanged}" />
+                                        <TextBlock Text="Form Type" Style="{StaticResource LabelStyle}" />
+                                        <TextBox Text="{Binding SelectedValidation.FormType, UpdateSourceTrigger=PropertyChanged}" />
+                                        <TextBlock Text="Item / Campo" Style="{StaticResource LabelStyle}" />
+                                        <TextBox Text="{Binding SelectedValidation.ItemName, UpdateSourceTrigger=PropertyChanged}" />
+                                    </StackPanel>
+                                    <StackPanel Grid.Column="1">
+                                        <TextBlock Text="Evento" Style="{StaticResource LabelStyle}" />
+                                        <ComboBox ItemsSource="{Binding EventOptions}"
+                                                  SelectedItem="{Binding SelectedValidation.EventType, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                                        <TextBlock Text="Severidad" Style="{StaticResource LabelStyle}" />
+                                        <ComboBox ItemsSource="{Binding SeverityOptions}"
+                                                  SelectedItem="{Binding SelectedValidation.Severity, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                                        <CheckBox Content="Activo" IsChecked="{Binding SelectedValidation.Active}" Margin="0,8,0,0" />
+                                    </StackPanel>
+                                </Grid>
+                            </Border>
+
+                            <Border Style="{StaticResource CardStyle}">
+                                <StackPanel>
+                                    <TextBlock Text="Condición (SQL / expresión)" Style="{StaticResource LabelStyle}" />
+                                    <TextBox Text="{Binding SelectedValidation.Condition, UpdateSourceTrigger=PropertyChanged}"
+                                             AcceptsReturn="True"
+                                             Height="120"
+                                             TextWrapping="Wrap"
+                                             VerticalScrollBarVisibility="Auto" />
+                                    <TextBlock Text="Acción / Macro" Style="{StaticResource LabelStyle}" />
+                                    <TextBox Text="{Binding SelectedValidation.Action, UpdateSourceTrigger=PropertyChanged}"
+                                             AcceptsReturn="True"
+                                             Height="120"
+                                             TextWrapping="Wrap"
+                                             VerticalScrollBarVisibility="Auto" />
+                                </StackPanel>
+                            </Border>
+
+                            <Border Style="{StaticResource CardStyle}">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="*" />
+                                    </Grid.ColumnDefinitions>
+                                    <StackPanel Grid.Column="0" Margin="0,0,16,0">
+                                        <TextBlock Text="Aplicar a usuario" Style="{StaticResource LabelStyle}" />
+                                        <TextBox Text="{Binding SelectedValidation.AppliesToUser, UpdateSourceTrigger=PropertyChanged}" />
+                                        <TextBlock Text="Grupo de usuarios" Style="{StaticResource LabelStyle}" />
+                                        <TextBox Text="{Binding SelectedValidation.AppliesToUserGroup, UpdateSourceTrigger=PropertyChanged}" />
+                                    </StackPanel>
+                                    <StackPanel Grid.Column="1">
+                                        <TextBlock Text="Notas" Style="{StaticResource LabelStyle}" />
+                                        <TextBox Text="{Binding SelectedValidation.Notes, UpdateSourceTrigger=PropertyChanged}"
+                                                 AcceptsReturn="True"
+                                                 Height="80"
+                                                 TextWrapping="Wrap" />
+                                    </StackPanel>
+                                </Grid>
+                            </Border>
+
+                            <WrapPanel>
+                                <Button Content="Guardar" Command="{Binding SaveValidationCommand}" />
+                                <Button Content="Guardar todo" Command="{Binding SaveAllCommand}" Background="{DynamicResource AccentAltBrush}" />
+                            </WrapPanel>
+                        </StackPanel>
+                    </ScrollViewer>
+                </Grid>
+            </TabItem>
+
+            <TabItem Header="Campos obligatorios" Padding="16,8">
+                <Grid Margin="0,12,0,0">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="340" />
+                        <ColumnDefinition Width="24" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+
+                    <Border Style="{StaticResource CardStyle}">
+                        <StackPanel>
+                            <TextBlock Text="Filtros" FontSize="16" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,12" />
+                            <TextBlock Text="Form Type" Style="{StaticResource LabelStyle}" />
+                            <TextBox Text="{Binding MandatoryFormFilter, UpdateSourceTrigger=PropertyChanged}" />
+                            <TextBlock Text="Buscar" Style="{StaticResource LabelStyle}" />
+                            <TextBox Text="{Binding MandatorySearch, UpdateSourceTrigger=PropertyChanged}" />
+
+                            <ListBox ItemsSource="{Binding MandatoryView}"
+                                     SelectedItem="{Binding SelectedMandatory}"
+                                     DisplayMemberPath="Name"
+                                     Height="420"
+                                     Margin="0,8,0,0"
+                                     Background="{DynamicResource SurfaceAltBrush}"
+                                     BorderBrush="{DynamicResource BorderBrush}"
+                                     BorderThickness="1" />
+
+                            <WrapPanel Margin="0,16,0,0">
+                                <Button Content="Nuevo" Command="{Binding NewMandatoryCommand}" Background="{DynamicResource AccentAltBrush}" />
+                                <Button Content="Duplicar" Command="{Binding DuplicateMandatoryCommand}" Background="{DynamicResource AccentAltBrush}" />
+                                <Button Content="Eliminar" Command="{Binding DeleteMandatoryCommand}" Background="#FFB33939" />
+                            </WrapPanel>
+                        </StackPanel>
+                    </Border>
+
+                    <ScrollViewer Grid.Column="2" VerticalScrollBarVisibility="Auto">
+                        <StackPanel>
+                            <Border Style="{StaticResource CardStyle}">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="*" />
+                                    </Grid.ColumnDefinitions>
+                                    <StackPanel Grid.Column="0" Margin="0,0,16,0">
+                                        <TextBlock Text="Nombre" Style="{StaticResource LabelStyle}" />
+                                        <TextBox Text="{Binding SelectedMandatory.Name, UpdateSourceTrigger=PropertyChanged}" />
+                                        <TextBlock Text="Form Type" Style="{StaticResource LabelStyle}" />
+                                        <TextBox Text="{Binding SelectedMandatory.FormType, UpdateSourceTrigger=PropertyChanged}" />
+                                        <TextBlock Text="Item ID" Style="{StaticResource LabelStyle}" />
+                                        <TextBox Text="{Binding SelectedMandatory.ItemId, UpdateSourceTrigger=PropertyChanged}" />
+                                    </StackPanel>
+                                    <StackPanel Grid.Column="1">
+                                        <TextBlock Text="Column ID" Style="{StaticResource LabelStyle}" />
+                                        <TextBox Text="{Binding SelectedMandatory.ColumnId, UpdateSourceTrigger=PropertyChanged}" />
+                                        <CheckBox Content="Activo" IsChecked="{Binding SelectedMandatory.Active}" Margin="0,8,0,0" />
+                                    </StackPanel>
+                                </Grid>
+                            </Border>
+
+                            <Border Style="{StaticResource CardStyle}">
+                                <StackPanel>
+                                    <TextBlock Text="Condición opcional" Style="{StaticResource LabelStyle}" />
+                                    <TextBox Text="{Binding SelectedMandatory.Condition, UpdateSourceTrigger=PropertyChanged}"
+                                             AcceptsReturn="True"
+                                             Height="120"
+                                             TextWrapping="Wrap"
+                                             VerticalScrollBarVisibility="Auto" />
+                                    <TextBlock Text="Mensaje de error" Style="{StaticResource LabelStyle}" />
+                                    <TextBox Text="{Binding SelectedMandatory.ErrorMessage, UpdateSourceTrigger=PropertyChanged}"
+                                             AcceptsReturn="True"
+                                             Height="100"
+                                             TextWrapping="Wrap" />
+                                </StackPanel>
+                            </Border>
+
+                            <WrapPanel>
+                                <Button Content="Guardar" Command="{Binding SaveMandatoryCommand}" />
+                                <Button Content="Guardar todo" Command="{Binding SaveAllCommand}" Background="{DynamicResource AccentAltBrush}" />
+                            </WrapPanel>
+                        </StackPanel>
+                    </ScrollViewer>
+                </Grid>
+            </TabItem>
+        </TabControl>
+
+        <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Margin="24,0,24,16">
+            <Button Content="Cerrar" Click="OnCloseClick" Background="{DynamicResource PrimaryDarkBrush}" />
+        </StackPanel>
+
+        <Grid Background="#80000000"
+              Visibility="{Binding IsBusy, Converter={StaticResource BooleanToVisibilityConverter}}"
+              Grid.RowSpan="3">
+            <Border Background="{DynamicResource SurfaceBrush}" CornerRadius="12" Padding="24" HorizontalAlignment="Center" VerticalAlignment="Center">
+                <StackPanel HorizontalAlignment="Center">
+                    <TextBlock Text="⟳" FontSize="32" HorizontalAlignment="Center" />
+                    <TextBlock Text="{Binding BusyMessage}" FontSize="14" Margin="0,12,0,0" HorizontalAlignment="Center" />
+                </StackPanel>
+            </Border>
+        </Grid>
+    </Grid>
+</Window>

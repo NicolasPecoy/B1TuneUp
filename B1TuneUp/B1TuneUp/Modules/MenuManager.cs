@@ -11,6 +11,7 @@ using B1TuneUp.Modules.AuditLogViewer;
 using B1TuneUp.Modules.TemplateReportUi;
 using B1TuneUp.Modules.EmailDesigner;
 using B1TuneUp.Modules.ToolboxUi;
+using B1TuneUp.Modules.ValidationUi;
 using B1TuneUp.Utils;
 
 namespace B1TuneUp.Modules
@@ -26,6 +27,7 @@ namespace B1TuneUp.Modules
         private const string TemplateReportMenuId = "BTUN_TMPLRPT";
         private const string EmailDesignerMenuId = "BTUN_EMAILUI";
         private const string ToolboxMenuId = "BTUN_TOOLBOX";
+        private const string ValidationMenuId = "BTUN_VALMAND";
         private static Dictionary<string, string> _menuActions = new Dictionary<string, string>();
 
         public static void LoadCustomMenus()
@@ -74,6 +76,7 @@ namespace B1TuneUp.Modules
                 EnsureTemplateReportMenu();
                 EnsureEmailDesignerMenu();
                 EnsureToolboxMenu();
+                EnsureValidationMenu();
             }
             catch { }
         }
@@ -428,6 +431,42 @@ namespace B1TuneUp.Modules
             }
         }
 
+        private static void EnsureValidationMenu()
+        {
+            var app = B1App.Instance.Application;
+            var menus = app.Menus;
+            if (menus.Exists(ValidationMenuId)) return;
+
+            string parentId = "43520";
+            MenuItem parent = null;
+            try { parent = menus.Item(parentId); } catch { }
+            if (parent == null)
+            {
+                try { parent = menus.Item("0"); } catch { }
+            }
+            if (parent == null) return;
+
+            try
+            {
+                var creationParams = (MenuCreationParams)app.CreateObject(BoCreatableObjectType.cot_MenuCreationParams);
+                creationParams.Type = BoMenuType.mt_STRING;
+                creationParams.UniqueID = ValidationMenuId;
+                string caption = LocalizationManager.GetString("Menu.ValidationDesigner");
+                if (string.IsNullOrWhiteSpace(caption) || caption == "Menu.ValidationDesigner")
+                {
+                    caption = "Validation & Mandatory Fields";
+                }
+                creationParams.String = caption;
+                creationParams.Position = 9019;
+                parent.SubMenus.AddEx(creationParams);
+                app.SetStatusBarMessage("Validation & Mandatory Fields disponible en el menú.", BoMessageTime.bmt_Short, false);
+            }
+            catch (Exception ex)
+            {
+                app.SetStatusBarMessage($"Error creando menú Validation Manager: {ex.Message}", BoMessageTime.bmt_Short, true);
+            }
+        }
+
         public static void HandleMenuEvent(ref MenuEvent pVal)
         {
             if (!pVal.BeforeAction && _menuActions.ContainsKey(pVal.MenuUID))
@@ -508,6 +547,14 @@ namespace B1TuneUp.Modules
                 catch (Exception ex)
                 {
                     B1App.Instance.Application.SetStatusBarMessage($"Error abriendo Toolbox Settings: {ex.Message}", BoMessageTime.bmt_Short, true);
+                }
+            }
+            else if (!pVal.BeforeAction && pVal.MenuUID == ValidationMenuId)
+            {
+                try { ValidationDesignerLauncher.Show(); }
+                catch (Exception ex)
+                {
+                    B1App.Instance.Application.SetStatusBarMessage($"Error abriendo Validation Designer: {ex.Message}", BoMessageTime.bmt_Short, true);
                 }
             }
         }

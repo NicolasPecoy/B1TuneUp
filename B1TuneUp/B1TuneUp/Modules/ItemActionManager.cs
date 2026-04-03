@@ -4,11 +4,14 @@ using SAPbobsCOM;
 using B1TuneUp.Core;
 using B1TuneUp.Utils;
 using SAPbouiCOM;
+using System.Globalization;
 
 namespace B1TuneUp.Modules
 {
     public static class ItemActionManager
     {
+
+
         public static bool SaveAction(string formType, string itemId, string actionMacro)
         {
             if (string.IsNullOrEmpty(formType) || string.IsNullOrEmpty(itemId)) return false;
@@ -16,31 +19,49 @@ namespace B1TuneUp.Modules
             try
             {
                 rs = (SAPbobsCOM.Recordset)B1App.Instance.Company.GetBusinessObject(SAPbobsCOM.BoObjectTypes.BoRecordset);
+                string safeForm = formType.Replace("'", "''");
+                string safeItem = itemId.Replace("'", "''");
+                string table = B1App.Instance.IsHana ? ""@BTUN_ITEMACT"" : "[@BTUN_ITEMACT]";
+                string codeColumn = B1App.Instance.IsHana ? ""Code"" : "[Code]";
                 string checkSql = B1App.Instance.IsHana
-                    ? $"SELECT \"DocEntry\" FROM \"@BTUN_ITEMACT\" WHERE \"U_FormType\"='{formType.Replace("'","''")}' AND \"U_ItemID\"='{itemId.Replace("'","''")}'"
-                    : $"SELECT DocEntry FROM [@BTUN_ITEMACT] WHERE [U_FormType]='{formType.Replace("'","''")}' AND [U_ItemID]='{itemId.Replace("'","''")}'";
+                    ? $"SELECT "Code" FROM {table} WHERE "U_FormType"='{safeForm}' AND "U_ItemID"='{safeItem}'"
+                    : $"SELECT Code FROM {table} WHERE [U_FormType]='{safeForm}' AND [U_ItemID]='{safeItem}'";
                 rs.DoQuery(checkSql);
-                string act = (actionMacro ?? "").Replace("'", "''");
+
+                string act = (actionMacro ?? string.Empty).Replace("'", "''");
                 string eventType = "Change";
-                try { var parts = actionMacro.Split(new[] { "||" }, StringSplitOptions.RemoveEmptyEntries); if (parts.Length > 1) { eventType = parts[0]; act = parts[1].Replace("'", "''"); } }
+                try
+                {
+                    var parts = actionMacro.Split(new[] { "||" }, StringSplitOptions.RemoveEmptyEntries);
+                    if (parts.Length > 1)
+                    {
+                        eventType = parts[0];
+                        act = parts[1].Replace("'", "''");
+                    }
+                }
                 catch { }
+
                 if (!rs.EoF)
                 {
-                    string docEntry = rs.Fields.Item(0).Value.ToString();
+                    string codeValue = rs.Fields.Item(0).Value?.ToString() ?? string.Empty;
                     string updateSql = B1App.Instance.IsHana
-                        ? $"UPDATE \"@BTUN_ITEMACT\" SET \"U_Action\"='{act}', \"U_UpdatedAt\"=CURRENT_TIMESTAMP WHERE \"DocEntry\"='{docEntry}'"
-                        : $"UPDATE [@BTUN_ITEMACT] SET U_Action='{act}', U_UpdatedAt=GETDATE() WHERE DocEntry='{docEntry}'";
+                        ? $"UPDATE {table} SET "U_Action"='{act}', "U_UpdatedAt"=CURRENT_TIMESTAMP WHERE {codeColumn}='{codeValue}'"
+                        : $"UPDATE {table} SET U_Action='{act}', U_UpdatedAt=GETDATE() WHERE {codeColumn}='{codeValue}'";
                     rs.DoQuery(updateSql);
                 }
                 else
                 {
+                    int nextCode = UserTableCodeGenerator.GetNext("@BTUN_ITEMACT");
+                    string codeValue = nextCode.ToString(System.Globalization.CultureInfo.InvariantCulture);
+                    string name = $"{formType}_{itemId}_{eventType}".Replace("'", "''");
+                    string timestamp = B1App.Instance.IsHana ? "CURRENT_TIMESTAMP" : "GETDATE()";
+                    string safeEvent = eventType.Replace("'", "''");
                     string insertSql = B1App.Instance.IsHana
-                        ? $"INSERT INTO \"@BTUN_ITEMACT\" (\"U_FormType\", \"U_ItemID\", \"U_Action\", \"U_CreatedAt\", \"U_Event\") VALUES ('{formType.Replace("'","''")}', '{itemId.Replace("'","''")}', '{act}', CURRENT_TIMESTAMP, '{eventType}')"
-                        : $"INSERT INTO [@BTUN_ITEMACT] (U_FormType, U_ItemID, U_Action, U_CreatedAt, U_Event) VALUES ('{formType.Replace("'","''")}', '{itemId.Replace("'","''")}', '{act}', GETDATE(), '{eventType}')";
+                        ? $"INSERT INTO {table} ("Code","Name","U_FormType", "U_ItemID", "U_Action", "U_CreatedAt", "U_Event") VALUES ('{codeValue}','{name}','{safeForm}', '{safeItem}', '{act}', {timestamp}, '{safeEvent}')"
+                        : $"INSERT INTO {table} (Code,Name,U_FormType, U_ItemID, U_Action, U_CreatedAt, U_Event) VALUES ('{codeValue}','{name}','{safeForm}', '{safeItem}', '{act}', {timestamp}, '{safeEvent}')";
                     rs.DoQuery(insertSql);
                 }
                 B1App.Instance.Application.SetStatusBarMessage($"Action saved for {itemId}", SAPbouiCOM.BoMessageTime.bmt_Short, false);
-                // Register handler immediately for any open forms matching this formType
                 try
                 {
                     for (int i = 0; i < B1App.Instance.Application.Forms.Count; i++)
@@ -48,7 +69,6 @@ namespace B1TuneUp.Modules
                         var f = B1App.Instance.Application.Forms.Item(i);
                         if (f.TypeEx == formType)
                         {
-                            // remove previous handlers for this item on this form, then add
                             EventDispatcher.Instance.UnregisterLocalItemChangeHandler(f, itemId);
                             EventDispatcher.Instance.RegisterLocalItemChangeHandler(f, itemId, (frm, id) =>
                             {
@@ -75,7 +95,6 @@ namespace B1TuneUp.Modules
                 ComObjectManager.Release(rs);
             }
         }
-
         public static string GetAction(string formType, string itemId)
         {
             if (string.IsNullOrEmpty(formType) || string.IsNullOrEmpty(itemId)) return "";

@@ -65,7 +65,6 @@ namespace B1TuneUp.Modules
                 ExecuteNonQuery(updateSql);
             }
 
-            // Replace child buttons
             string deleteSql = isHana
                 ? $"DELETE FROM \"@BTUN_PADB\" WHERE \"U_PadEntry\"={entry.DocEntry}"
                 : $"DELETE FROM [@BTUN_PADB] WHERE U_PadEntry={entry.DocEntry}";

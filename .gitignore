@@ -10,6 +10,11 @@
 *.userosscache
 *.sln.docstates
 *.env
+bin
+obj
+[Bb]in/
+[Oo]bj/
+
 
 # User-specific files (MonoDevelop/Xamarin Studio)
 *.userprefs
@@ -426,3 +431,4 @@ FodyWeavers.xsd
 *.msix
 *.msm
 *.msp
+/B1TuneUp/obj

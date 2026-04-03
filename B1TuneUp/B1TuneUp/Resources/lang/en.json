@@ -35,4 +35,5 @@
   ,"Menu.AuditLog":"Audit Log Viewer"
   ,"AuditLog.Menu.Description":"Inspect historical actions with filters and search"
   ,"Menu.DashboardSearchMacroStudio":"Dashboard / Search / Macro Studio"
+  ,"Menu.ActionQuickStudio":"Action Pad / Quick Copy / Item Actions"
 }

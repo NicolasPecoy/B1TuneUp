@@ -42,3 +42,5 @@ E:\B1TuneUp\B1TuneUp\obj\Debug\net48\B1TuneUp\Modules\ValidationUi\ValidationDes
 E:\B1TuneUp\B1TuneUp\obj\Debug\net48\B1TuneUp\Modules\ValidationUi\ValidationDesignerWindow.g.cs
 E:\B1TuneUp\B1TuneUp\obj\Debug\net48\B1TuneUp\Modules\DashboardSearchMacroUi\DashboardSearchMacroWindow.baml
 E:\B1TuneUp\B1TuneUp\obj\Debug\net48\B1TuneUp\Modules\DashboardSearchMacroUi\DashboardSearchMacroWindow.g.cs
+E:\B1TuneUp\B1TuneUp\obj\Debug\net48\B1TuneUp\Modules\ActionQuickUi\ActionQuickWindow.baml
+E:\B1TuneUp\B1TuneUp\obj\Debug\net48\B1TuneUp\Modules\ActionQuickUi\ActionQuickWindow.g.cs

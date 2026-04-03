@@ -13,6 +13,7 @@ using B1TuneUp.Modules.EmailDesigner;
 using B1TuneUp.Modules.ToolboxUi;
 using B1TuneUp.Modules.ValidationUi;
 using B1TuneUp.Modules.DashboardSearchMacroUi;
+using B1TuneUp.Modules.ActionQuickUi;
 using B1TuneUp.Utils;
 
 namespace B1TuneUp.Modules
@@ -30,6 +31,7 @@ namespace B1TuneUp.Modules
         private const string ToolboxMenuId = "BTUN_TOOLBOX";
         private const string ValidationMenuId = "BTUN_VALMAND";
         private const string DashboardSearchMacroMenuId = "BTUN_DSHMC";
+        private const string ActionQuickMenuId = "BTUN_ACTPAD";
         private static Dictionary<string, string> _menuActions = new Dictionary<string, string>();
 
         public static void LoadCustomMenus()
@@ -80,6 +82,7 @@ namespace B1TuneUp.Modules
                 EnsureToolboxMenu();
                 EnsureValidationMenu();
                 EnsureDashboardSearchMacroMenu();
+                EnsureActionQuickMenu();
             }
             catch { }
         }
@@ -506,6 +509,42 @@ namespace B1TuneUp.Modules
             }
         }
 
+        private static void EnsureActionQuickMenu()
+        {
+            var app = B1App.Instance.Application;
+            var menus = app.Menus;
+            if (menus.Exists(ActionQuickMenuId)) return;
+
+            string parentId = "43520";
+            MenuItem parentMenu = null;
+            try { parentMenu = menus.Item(parentId); } catch { }
+            if (parentMenu == null)
+            {
+                try { parentMenu = menus.Item("0"); } catch { }
+            }
+            if (parentMenu == null) return;
+
+            try
+            {
+                MenuCreationParams creationParams = (MenuCreationParams)app.CreateObject(BoCreatableObjectType.cot_MenuCreationParams);
+                creationParams.Type = BoMenuType.mt_STRING;
+                creationParams.UniqueID = ActionQuickMenuId;
+                string caption = LocalizationManager.GetString("Menu.ActionQuickStudio");
+                if (string.IsNullOrWhiteSpace(caption) || caption == "Menu.ActionQuickStudio")
+                {
+                    caption = "Action Pad / Quick Copy / Item Actions";
+                }
+                creationParams.String = caption;
+                creationParams.Position = 9021;
+                parentMenu.SubMenus.AddEx(creationParams);
+                app.SetStatusBarMessage("Action Pad / Quick Copy / Item Actions disponible en el menu.", BoMessageTime.bmt_Short, false);
+            }
+            catch (Exception ex)
+            {
+                app.SetStatusBarMessage($"Error creando menu Action Pad Studio: {ex.Message}", BoMessageTime.bmt_Short, true);
+            }
+        }
+
         public static void HandleMenuEvent(ref MenuEvent pVal)
         {
             if (!pVal.BeforeAction && _menuActions.ContainsKey(pVal.MenuUID))
@@ -602,6 +641,14 @@ namespace B1TuneUp.Modules
                 catch (Exception ex)
                 {
                     B1App.Instance.Application.SetStatusBarMessage($"Error abriendo Dashboard/Search/Macro Studio: {ex.Message}", BoMessageTime.bmt_Short, true);
+                }
+            }
+            else if (!pVal.BeforeAction && pVal.MenuUID == ActionQuickMenuId)
+            {
+                try { ActionQuickLauncher.Show(); }
+                catch (Exception ex)
+                {
+                    B1App.Instance.Application.SetStatusBarMessage($"Error abriendo Action Pad Studio: {ex.Message}", BoMessageTime.bmt_Short, true);
                 }
             }
         }

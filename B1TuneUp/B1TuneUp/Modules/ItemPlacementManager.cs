@@ -302,12 +302,16 @@ namespace B1TuneUp.Modules
         public static System.Data.DataTable GetLayouts(string formType)
         {
             var dt = new System.Data.DataTable();
+            dt.Columns.Add("DocEntry");
             dt.Columns.Add("U_Name");
             dt.Columns.Add("U_FormType");
             dt.Columns.Add("U_Desc");
             dt.Columns.Add("U_FileName");
             dt.Columns.Add("U_Owner");
             dt.Columns.Add("U_CreatedAt");
+            dt.Columns.Add("U_UpdatedAt");
+            dt.Columns.Add("U_Version");
+
             SAPbobsCOM.Recordset rs = null;
             try
             {
@@ -316,25 +320,30 @@ namespace B1TuneUp.Modules
                 if (string.IsNullOrEmpty(formType) || formType == "*")
                 {
                     sql = B1App.Instance.IsHana
-                        ? $"SELECT \"U_Name\", \"U_FormType\", \"U_Desc\", \"U_FileName\", \"U_Owner\", \"U_CreatedAt\" FROM \"@BTUN_LAYOUT\" ORDER BY \"U_Name\""
-                        : $"SELECT U_Name, U_FormType, U_Desc, U_FileName, U_Owner, U_CreatedAt FROM [@BTUN_LAYOUT] ORDER BY U_Name";
+                        ? "SELECT \"DocEntry\", \"U_Name\", \"U_FormType\", \"U_Desc\", \"U_FileName\", \"U_Owner\", \"U_CreatedAt\", \"U_UpdatedAt\", \"U_Version\" FROM \"@BTUN_LAYOUT\" ORDER BY \"U_Name\""
+                        : "SELECT DocEntry, U_Name, U_FormType, U_Desc, U_FileName, U_Owner, U_CreatedAt, U_UpdatedAt, U_Version FROM [@BTUN_LAYOUT] ORDER BY U_Name";
                 }
                 else
                 {
+                    var ft = formType.Replace("'", "''");
                     sql = B1App.Instance.IsHana
-                        ? $"SELECT \"U_Name\", \"U_FormType\", \"U_Desc\", \"U_FileName\", \"U_Owner\", \"U_CreatedAt\" FROM \"@BTUN_LAYOUT\" WHERE \"U_FormType\" = '{formType.Replace("'", "''")}' ORDER BY \"U_Name\""
-                        : $"SELECT U_Name, U_FormType, U_Desc, U_FileName, U_Owner, U_CreatedAt FROM [@BTUN_LAYOUT] WHERE [U_FormType] = '{formType.Replace("'", "''")}' ORDER BY U_Name";
+                        ? $"SELECT \"DocEntry\", \"U_Name\", \"U_FormType\", \"U_Desc\", \"U_FileName\", \"U_Owner\", \"U_CreatedAt\", \"U_UpdatedAt\", \"U_Version\" FROM \"@BTUN_LAYOUT\" WHERE \"U_FormType\" = '{ft}' ORDER BY \"U_Name\""
+                        : $"SELECT DocEntry, U_Name, U_FormType, U_Desc, U_FileName, U_Owner, U_CreatedAt, U_UpdatedAt, U_Version FROM [@BTUN_LAYOUT] WHERE [U_FormType] = '{ft}' ORDER BY U_Name";
                 }
+
                 rs.DoQuery(sql);
                 while (!rs.EoF)
                 {
                     var row = dt.NewRow();
-                    row[0] = rs.Fields.Item(0).Value?.ToString();
-                    row[1] = rs.Fields.Item(1).Value?.ToString();
-                    row[2] = rs.Fields.Item(2).Value?.ToString();
-                    row[3] = rs.Fields.Item(3).Value?.ToString();
-                    row[4] = rs.Fields.Item(4).Value?.ToString();
-                    row[5] = rs.Fields.Item(5).Value?.ToString();
+                    row["DocEntry"] = rs.Fields.Item("DocEntry").Value?.ToString();
+                    row["U_Name"] = rs.Fields.Item("U_Name").Value?.ToString();
+                    row["U_FormType"] = rs.Fields.Item("U_FormType").Value?.ToString();
+                    row["U_Desc"] = rs.Fields.Item("U_Desc").Value?.ToString();
+                    row["U_FileName"] = rs.Fields.Item("U_FileName").Value?.ToString();
+                    row["U_Owner"] = rs.Fields.Item("U_Owner").Value?.ToString();
+                    row["U_CreatedAt"] = rs.Fields.Item("U_CreatedAt").Value;
+                    row["U_UpdatedAt"] = rs.Fields.Item("U_UpdatedAt").Value;
+                    row["U_Version"] = rs.Fields.Item("U_Version").Value;
                     dt.Rows.Add(row);
                     rs.MoveNext();
                 }

@@ -50,3 +50,5 @@ E:\B1TuneUp\B1TuneUp\obj\Debug\net48\B1TuneUp\Modules\FormEnhancementUi\FormEnha
 E:\B1TuneUp\B1TuneUp\obj\Debug\net48\B1TuneUp\Modules\FormEnhancementUi\FormEnhancementWindow.g.cs
 E:\B1TuneUp\B1TuneUp\obj\Debug\net48\B1TuneUp\Modules\AutomationDashboardUi\AutomationDashboardWindow.baml
 E:\B1TuneUp\B1TuneUp\obj\Debug\net48\B1TuneUp\Modules\AutomationDashboardUi\AutomationDashboardWindow.g.cs
+E:\B1TuneUp\B1TuneUp\obj\Debug\net48\B1TuneUp\Modules\PlacementEnhancementUi\PlacementEnhancementWindow.baml
+E:\B1TuneUp\B1TuneUp\obj\Debug\net48\B1TuneUp\Modules\PlacementEnhancementUi\PlacementEnhancementWindow.g.cs

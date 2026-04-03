@@ -39,4 +39,6 @@
   ,"Menu.MacroEngineStudio":"Macro Engine Studio"
   ,"Menu.FormEnhancementStudio":"Form Enhancements Studio"
   ,"Menu.AutomationDashboard":"Automation Dashboard"
+  ,"Menu.PlacementEnhancementStudio":"Item Placement y UI Enhancer"
+  ,"PlacementEnhancement.Menu.Description":"Gestiona layouts, item placement y mejoras visuales en una sola ventana"
 }

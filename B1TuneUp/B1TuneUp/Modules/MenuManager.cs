@@ -17,6 +17,7 @@ using B1TuneUp.Modules.ActionQuickUi;
 using B1TuneUp.Modules.MacroEngineUi;
 using B1TuneUp.Modules.FormEnhancementUi;
 using B1TuneUp.Modules.AutomationDashboardUi;
+using B1TuneUp.Modules.PlacementEnhancementUi;
 using B1TuneUp.Utils;
 
 namespace B1TuneUp.Modules
@@ -38,6 +39,7 @@ namespace B1TuneUp.Modules
         private const string MacroEngineMenuId = "BTUN_MACENG";
         private const string FormEnhancementMenuId = "BTUN_FORMEX";
         private const string AutomationDashboardMenuId = "BTUN_AUTOD";
+        private const string PlacementEnhancementMenuId = "BTUN_ITEMUI";
         private static Dictionary<string, string> _menuActions = new Dictionary<string, string>();
 
         public static void LoadCustomMenus()
@@ -92,6 +94,7 @@ namespace B1TuneUp.Modules
                 EnsureMacroEngineMenu();
                 EnsureFormEnhancementMenu();
                 EnsureAutomationDashboardMenu();
+                EnsurePlacementEnhancementMenu();
             }
             catch { }
         }
@@ -662,6 +665,47 @@ namespace B1TuneUp.Modules
             }
         }
 
+        private static void EnsurePlacementEnhancementMenu()
+        {
+            var app = B1App.Instance.Application;
+            var menus = app.Menus;
+            if (menus.Exists(PlacementEnhancementMenuId)) return;
+
+            string parentId = "43520";
+            MenuItem parent = null;
+            try { parent = menus.Item(parentId); } catch { }
+            if (parent == null)
+            {
+                try { parent = menus.Item("0"); } catch { }
+            }
+            if (parent == null) return;
+
+            try
+            {
+                MenuCreationParams creationParams = (MenuCreationParams)app.CreateObject(BoCreatableObjectType.cot_MenuCreationParams);
+                creationParams.Type = BoMenuType.mt_STRING;
+                creationParams.UniqueID = PlacementEnhancementMenuId;
+                string caption = LocalizationManager.GetString("Menu.PlacementEnhancementStudio");
+                if (string.IsNullOrWhiteSpace(caption) || caption == "Menu.PlacementEnhancementStudio")
+                {
+                    caption = "Item Placement & UI Enhancer";
+                }
+                creationParams.String = caption;
+                creationParams.Position = 9025;
+                parent.SubMenus.AddEx(creationParams);
+                var status = LocalizationManager.GetString("PlacementEnhancement.Menu.Description");
+                if (string.IsNullOrWhiteSpace(status) || status == "PlacementEnhancement.Menu.Description")
+                {
+                    status = "Item Placement & UI Enhancer disponible en el menu.";
+                }
+                app.SetStatusBarMessage(status, BoMessageTime.bmt_Short, false);
+            }
+            catch (Exception ex)
+            {
+                app.SetStatusBarMessage($"Error creando menu Item Placement: {ex.Message}", BoMessageTime.bmt_Short, true);
+            }
+        }
+
         public static void HandleMenuEvent(ref MenuEvent pVal)
         {
             if (!pVal.BeforeAction && _menuActions.ContainsKey(pVal.MenuUID))
@@ -782,6 +826,14 @@ namespace B1TuneUp.Modules
                 catch (Exception ex)
                 {
                     B1App.Instance.Application.SetStatusBarMessage($"Error abriendo Form Enhancements Studio: {ex.Message}", BoMessageTime.bmt_Short, true);
+                }
+            }
+            else if (!pVal.BeforeAction && pVal.MenuUID == PlacementEnhancementMenuId)
+            {
+                try { PlacementEnhancementLauncher.Show(); }
+                catch (Exception ex)
+                {
+                    B1App.Instance.Application.SetStatusBarMessage($"Error abriendo Item Placement & UI Enhancer: {ex.Message}", BoMessageTime.bmt_Short, true);
                 }
             }
             else if (!pVal.BeforeAction && pVal.MenuUID == AutomationDashboardMenuId)

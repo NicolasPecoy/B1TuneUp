@@ -53,8 +53,8 @@ namespace B1TuneUp.Modules.PlacementEnhancementUi {
                 return;
             }
             _contentLoaded = true;
-            System.Uri resourceLocater = new System.Uri("/B1TuneUp;component/b1tuneup/modules/placementenhancementui/placementenhancementw" +
-                    "indow.xaml", System.UriKind.Relative);
+            System.Uri resourceLocater = new System.Uri("/B1TuneUp;V1.0.0.0;component/b1tuneup/modules/placementenhancementui/placementenh" +
+                    "ancementwindow.xaml", System.UriKind.Relative);
             
             #line 1 "..\..\..\..\..\..\B1TuneUp\Modules\PlacementEnhancementUi\PlacementEnhancementWindow.xaml"
             System.Windows.Application.LoadComponent(this, resourceLocater);

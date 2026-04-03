@@ -608,7 +608,47 @@ Ahora puedes asignar lógica SDK avanzada a un botón agregado desde el UiCustom
 
 ### Checklist sugerido
 
-1. Guardar/restaurar un layout desde el nuevo estudio para validar que `@BTUN_LAYOUT` mantiene versiones.
+1. Guardar/restaurar un layout desde el nuevo estudio para validar que @BTUN_LAYOUT mantiene versiones.
+2. Ejecutar las herramientas auxiliares (drag & drop, editor enriquecido, dashboard) desde la tercera columna.
+3. Configurar un bot?n con InvokeHandler, presionarlo en SAP y confirmar que el handler manipula el documento mediante el SDK.
+
+---
+
+## ?? Mapa funcional completo de B1TuneUp
+
+| M?dulo / Estudio | Prop?sito principal | Funciones destacadas | C?mo abrirlo |
+| ---------------- | ------------------ | -------------------- | ------------ |
+| **Integration Studio** | Configurar APIs REST/SOAP y sincronizaciones | Variables por entorno, pruebas en vivo, agendas de integraci?n, versionado de credenciales | SAP ? M?dulos ? B1TuneUp ? Configurador de Integraciones |
+| **Scheduler Studio** | Automatizar macros y tareas recurrentes | Jobs con hora/d?a, ejecuci?n de MacroEngine o DLLs, historial de ejecuciones | Men? Scheduler Studio |
+| **Rule Builder / MacroEngine Studio** | Dise?ar reglas condicionales para MacroEngine | Editor visual IF/THEN, pruebas con formularios SAP, export/import JSON | Men? Rule Builder / Macro Engine Studio |
+| **Process Designer** | Modelar workflows de Process Steps | Diagrama drag & drop, condiciones, asignaci?n de usuarios y tareas SAP | Men? Process Designer |
+| **Validation & Mandatory Fields Studio** | Validaciones de negocio y campos obligatorios | Reglas por FormType, condiciones SQL, mensajes localizados | Men? Validation Studio |
+| **Form Enhancements Studio** | Ajustes de formulario, valores por defecto, bloqueo de campos | Tres columnas (Form Settings / Default Values / Lock Rules), filtros y duplicados | Men? Form Enhancements Studio |
+| **Item Placement & UI Enhancer** | Layouts SRF, helpers visuales, drag & drop | Biblioteca de layouts, import/export, accesos a editor enriquecido, pivots, scanner | Men? Item Placement y UI Enhancer |
+| **Automation Dashboard** | Control unificado de men?s, macros y despliegues | Checklist de entornos, publicaci?n a QA/PROD, pruebas de men?s | Men? Automation Dashboard |
+| **Dashboard / Search / Macro Studio** | Configurar dashboards, b?squedas y macros globales | Widgets SQL, Search Config, pruebas de MacroEngine | Men? Dashboard/Search/Macro Studio |
+| **Action Pad / Quick Copy / Item Actions** | Dise?ar pads de acci?n, plantillas de copia y macro botones | Dise?ador WPF, binding a macros, Quick Copy Wizard | Men? Action Pad Studio |
+| **Email / Notification Designer** | Plantillas HTML, notificaciones autom?ticas | Editor con vista previa, adjuntos, variables CRM | Men? Email Designer |
+| **Template & Report Manager** | Gesti?n documental de reportes/plantillas | Repositorio versionado, asignaci?n por compa??a/sucursal | Men? Template & Report Studio |
+| **Scheduler Manager cl?sico** | Jobs legacy (WinForms) para compatibilidad | Lista plana de jobs, activaci?n/desactivaci?n r?pida | Men? Scheduler Manager |
+| **Audit Log Viewer** | Consultar historial de acciones | Filtros por usuario/fecha, exportaci?n CSV | Men? Visor de Logs |
+| **Toolbox / Settings** | Ajustes avanzados de Toolbox | Flags por sucursal, personalizaci?n de helpers | Men? Toolbox Settings |
+| **Process Steps Manager / Workflow Designer** | Asignaciones detalladas por step | Grid editable, import/export | Men? Process Designer (modo cl?sico) |
+
+> Adem?s del WPF, siguen disponibles los formularios WinForms heredados (ItemPlacementForm, ItemActionsManagerForm, etc.) para escenarios legacy, aunque se recomienda migrar al estudio equivalente.
+
+### Funcionalidades transversales
+- **MacroEngine ampliado**: soporta InvokeHandler, REST, SOAP, Loop, QuickCreate, Import/Export CSV, etc. Cualquier bot?n configurado en @BTUN_ITEMACT se ejecuta v?a MacroEngine.
+- **Gesti?n de men?s**: MenuManager asegura que todos los estudios aparezcan bajo el men? de B1TuneUp y registra los captions localizados.
+- **Localizaci?n**: Resources/lang/es.json y en.json contienen todas las cadenas (Menu.*, mensajes de estado). Si se agrega un estudio nuevo, registrar Menu.<Nombre> y la descripci?n para SQL/HANA.
+- **Servicios por m?dulo**: cada estudio consume su servicio (IntegrationConfigService, SchedulerService, FormSettingsService, etc.) para CRUD directo contra las tablas @BTUN_*. Esto facilita pruebas y scripting porque los mismos m?todos se exponen internamente para otras herramientas.
+- **Automation helpers**: AutomationDashboard + MenuConfigService permiten desplegar men?s, macros y acciones personalizados por entorno (DESA/QA/PROD) con un clic.
+
+Con este mapa, cualquier rol puede identificar r?pidamente qu? estudio cubre cada proceso y c?mo acceder a ?l desde SAP.
+
+---
+
+## ?? Contacto desde el nuevo estudio para validar que `@BTUN_LAYOUT` mantiene versiones.
 2. Ejecutar las herramientas auxiliares (drag & drop, editor enriquecido, dashboard) desde la tercera columna.
 3. Configurar un botón con `InvokeHandler`, presionarlo en SAP y confirmar que el handler manipula el documento mediante el SDK.
 

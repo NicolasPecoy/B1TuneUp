@@ -1,501 +1,161 @@
-# Gu√≠a R√°pida de B1TuneUp
+# GuÌa R·pida B1TuneUp (abril 2026)
 
-## Inicio R√°pido ‚ö°
+## 1. Arranque ExprÈs (5 minutos)
 
-### 1. Primeros Pasos (5 minutos)
+1. **Instala** el add-on (`.\\installer\\deploy.ps1`).
+2. **Abre SAP B1**, inicia el add-on y acepta la creaciÛn de tablas `@BTUN_*`.
+3. **Configura idioma** desde `MÛdulos > B1TuneUp > ConfiguraciÛn` (EspaÒol por defecto).
+4. **Verifica los men˙s**: deberÌan aparecer todos los estudios WPF bajo el men˙ B1TuneUp.
 
-```
-‚úÖ Paso 1: Instalar addon con deploy.ps1
-‚úÖ Paso 2: Abrir SAP Business One
-‚úÖ Paso 3: Ir a M√≥dulos > B1TuneUp > Configuraci√≥n
-‚úÖ Paso 4: Seleccionar idioma y guardar
-```
-
-### 2. Tu Primera Macro (ejemplo real)
-
-**Objetivo**: Mostrar mensaje al abrir Pedidos de Venta
-
-```sql
--- Ejecutar en SQL Server/HANA:
-INSERT INTO [@BTUN_RULES] (U_FormType, U_Type, U_EventType, U_Before, U_Action)
-VALUES ('139', 'Macro', 'et_FORM_LOAD', 0, "Msg('Bienvenido a Ventas')")
-```
-
-¬°Listo! La pr√≥xima vez que abras un pedido, ver√°s el mensaje.
+> Si un men˙ no aparece, abre Automation Dashboard y ejecuta "Recrear men˙s".
 
 ---
 
-## Comandos M√°s Usados üéØ
+## 2. Mapa de Estudios WPF en un vistazo
 
-### Manipulaci√≥n B√°sica
+| Estudio | QuÈ resuelve | Pasos r·pidos |
+|---------|--------------|--------------|
+| Integration Studio | Conecta APIs REST/SOAP, transforma y agenda envÌos. | 1) Crea escenario 2) Configura credenciales 3) Prueba y agenda |
+| Scheduler Studio | Agenda macros, integraciones o DLLs. | 1) "Nuevo Job" 2) Define acciÛn 3) Programa y prueba |
+| MacroEngine / Rule Builder | Define reglas IF/THEN y macros con InvokeHandler. | 1) Selecciona FormType 2) Escribe macro 3) Probar en vivo |
+| UiCustomizer + Item Placement | Ajusta formularios, aÒade botones y helpers UI. | 1) Captura formulario 2) Modifica layout 3) Publica versiÛn |
+| Validation & Mandatory Fields | Reglas de negocio y campos obligatorios. | 1) Filtra formulario 2) Define condiciÛn 3) Simula y guarda |
+| Process Designer / Workflow | Modela ProcessSteps y asigna responsables. | 1) Arrastra nodos 2) Configura propiedades 3) Publica |
+| Automation Dashboard | Controla men˙s, macros y despliegues por ambiente. | 1) Selecciona entorno 2) Marca elementos 3) Deploy/Test |
+| Dashboard/Search/Macro | DiseÒa dashboards, b˙squedas y macros globales. | 1) Crea widget 2) Define SQL 3) Publica |
+| Form Enhancements Studio | Valores por defecto, locks y settings visuales. | 1) Selecciona FormType 2) Crea regla 3) Sincroniza |
+| Template & Report Studio | Gestiona plantillas Crystal/PDF. | 1) Sube archivo 2) Configura par·metros 3) Vista previa |
+| Email / Notification Designer | DiseÒa correos HTML y notificaciones. | 1) Edita plantilla 2) EnvÌa prueba 3) Publica |
+| Action Pad / Quick Copy / Item Actions | Paneles de acciÛn, copiar documentos, botones custom. | 1) DiseÒa Pad 2) Configura Quick Copy 3) Asocia Item Action |
+| Audit Log Viewer | Inspecciona `@BTUN_LOG`. | 1) Filtra 2) Exporta CSV 3) Abre registro |
+| Toolbox Settings | Ajustes globales (SMTP, paths, flags). | 1) Selecciona compaÒÌa 2) Edita valores 3) Guardar |
 
-```csharp
-// Mostrar mensaje
-Msg('Hola Usuario')
+---
 
-// Click en bot√≥n
-Click('btnOK')
+## 3. Ejemplos paso a paso
 
-// Establecer valor
-SetValue('CardCode', 'C00001')
+### 3.1 IntegraciÛn REST diaria
 
-// Mensaje en barra estado
-Status('Proceso completado')
+1. **Integration Studio ? "Nuevo"**: Nombre `CRM_ClientSync`.
+2. **Definir endpoint**: `https://crm/api/customer`, mÈtodo `GET`, header `Authorization: Bearer ...`.
+3. **Variables**: agrega `CompanyDB`, `LastSync`.
+4. **Prueba en vivo** con botÛn "Ejecutar".
+5. **Agenda**: presiona "Enviar a Scheduler", frecuencia diaria 08:00.
+6. **Audita**: revisa pestaÒa "Historial" o tabla `@BTUN_INTLOG`.
+
+### 3.2 BotÛn con lÛgica personalizada (InvokeHandler)
+
+1. **UiCustomizer**: captura `FormType 149`, agrega botÛn `btnEnviarLogistica`.
+2. **Item Actions**: crea acciÛn "Enviar a logÌstica" con macro:
+   ```
+   InvokeHandler('B1TuneUp.CustomLogic.LogisticsHandler','Enviar','$[$DocEntry.0.0]','B1TuneUp.CustomLogic.dll')
+   ```
+3. **Desarrolla handler** (ver secciÛn 6) y copia DLL junto al add-on.
+4. **Prueba** el botÛn desde SAP; revisa Audit Log si falla.
+
+### 3.3 ValidaciÛn condicional
+
+1. **Validation Studio** ? Formulario 133 (Orden de compra).
+2. Evento `Before Add`, condiciÛn SQL:
+   ```sql
+   SELECT CASE WHEN '$[$U_TipoDoc.0.0]' = 'IMP' AND ISNULL('$[$Incoterms.0.0]', '') = '' THEN 'FAIL' ELSE 'OK' END
+   ```
+3. AcciÛn: mensaje "Completa Incoterms" + `Stop()`.
+4. Simula con formulario abierto y guarda.
+
+### 3.4 Crear dashboard + b˙squeda
+
+1. **Dashboard/Search/Macro Studio**.
+2. PestaÒa Dashboard ? "Nuevo Widget" ? Query de ventas del dÌa.
+3. PestaÒa Search ? define campos `CardCode`, `CardName`, `Balance`.
+4. Publica y, si quieres compartir, usa Automation Dashboard para desplegar en QA/PROD.
+
+### 3.5 Plantilla de email transaccional
+
+1. **Email Designer** ? "Nueva plantilla".
+2. Cuerpo HTML con variables `{{CardName}}`, `{{DocTotal}}`.
+3. BotÛn "Enviar prueba" usando SMTP del Toolbox.
+4. Liga la plantilla a un escenario en Scheduler o a una regla en MacroEngine (`EmailTemplate('ALTA_CLIENTE')`).
+
+---
+
+## 4. Tu primera macro moderna
+
+```sql
+INSERT INTO [@BTUN_RULES]
+    (U_FormType, U_Type, U_EventType, U_Before, U_Action)
+VALUES
+    ('139', 'Macro', 'et_FORM_LOAD', 0,
+     "Status('Listo para vender'); InvokeHandler('B1TuneUp.CustomLogic.OnLoadHandler')");
 ```
 
-### Variables Din√°micas
+- `Status` muestra mensaje en la barra inferior.
+- `InvokeHandler` permite ejecutar C# externo (si no especificas mÈtodo usa `Execute`).
+
+---
+
+## 5. Referencias mÌnimas de comandos
+
+| AcciÛn | Macro |
+|--------|-------|
+| Mostrar mensaje modal | `Msg('Texto')` |
+| Mensaje barra estado | `Status('Procesando...')` |
+| Setear valor | `SetValue('ItemUID','valor')` |
+| Click botÛn | `Click('btnOK')` |
+| Abrir estudio WPF | `ShowStudio('Integration')` |
+| Ejecutar integraciÛn | `RunIntegration('CRM_ClientSync')` |
+| Llamada REST | `REST(url, method, body, headers)` |
+| Programar desde macro | `Schedule('NombreJob','Macro()', minutos)` |
+
+Variables din·micas siguen la sintaxis `$[$Item.Col.Row]`.
+
+---
+
+## 6. Plantilla de handler para InvokeHandler
 
 ```csharp
-// Obtener valor de campo actual
-$[$CardCode.0.0]
-
-// Obtener valor de matrix (fila seleccionada)
-$[$38.1.0]
-
-// Ejemplo en SQL
-IF(SELECT COUNT(*) FROM OCRD WHERE CardCode = '$[$CardCode.0.0]') THEN {
-    Msg('Cliente existe')
+namespace B1TuneUp.CustomLogic
+{
+    public class LogisticsHandler
+    {
+        public void Enviar(SAPbouiCOM.Form form, string[] args, SAPbobsCOM.Company company)
+        {
+            var docEntry = int.Parse(args[0]);
+            var orders = (SAPbobsCOM.Documents)company.GetBusinessObject(SAPbobsCOM.BoObjectTypes.oOrders);
+            if (orders.GetByKey(docEntry))
+            {
+                orders.UserFields.Fields.Item("U_LogisticsStatus").Value = "READY";
+                orders.Update();
+                B1App.Instance.Application.SetStatusBarMessage($"Pedido {docEntry} enviado", SAPbouiCOM.BoMessageTime.bmt_Short, false);
+            }
+        }
+    }
 }
 ```
 
-### Condicionales
-
-```csharp
-// IF simple
-IF(condicionSQL) THEN {
-    Msg('Verdadero')
-} ELSE {
-    Msg('Falso')
-}
-
-// Ejemplo pr√°ctico
-IF($[$DocTotal.0.0] > 1000) THEN {
-    Msg('Pedido mayor a $1000')
-}
-```
-
-### Loops (Matrices)
-
-```csharp
-// Recorrer l√≠neas de pedido
-Loop('38', 'SetValue(38.U_Campo, $[$38.1.0])')
-```
+Copiar la DLL junto al add-on o registrar ruta en Toolbox ? Paths.
 
 ---
 
-## Personalizar Formularios üé®
+## 7. Troubleshooting r·pido
 
-### Agregar Bot√≥n
-
-```sql
-INSERT INTO [@BTUN_UI] (
-    U_FormType, U_Action, U_ItemID, U_Label,
-    U_Top, U_Left, U_Width, U_Height
-)
-VALUES (
-    '149', 'AddButton', 'btnMiAccion', 'Mi Acci√≥n',
-    400, 10, 100, 30
-)
-```
-
-### Ocultar Campo
-
-```sql
-UPDATE [@BTUN_UI]
-SET U_Action = 'Hide'
-WHERE U_FormType = '149' AND U_ItemID = 'miCampo'
-```
-
-### Cambiar Etiqueta
-
-```sql
-INSERT INTO [@BTUN_UI] (
-    U_FormType, U_Action, U_ItemID, U_Label
-)
-VALUES (
-    '139', 'ChangeLabel', 'lblDireccion', 'Direcci√≥n de Env√≠o'
-)
-```
+| Problema | RevisiÛn |
+|----------|----------|
+| Men˙ no aparece | Automation Dashboard ? "Recrear men˙s"; revisar `LocalizationManager`.
+| El WPF no abre | Validar que `Microsoft.WebView2` estÈ instalado y logs en `%appdata%\B1TuneUp`.
+| Macro no corre | Tabla `@BTUN_LOG`, columna `U_Detail`; habilitar modo debug en Toolbox.
+| Error InvokeHandler | Confirmar nombre de clase, mÈtodo y DLL; revisar dependencias.
 
 ---
 
-## Validaciones Comunes ‚úÖ
+## 8. Checklist antes de ir a producciÛn
 
-### Campo Obligatorio
-
-```sql
--- Exigir campo antes de agregar/actualizar
-INSERT INTO [@BTUN_RULES] (
-    U_FormType, U_Type, U_EventType, U_Before,
-    U_Condition, U_Action
-)
-VALUES (
-    '149', 'Validation', 'et_FORM_DATA_ADD', 1,
-    "SELECT CASE WHEN CardCode IS NULL THEN 'FAIL' ELSE 'OK' END",
-    "Msg('Debe seleccionar un cliente'); Stop()"
-)
-```
-
-### Validar Email
-
-```sql
--- Verificar formato email
-IF(SELECT COUNT(*) FROM CRD1 WHERE E_Mail LIKE '%@%.%' AND CardCode = '$[$CardCode.0.0]') THEN {
-    Status('Email v√°lido')
-} ELSE {
-    Msg('Email inv√°lido')
-}
-```
-
-### Validar Stock
-
-```sql
--- Verificar stock antes de agregar l√≠nea
-IF(SELECT ISNULL(OnHand, 0) FROM OITM WHERE ItemCode = '$[$38.1.0]' WHERE DocEntry = '$[$DocEntry.0.0]') >=
-   (SELECT Quantity FROM RDR1 WHERE DocEntry = '$[$DocEntry.0.0]' AND LineNum = '$[$38.0.0]') THEN {
-    Status('Stock suficiente')
-} ELSE {
-    Msg('Stock insuficiente'); Stop()
-}
-```
+- [ ] Automation Dashboard sincronizado (men˙s/macros/reportes).
+- [ ] Backups de tablas `@BTUN_*` exportados.
+- [ ] Estudios crÌticos probados (Integration, Validation, Scheduler, Dashboards).
+- [ ] Handlers personalizados almacenados en repositorio y versionados.
+- [ ] Usuarios finales capacitados (mÌnimo 1 hora recorriendo los estudios relevantes).
 
 ---
 
-## Integraci√≥n üîå
-
-### Llamada REST Simple
-
-```csharp
-// GET
-REST('https://api.ejemplo.com/clientes/$[$CardCode.0.0]', 'GET', null, null)
-
-// POST con JSON
-REST('https://api.ejemplo.com/pedidos', 'POST',
-     '{"cardcode":"$[$CardCode.0.0]","total":$[$DocTotal.0.0]}',
-     'Content-Type: application/json')
-```
-
-### Enviar Email
-
-```csharp
-// Configurar primero en @BTUN_EMAIL
-Email('123')  // 123 = DocEntry del email configurado
-```
-
-### Consultar Datos Externos
-
-```csharp
-// SOAP
-SOAP('http://servicio.com/api.asmx', 'ConsultarPrecio',
-     '<request><item>$[$ItemCode.0.0]</item></request>')
-```
-
----
-
-## Programar Tareas ‚è∞
-
-### Tarea Diaria
-
-```sql
--- Ejecutar cada 24 horas (1440 minutos)
-INSERT INTO [@BTUN_SCHED] (U_Name, U_Action, U_Interval, U_Active)
-VALUES (
-    'Reporte Diario',
-    'Email(''reporte_diario'')',
-    1440,
-    'Y'
-)
-```
-
-### Tarea Cada Hora
-
-```sql
--- Ejecutar cada 60 minutos
-INSERT INTO [@BTUN_SCHED] (U_Name, U_Action, U_Interval, U_Active)
-VALUES (
-    'Sync Inventario',
-    'REST(...)',
-    60,
-    'Y'
-)
-```
-
----
-
-## Reportes üìä
-
-### Imprimir Reporte
-
-```csharp
-// Imprimir con reporte predeterminado
-Print('Factura')
-
-// Enviar a impresora espec√≠fica
-SendToPrinter('HP LaserJet')
-```
-
-### Administrar Reportes
-
-```csharp
-// Abrir administrador de reportes
-ManageReports()
-
-// Vista previa
-ShowReportPreview('MiReporte')
-```
-
----
-
-## Utilidades üõ†Ô∏è
-
-### Exportar a Excel
-
-```csharp
-ExportToExcel('C:\Export\pedido.csv')
-```
-
-### Archivos
-
-```csharp
-// Verificar si existe
-FileExists('C:\archivo.txt')
-
-// Crear carpeta
-CreateFolder('C:\NuevaCarpeta')
-
-// Eliminar archivo
-DeleteFile('C:\archivo.tmp')
-```
-
-### Portapapeles
-
-```csharp
-// Copiar texto
-Copy('$[$CardCode.0.0]')
-```
-
-### Log de Auditor√≠a
-
-```csharp
-// Registrar acci√≥n
-Log('Usuario realiz√≥ acci√≥n X')
-```
-
----
-
-## Dashboard y M√©tricas üìà
-
-### Mostrar Dashboard
-
-```csharp
-ShowDashboard()
-```
-
-### Action Pad
-
-```csharp
-// Mostrar pad de acciones para formulario activo
-ShowPad()
-```
-
----
-
-## Soluci√≥n de Problemas üîß
-
-### El Add-on No Carga
-
-```
-1. Verificar .NET Framework 4.8+ instalado
-2. Revisar logs de Windows Event Viewer
-3. Confirmar versi√≥n de SAP B1 SDK
-```
-
-### Las Macros No Se Ejecutan
-
-```sql
--- Verificar reglas cargadas
-SELECT * FROM [@BTUN_RULES] WHERE U_FormType = '139'
-
--- Revisar logs
-SELECT TOP 50 * FROM [@BTUN_LOG] ORDER BY DocEntry DESC
-```
-
-### Error en Validaci√≥n
-
-```
-1. Revisar sintaxis SQL en U_Condition
-2. Verificar que campos existen en formulario
-3. Activar logs detallados
-```
-
----
-
-## Referencia de Formulario üìã
-
-### Formatos Comunes
-
-| C√≥digo | Descripci√≥n    | Uso          |
-| ------ | -------------- | ------------ |
-| 139    | Pedido Venta   | Ventas       |
-| 140    | Entrega        | Log√≠stica    |
-| 141    | Factura A/R    | Contabilidad |
-| 169    | Pedido Compra  | Compras      |
-| 170    | Entrada Merc.  | Almac√©n      |
-| 171    | Factura A/P    | Proveedores  |
-| 2      | Socios Negocio | Maestros     |
-| 4      | Art√≠culos      | Inventario   |
-
-### Items Comunes en Formularios
-
-| ItemUID   | Descripci√≥n     | Tipo       |
-| --------- | --------------- | ---------- |
-| CardCode  | C√≥digo Socio    | EditText   |
-| CardName  | Nombre Socio    | EditText   |
-| DocDate   | Fecha Documento | DatePicker |
-| DocTotal  | Total Documento | EditText   |
-| btnOK     | Bot√≥n OK        | Button     |
-| btnCancel | Bot√≥n Cancelar  | Button     |
-
----
-
-## Atajos √ötiles ‚å®Ô∏è
-
-### En Formularios
-
-- `Tab` - Siguiente campo
-- `Shift+Tab` - Campo anterior
-- `Ctrl+Tab` - Siguiente pesta√±a
-- `F4` - Buscar (cuadro con lupa)
-- `Ctrl+F` - Buscar en grilla
-- `Ctrl+S` - Guardar
-- `Esc` - Cancelar
-
-### En Grillas (Matrix)
-
-- `Flechas` - Moverse entre celdas
-- `Enter` - Editar celda
-- `Espacio` - Seleccionar fila
-- `Ctrl+A` - Seleccionar todo
-- `Ctrl+C` - Copiar filas
-- `Ctrl+V` - Pegar filas
-
----
-
-## Ejemplos Pr√°cticos üí°
-
-### 1. Auto-completar Direcci√≥n
-
-```csharp
-// Cuando cambia CardCode, copiar direcci√≥n
-SetValue('Address2', $[$2.0.0])
-```
-
-### 2. Calcular Descuento
-
-```csharp
-// Si total > 1000, aplicar 10% descuento
-IF($[$DocTotal.0.0] > 1000) THEN {
-    SetValue('DiscSum', $[$DocTotal.0.0] * 0.10)
-}
-```
-
-### 3. Validar Fecha Futura
-
-```csharp
-// No permitir fechas futuras
-IF($[$DocDate.0.0] > GetDate()) THEN {
-    Msg('No se permiten fechas futuras');
-    SetValue('DocDate', GetDate())
-}
-```
-
-### 4. Contar L√≠neas
-
-```csharp
-// Mostrar cantidad de l√≠neas en pedido
-Msg('Cantidad de l√≠neas: ' + Loop('38', 'Count()'))
-```
-
-### 5. Transferir Datos Entre Forms
-
-```csharp
-// Copiar dato de Pedido a Factura
-Transfer('CardCode', 'CardCode', '171')
-```
-
----
-
-## Tips de Performance ‚ö°
-
-### ‚úÖ Buenas Pr√°cticas
-
-```sql
--- Usar √≠ndices en consultas frecuentes
-CREATE INDEX IX_BTUN_RULES_FORMTYPE ON [@BTUN_RULES](U_FormType)
-
--- Evitar SELECT *
-SELECT U_Action, U_Type FROM [@BTUN_RULES] WHERE ...
-
--- Filtrar por fecha
-WHERE U_Date >= GETDATE() - 30
-```
-
-### ‚ùå Evitar
-
-```sql
--- Mal: Consulta muy amplia
-SELECT * FROM [@BTUN_RULES]
-
--- Mal: Sin condiciones
-WHILE (1=1) BEGIN ... END
-
--- Mal: M√∫ltiples queries en loop
--- Mejor: Traer datos en una sola consulta
-```
-
----
-
-## Contacto y Soporte üìû
-
-### Recursos Online
-
-- üìñ Documentaci√≥n completa: `DOCUMENTACION_COMPLETA_B1TUNEUP.md`
-- üí¨ Foro: https://comunidad.b1tuneup.com
-- üêõ Reportar bugs: GitHub Issues
-- üìß Email: soporte@b1tuneup.com
-
-### Canales Oficiales
-
-- **Soporte T√©cnico**: tickets en portal
-- **Ventas**: ventas@b1tuneup.com
-- **Implementaci√≥n**: consulting@b1tuneup.com
-
----
-
-## Checklist de Implementaci√≥n ‚úÖ
-
-### Antes de Ir a Producci√≥n
-
-- [ ] Backup de base de datos realizado
-- [ ] Pruebas en entorno QA completadas
-- [ ] Usuarios capacitados
-- [ ] Documentaci√≥n disponible
-- [ ] Plan de rollback definido
-- [ ] Monitoreo configurado
-- [ ] Contactos de soporte actualizados
-
-### Despu√©s de Implementar
-
-- [ ] Verificar logs sin errores
-- [ ] Performance aceptable
-- [ ] Usuarios operativos
-- [ ] Funcionalidades cr√≠ticas probadas
-- [ ] Documentaci√≥n actualizada
-
----
-
-**Versi√≥n**: 1.0  
-**Actualizado**: Marzo 2026  
-**Para**: Usuarios y Soporte de B1TuneUp
-
-¬© 2026 B1TuneUp - Todos los derechos reservados
+**Actualizado:** 3 de abril de 2026 ñ Equipo B1TuneUp.

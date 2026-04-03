@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Runtime.InteropServices;
 using B1TuneUp.Utils;
+using SAPbouiCOM;
 using SAPbouiCOM.Framework;
 
 namespace B1TuneUp.Core
@@ -20,7 +21,7 @@ namespace B1TuneUp.Core
         {
             try
             {
-                Application = SAPbouiCOM.Framework.Application.SBO_Application;
+                Application = EnsureUiApiConnection();
                 Company = (SAPbobsCOM.Company)Application.Company.GetDICompany();
                 
                 IsHana = Company.DbServerType == SAPbobsCOM.BoDataServerTypes.dst_HANADB;
@@ -62,6 +63,39 @@ namespace B1TuneUp.Core
                 System.Windows.Forms.MessageBox.Show(msg);
                 Environment.Exit(0);
             }
+        }
+
+        private SAPbouiCOM.Application EnsureUiApiConnection()
+        {
+            // When launched from SAP Business One the framework automatically passes the
+            // connection string via command line, so instantiating the Application is enough.
+            if (SAPbouiCOM.Framework.Application.SBO_Application != null)
+            {
+                return SAPbouiCOM.Framework.Application.SBO_Application;
+            }
+
+            try
+            {
+                new SAPbouiCOM.Framework.Application();
+                if (SAPbouiCOM.Framework.Application.SBO_Application != null)
+                {
+                    return SAPbouiCOM.Framework.Application.SBO_Application;
+                }
+            }
+            catch
+            {
+                // Swallow and try manual connection below.
+            }
+
+            var args = Environment.GetCommandLineArgs();
+            if (args != null && args.Length > 1)
+            {
+                var guiApi = new SboGuiApi();
+                guiApi.Connect(args[1]);
+                return guiApi.GetApplication(-1);
+            }
+
+            throw new InvalidOperationException("No se pudo inicializar la UI API de SAP Business One. Ejecute el add-on desde el cliente SAP o pase el connection string como primer argumento.");
         }
 
         public void ReleaseComObject(object obj)

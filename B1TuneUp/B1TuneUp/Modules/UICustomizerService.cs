@@ -14,18 +14,19 @@ namespace B1TuneUp.Modules
         public static IList<UiCustomizationEntry> GetAll(string formType = null)
         {
             var list = new List<UiCustomizationEntry>();
+            bool includeUpdateDate = !B1App.Instance.IsHana;
             Recordset rs = null;
             try
             {
                 rs = (Recordset)B1App.Instance.Company.GetBusinessObject(BoObjectTypes.BoRecordset);
                 string filter = string.IsNullOrWhiteSpace(formType) ? "" : (B1App.Instance.IsHana ? $" WHERE \"U_FormType\" = '{formType.Replace("'", "''")}'" : $" WHERE [U_FormType] = '{formType.Replace("'", "''")}'");
                 string sql = B1App.Instance.IsHana
-                    ? $"SELECT \"Code\",\"Name\",\"U_FormType\",\"U_ItemID\",\"U_Action\",\"U_Top\",\"U_Left\",\"U_Width\",\"U_Height\",\"U_Label\",\"U_FromPane\",\"U_ToPane\",\"UpdateDate\" FROM \"{TableName}\"{filter} ORDER BY \"U_FormType\",\"Code\""
+                    ? $"SELECT \"Code\",\"Name\",\"U_FormType\",\"U_ItemID\",\"U_Action\",\"U_Top\",\"U_Left\",\"U_Width\",\"U_Height\",\"U_Label\",\"U_FromPane\",\"U_ToPane\" FROM \"{TableName}\"{filter} ORDER BY \"U_FormType\",\"Code\""
                     : $"SELECT [Code],[Name],[U_FormType],[U_ItemID],[U_Action],[U_Top],[U_Left],[U_Width],[U_Height],[U_Label],[U_FromPane],[U_ToPane],[UpdateDate] FROM [{TableName}]{filter} ORDER BY [U_FormType],[Code]";
                 rs.DoQuery(sql);
                 while (!rs.EoF)
                 {
-                    list.Add(MapEntry(rs));
+                    list.Add(MapEntry(rs, includeUpdateDate));
                     rs.MoveNext();
                 }
             }
@@ -36,7 +37,7 @@ namespace B1TuneUp.Modules
             return list;
         }
 
-        private static UiCustomizationEntry MapEntry(Recordset rs)
+        private static UiCustomizationEntry MapEntry(Recordset rs, bool includeUpdateDate)
         {
             return new UiCustomizationEntry
             {
@@ -52,7 +53,7 @@ namespace B1TuneUp.Modules
                 Label = Convert.ToString(rs.Fields.Item(9).Value),
                 FromPane = ToNullableInt(rs.Fields.Item(10).Value),
                 ToPane = ToNullableInt(rs.Fields.Item(11).Value),
-                UpdatedAt = ToNullableDate(rs.Fields.Item(12).Value)
+                UpdatedAt = includeUpdateDate ? ToNullableDate(rs.Fields.Item(12).Value) : null
             };
         }
 

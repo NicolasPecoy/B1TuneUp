@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("B1TuneUp")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+5d99a03cf2cfc75acd5bd1cbdd399df1dfab90e4")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+eb76e84f32f61ba5468d990400f3743ded409d64")]
 [assembly: System.Reflection.AssemblyProductAttribute("B1TuneUp")]
 [assembly: System.Reflection.AssemblyTitleAttribute("B1TuneUp")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

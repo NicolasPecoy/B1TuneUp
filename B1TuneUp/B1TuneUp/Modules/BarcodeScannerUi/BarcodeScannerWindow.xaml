@@ -33,6 +33,7 @@
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
 
         <Border Background="{DynamicResource PrimaryBrush}" Padding="24" CornerRadius="0,0,24,24">
@@ -48,7 +49,7 @@
         </Border>
 
         <Border Grid.Row="1"
-                Margin="24">
+                Margin="24,24,24,20">
             <StackPanel>
                 <TextBlock Text="Target Item ID" />
                 <TextBox Text="{Binding TargetItemId, UpdateSourceTrigger=PropertyChanged}" />
@@ -62,6 +63,16 @@
                            Foreground="{DynamicResource TextPrimaryBrush}" />
             </StackPanel>
         </Border>
+
+        <StackPanel Grid.Row="2"
+                    Orientation="Horizontal"
+                    HorizontalAlignment="Right"
+                    Margin="24,0,24,24">
+            <Button Content="Cerrar"
+                    Width="140"
+                    Background="{DynamicResource PrimaryDarkBrush}"
+                    Click="OnCloseClick" />
+        </StackPanel>
     </Grid>
 </Window>
 

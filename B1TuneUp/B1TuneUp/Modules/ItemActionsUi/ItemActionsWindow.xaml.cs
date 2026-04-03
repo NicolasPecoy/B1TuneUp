@@ -52,5 +52,7 @@ namespace B1TuneUp.Modules.ItemActionsUi
             Resources["TextPrimaryBrush"] = new SolidColorBrush(palette.TextPrimary);
             Resources["TextSecondaryBrush"] = new SolidColorBrush(palette.TextSecondary);
         }
+
+        private void OnCloseClick(object sender, RoutedEventArgs e) => Close();
     }
 }

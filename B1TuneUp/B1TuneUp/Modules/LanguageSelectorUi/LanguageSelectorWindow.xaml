@@ -33,6 +33,7 @@
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
 
         <Border Background="{DynamicResource PrimaryBrush}" Padding="24" CornerRadius="0,0,24,24">
@@ -60,6 +61,16 @@
                            Foreground="{DynamicResource TextPrimaryBrush}" />
             </StackPanel>
         </Border>
+
+        <StackPanel Grid.Row="2"
+                    Orientation="Horizontal"
+                    HorizontalAlignment="Right"
+                    Margin="24,0,24,24">
+            <Button Content="Cerrar"
+                    Width="140"
+                    Background="{DynamicResource PrimaryDarkBrush}"
+                    Click="OnCloseClick" />
+        </StackPanel>
     </Grid>
 </Window>
 

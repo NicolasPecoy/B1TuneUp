@@ -11,5 +11,7 @@ namespace B1TuneUp.Modules.DragDropUi
             DataContext = new DragDropHelperViewModel();
             ElementHost.EnableModelessKeyboardInterop(this);
         }
+
+        private void OnCloseClick(object sender, RoutedEventArgs e) => Close();
     }
 }

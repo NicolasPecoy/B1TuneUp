@@ -11,5 +11,7 @@ namespace B1TuneUp.Modules.LanguageSelectorUi
             DataContext = new LanguageSelectorViewModel();
             ElementHost.EnableModelessKeyboardInterop(this);
         }
+
+        private void OnCloseClick(object sender, RoutedEventArgs e) => Close();
     }
 }

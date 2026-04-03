@@ -11,5 +11,7 @@ namespace B1TuneUp.Modules.BarcodeScannerUi
             DataContext = new BarcodeScannerViewModel(targetItemId);
             ElementHost.EnableModelessKeyboardInterop(this);
         }
+
+        private void OnCloseClick(object sender, RoutedEventArgs e) => Close();
     }
 }

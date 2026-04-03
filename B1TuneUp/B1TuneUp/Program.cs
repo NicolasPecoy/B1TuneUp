@@ -3,6 +3,7 @@ using System.Windows.Forms;
 using B1TuneUp.Core;
 
 using B1TuneUp.Modules;
+using B1TuneUp.Utils;
 
 namespace B1TuneUp
 {
@@ -15,6 +16,7 @@ namespace B1TuneUp
             {
                 Application.EnableVisualStyles();
                 Application.SetCompatibleTextRenderingDefault(false);
+                WindowAppearanceHelper.Initialize();
 
                 // Determine language from args or environment
                 string lang = null;

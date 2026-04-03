@@ -13,5 +13,7 @@ namespace B1TuneUp.Modules.ProcessStepsUi
             DataContext = new ProcessStepsViewModel(info, steps, form, processEntry);
             ElementHost.EnableModelessKeyboardInterop(this);
         }
+
+        private void OnCloseClick(object sender, RoutedEventArgs e) => Close();
     }
 }

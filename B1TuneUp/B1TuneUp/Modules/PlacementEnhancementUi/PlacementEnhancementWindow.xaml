@@ -77,6 +77,7 @@
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
 
         <Border Background="{DynamicResource PrimaryBrush}" Padding="24" CornerRadius="0,0,24,24">
@@ -211,7 +212,17 @@
             </Grid>
         </ScrollViewer>
 
-        <Border Grid.RowSpan="2"
+        <StackPanel Grid.Row="2"
+                    Orientation="Horizontal"
+                    HorizontalAlignment="Right"
+                    Margin="24,0,24,24">
+            <Button Content="Cerrar"
+                    Width="140"
+                    Background="{DynamicResource PrimaryDarkBrush}"
+                    Click="OnCloseClick" />
+        </StackPanel>
+
+        <Border Grid.RowSpan="3"
                 Background="#B3FFFFFF"
                 Visibility="{Binding IsBusy, Converter={StaticResource BooleanToVisibilityConverter}}">
             <Border Background="{DynamicResource SurfaceBrush}" Padding="24" CornerRadius="12" Width="320" HorizontalAlignment="Center" VerticalAlignment="Center">

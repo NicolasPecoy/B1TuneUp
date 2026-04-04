@@ -260,6 +260,7 @@ namespace B1TuneUp.Utils
 
             // Tabla para Templates
             CreateUDT("BTUN_TMPL", "B1TuneUp Templates", BoUTBTableType.bott_NoObject);
+            // Legacy aliases without prefix (kept for backward compatibility)
             CreateUDF("@BTUN_TMPL", "Name", "Template Name", BoFieldTypes.db_Alpha, 100);
             CreateUDF("@BTUN_TMPL", "Desc", "Description", BoFieldTypes.db_Alpha, 254);
             CreateUDF("@BTUN_TMPL", "FormType", "Form Type", BoFieldTypes.db_Alpha, 20);
@@ -267,6 +268,14 @@ namespace B1TuneUp.Utils
             CreateUDF("@BTUN_TMPL", "CreatedBy", "Created By", BoFieldTypes.db_Alpha, 50);
             CreateUDF("@BTUN_TMPL", "CreatedAt", "Created At", BoFieldTypes.db_Date);
             CreateUDF("@BTUN_TMPL", "UpdatedAt", "Updated At", BoFieldTypes.db_Date);
+            // Fields actually consumed by TemplateManager (U_* columns)
+            CreateUDF("@BTUN_TMPL", "U_Name", "Template Name", BoFieldTypes.db_Alpha, 100);
+            CreateUDF("@BTUN_TMPL", "U_Desc", "Description", BoFieldTypes.db_Alpha, 254);
+            CreateUDF("@BTUN_TMPL", "U_FormType", "Form Type", BoFieldTypes.db_Alpha, 20);
+            CreateUDF("@BTUN_TMPL", "U_Data", "Serialized Data", BoFieldTypes.db_Memo);
+            CreateUDF("@BTUN_TMPL", "U_CreatedBy", "Created By", BoFieldTypes.db_Alpha, 50);
+            CreateUDF("@BTUN_TMPL", "U_CreatedAt", "Created At", BoFieldTypes.db_Date);
+            CreateUDF("@BTUN_TMPL", "U_UpdatedAt", "Updated At", BoFieldTypes.db_Date);
 
             // Tabla para Recurring Invoices
             CreateUDT("BTUN_RINV", "B1TuneUp Recurring Invoices", BoUTBTableType.bott_NoObject);

@@ -94,249 +94,58 @@ namespace B1TuneUp.Modules
         {
             try
             {
-                // Add Dashboard menu item
-                string dashboardMenuId = "BTUN_DASH_MENU";
-                if (!B1App.Instance.Application.Menus.Exists(dashboardMenuId))
-                {
-                    MenuCreationParams creationParams = (MenuCreationParams)B1App.Instance.Application.CreateObject(BoCreatableObjectType.cot_MenuCreationParams);
-                    creationParams.Type = BoMenuType.mt_STRING;
-                    creationParams.UniqueID = dashboardMenuId;
-                    creationParams.String = "B1TuneUp Dashboard";
-                    creationParams.Position = -1;
+                string clickedItem = eventInfo != null ? eventInfo.ItemUID ?? string.Empty : string.Empty;
 
-                    B1App.Instance.Application.Menus.Item("1280").SubMenus.AddEx(creationParams);
-                    _rcActions[dashboardMenuId] = "ShowDashboard()";
-                }
+                EnsureContextMenu("BTUN_DASH_MENU", "B1TuneUp Dashboard", "ShowDashboard()");
+                EnsureContextMenu("BTUN_CREATE_TMPL_MENU", "Crear Template", "CreateTemplate()");
+                EnsureContextMenu("BTUN_LOAD_TMPL_MENU", "Cargar Template", "LoadTemplate()");
 
-                // Add Template menu items
-                string createTemplateMenuId = "BTUN_CREATE_TMPL_MENU";
-                if (!B1App.Instance.Application.Menus.Exists(createTemplateMenuId))
-                {
-                    MenuCreationParams creationParams = (MenuCreationParams)B1App.Instance.Application.CreateObject(BoCreatableObjectType.cot_MenuCreationParams);
-                    creationParams.Type = BoMenuType.mt_STRING;
-                    creationParams.UniqueID = createTemplateMenuId;
-                    creationParams.String = "Crear Template";
-                    creationParams.Position = -1;
+                EnsureContextMenu("BTUN_EDIT_ITEM", "Edit Item...", $"EditItem('{clickedItem}')");
+                EnsureContextMenu("BTUN_ADD_ITEM", "Add UI Component...", "AddItem()");
+                EnsureContextMenu("BTUN_DELETE_ITEM", "Delete Item", $"DeleteItem('{clickedItem}')");
 
-                    B1App.Instance.Application.Menus.Item("1280").SubMenus.AddEx(creationParams);
-                    _rcActions[createTemplateMenuId] = "CreateTemplate()";
-                }
+                EnsureContextMenu("BTUN_ITEM_PLACEMENT", "Item Placement", "OpenItemPlacement()");
+                EnsureContextMenu("BTUN_MANAGE_ITEM_ACT", "Manage Item Actions", "ManageItemActions()");
+                EnsureContextMenu("BTUN_OPEN_DESIGNER", "Open Visual Designer", "OpenDesigner()");
+                EnsureContextMenu("BTUN_EXPORT_SRF", "Export SRF", "ExportSRF('')");
+                EnsureContextMenu("BTUN_IMPORT_SRF", "Import SRF", "ImportSRF('')");
+                EnsureContextMenu("BTUN_MANAGE_LAYOUTS", "Manage Layouts", "ManageLayouts()");
 
-                string loadTemplateMenuId = "BTUN_LOAD_TMPL_MENU";
-                if (!B1App.Instance.Application.Menus.Exists(loadTemplateMenuId))
-                {
-                    MenuCreationParams creationParams = (MenuCreationParams)B1App.Instance.Application.CreateObject(BoCreatableObjectType.cot_MenuCreationParams);
-                    creationParams.Type = BoMenuType.mt_STRING;
-                    creationParams.UniqueID = loadTemplateMenuId;
-                    creationParams.String = "Cargar Template";
-                    creationParams.Position = -1;
-
-                    B1App.Instance.Application.Menus.Item("1280").SubMenus.AddEx(creationParams);
-                    _rcActions[loadTemplateMenuId] = "LoadTemplate()";
-                }
-
-                // Edit specific item
-                string editItemMenuId = "BTUN_EDIT_ITEM";
-                if (!B1App.Instance.Application.Menus.Exists(editItemMenuId))
-                {
-                    MenuCreationParams creationParams = (MenuCreationParams)B1App.Instance.Application.CreateObject(BoCreatableObjectType.cot_MenuCreationParams);
-                    creationParams.Type = BoMenuType.mt_STRING;
-                    creationParams.UniqueID = editItemMenuId;
-                    creationParams.String = "Edit Item...";
-                    creationParams.Position = -1;
-
-                    B1App.Instance.Application.Menus.Item("1280").SubMenus.AddEx(creationParams);
-                }
-                string clickedItem = eventInfo != null ? eventInfo.ItemUID : "";
-                _rcActions[editItemMenuId] = $"EditItem('{clickedItem}')";
-
-                // Add new item
-                string addItemMenuId = "BTUN_ADD_ITEM";
-                if (!B1App.Instance.Application.Menus.Exists(addItemMenuId))
-                {
-                    MenuCreationParams creationParams = (MenuCreationParams)B1App.Instance.Application.CreateObject(BoCreatableObjectType.cot_MenuCreationParams);
-                    creationParams.Type = BoMenuType.mt_STRING;
-                    creationParams.UniqueID = addItemMenuId;
-                    creationParams.String = "Add UI Component...";
-                    creationParams.Position = -1;
-                    B1App.Instance.Application.Menus.Item("1280").SubMenus.AddEx(creationParams);
-                }
-                _rcActions[addItemMenuId] = "AddItem()";
-
-                // Delete item
-                string deleteItemMenuId = "BTUN_DELETE_ITEM";
-                if (!B1App.Instance.Application.Menus.Exists(deleteItemMenuId))
-                {
-                    MenuCreationParams creationParams = (MenuCreationParams)B1App.Instance.Application.CreateObject(BoCreatableObjectType.cot_MenuCreationParams);
-                    creationParams.Type = BoMenuType.mt_STRING;
-                    creationParams.UniqueID = deleteItemMenuId;
-                    creationParams.String = "Delete Item";
-                    creationParams.Position = -1;
-                    B1App.Instance.Application.Menus.Item("1280").SubMenus.AddEx(creationParams);
-                }
-                _rcActions[deleteItemMenuId] = $"DeleteItem('{clickedItem}')";
-
-                // Open Item Placement
-                string itemPlacementMenuId = "BTUN_ITEM_PLACEMENT";
-                if (!B1App.Instance.Application.Menus.Exists(itemPlacementMenuId))
-                {
-                    MenuCreationParams creationParams = (MenuCreationParams)B1App.Instance.Application.CreateObject(BoCreatableObjectType.cot_MenuCreationParams);
-                    creationParams.Type = BoMenuType.mt_STRING;
-                    creationParams.UniqueID = itemPlacementMenuId;
-                    creationParams.String = "Item Placement";
-                    creationParams.Position = -1;
-                    B1App.Instance.Application.Menus.Item("1280").SubMenus.AddEx(creationParams);
-                }
-                _rcActions[itemPlacementMenuId] = "OpenItemPlacement()";
-
-                string manageActionsMenuId = "BTUN_MANAGE_ITEM_ACT";
-                if (!B1App.Instance.Application.Menus.Exists(manageActionsMenuId))
-                {
-                    MenuCreationParams creationParams = (MenuCreationParams)B1App.Instance.Application.CreateObject(BoCreatableObjectType.cot_MenuCreationParams);
-                    creationParams.Type = BoMenuType.mt_STRING;
-                    creationParams.UniqueID = manageActionsMenuId;
-                    creationParams.String = "Manage Item Actions";
-                    creationParams.Position = -1;
-                    B1App.Instance.Application.Menus.Item("1280").SubMenus.AddEx(creationParams);
-                }
-                _rcActions[manageActionsMenuId] = "ManageItemActions()";
-
-                string openDesignerMenuId = "BTUN_OPEN_DESIGNER";
-                if (!B1App.Instance.Application.Menus.Exists(openDesignerMenuId))
-                {
-                    MenuCreationParams creationParams = (MenuCreationParams)B1App.Instance.Application.CreateObject(BoCreatableObjectType.cot_MenuCreationParams);
-                    creationParams.Type = BoMenuType.mt_STRING;
-                    creationParams.UniqueID = openDesignerMenuId;
-                    creationParams.String = "Open Visual Designer";
-                    creationParams.Position = -1;
-                    B1App.Instance.Application.Menus.Item("1280").SubMenus.AddEx(creationParams);
-                }
-                _rcActions[openDesignerMenuId] = "OpenDesigner()";
-
-                string exportSrfMenuId = "BTUN_EXPORT_SRF";
-                if (!B1App.Instance.Application.Menus.Exists(exportSrfMenuId))
-                {
-                    MenuCreationParams creationParams = (MenuCreationParams)B1App.Instance.Application.CreateObject(BoCreatableObjectType.cot_MenuCreationParams);
-                    creationParams.Type = BoMenuType.mt_STRING;
-                    creationParams.UniqueID = exportSrfMenuId;
-                    creationParams.String = "Export SRF";
-                    creationParams.Position = -1;
-                    B1App.Instance.Application.Menus.Item("1280").SubMenus.AddEx(creationParams);
-                }
-                _rcActions[exportSrfMenuId] = "ExportSRF('')";
-
-                string importSrfMenuId = "BTUN_IMPORT_SRF";
-                if (!B1App.Instance.Application.Menus.Exists(importSrfMenuId))
-                {
-                    MenuCreationParams creationParams = (MenuCreationParams)B1App.Instance.Application.CreateObject(BoCreatableObjectType.cot_MenuCreationParams);
-                    creationParams.Type = BoMenuType.mt_STRING;
-                    creationParams.UniqueID = importSrfMenuId;
-                    creationParams.String = "Import SRF";
-                    creationParams.Position = -1;
-                    B1App.Instance.Application.Menus.Item("1280").SubMenus.AddEx(creationParams);
-                }
-                _rcActions[importSrfMenuId] = "ImportSRF('')";
-
-                string manageLayoutsMenuId = "BTUN_MANAGE_LAYOUTS";
-                if (!B1App.Instance.Application.Menus.Exists(manageLayoutsMenuId))
-                {
-                    MenuCreationParams creationParams = (MenuCreationParams)B1App.Instance.Application.CreateObject(BoCreatableObjectType.cot_MenuCreationParams);
-                    creationParams.Type = BoMenuType.mt_STRING;
-                    creationParams.UniqueID = manageLayoutsMenuId;
-                    creationParams.String = "Manage Layouts";
-                    creationParams.Position = -1;
-                    B1App.Instance.Application.Menus.Item("1280").SubMenus.AddEx(creationParams);
-                }
-                _rcActions[manageLayoutsMenuId] = "ManageLayouts()";
-
-                // Add Recurring Invoices menu item
-                string recurringInvoicesMenuId = "BTUN_RECINV_MENU";
-                if (!B1App.Instance.Application.Menus.Exists(recurringInvoicesMenuId))
-                {
-                    MenuCreationParams creationParams = (MenuCreationParams)B1App.Instance.Application.CreateObject(BoCreatableObjectType.cot_MenuCreationParams);
-                    creationParams.Type = BoMenuType.mt_STRING;
-                    creationParams.UniqueID = recurringInvoicesMenuId;
-                    creationParams.String = "Recurring Invoices";
-                    creationParams.Position = -1;
-
-                    B1App.Instance.Application.Menus.Item("1280").SubMenus.AddEx(creationParams);
-                    _rcActions[recurringInvoicesMenuId] = "RecurringInvoices()";
-                }
-
-                // Add Letter Merge menu item
-                string letterMergeMenuId = "BTUN_LETTER_MENU";
-                if (!B1App.Instance.Application.Menus.Exists(letterMergeMenuId))
-                {
-                    MenuCreationParams creationParams = (MenuCreationParams)B1App.Instance.Application.CreateObject(BoCreatableObjectType.cot_MenuCreationParams);
-                    creationParams.Type = BoMenuType.mt_STRING;
-                    creationParams.UniqueID = letterMergeMenuId;
-                    creationParams.String = "Letter Merge";
-                    creationParams.Position = -1;
-
-                    B1App.Instance.Application.Menus.Item("1280").SubMenus.AddEx(creationParams);
-                    _rcActions[letterMergeMenuId] = "LetterMerge()";
-                }
-
-                // Add Exchange Rates menu item
-                string exchangeRatesMenuId = "BTUN_EXCHG_MENU";
-                if (!B1App.Instance.Application.Menus.Exists(exchangeRatesMenuId))
-                {
-                    MenuCreationParams creationParams = (MenuCreationParams)B1App.Instance.Application.CreateObject(BoCreatableObjectType.cot_MenuCreationParams);
-                    creationParams.Type = BoMenuType.mt_STRING;
-                    creationParams.UniqueID = exchangeRatesMenuId;
-                    creationParams.String = "Exchange Rates";
-                    creationParams.Position = -1;
-
-                    B1App.Instance.Application.Menus.Item("1280").SubMenus.AddEx(creationParams);
-                    _rcActions[exchangeRatesMenuId] = "ExchangeRates()";
-                }
-
-                // Add PLD Extensions menu item
-                string pldExtensionsMenuId = "BTUN_PLDEXT_MENU";
-                if (!B1App.Instance.Application.Menus.Exists(pldExtensionsMenuId))
-                {
-                    MenuCreationParams creationParams = (MenuCreationParams)B1App.Instance.Application.CreateObject(BoCreatableObjectType.cot_MenuCreationParams);
-                    creationParams.Type = BoMenuType.mt_STRING;
-                    creationParams.UniqueID = pldExtensionsMenuId;
-                    creationParams.String = "PLD Extensions";
-                    creationParams.Position = -1;
-
-                    B1App.Instance.Application.Menus.Item("1280").SubMenus.AddEx(creationParams);
-                    _rcActions[pldExtensionsMenuId] = "PLDExtensions()";
-                }
-
-                // Add Validation System menu item
-                string validationMenuId = "BTUN_VALID_MENU";
-                if (!B1App.Instance.Application.Menus.Exists(validationMenuId))
-                {
-                    MenuCreationParams creationParams = (MenuCreationParams)B1App.Instance.Application.CreateObject(BoCreatableObjectType.cot_MenuCreationParams);
-                    creationParams.Type = BoMenuType.mt_STRING;
-                    creationParams.UniqueID = validationMenuId;
-                    creationParams.String = "Validation System";
-                    creationParams.Position = -1;
-
-                    B1App.Instance.Application.Menus.Item("1280").SubMenus.AddEx(creationParams);
-                    _rcActions[validationMenuId] = "ValidationSystem()";
-                }
-
-                // Add Print & Delivery menu item
-                string printDeliveryMenuId = "BTUN_PRDEL_MENU";
-                if (!B1App.Instance.Application.Menus.Exists(printDeliveryMenuId))
-                {
-                    MenuCreationParams creationParams = (MenuCreationParams)B1App.Instance.Application.CreateObject(BoCreatableObjectType.cot_MenuCreationParams);
-                    creationParams.Type = BoMenuType.mt_STRING;
-                    creationParams.UniqueID = printDeliveryMenuId;
-                    creationParams.String = "Print & Delivery";
-                    creationParams.Position = -1;
-
-                    B1App.Instance.Application.Menus.Item("1280").SubMenus.AddEx(creationParams);
-                    _rcActions[printDeliveryMenuId] = "PrintDelivery()";
-                }
+                EnsureContextMenu("BTUN_RECINV_MENU", "Recurring Invoices", "RecurringInvoices()");
+                EnsureContextMenu("BTUN_LETTER_MENU", "Letter Merge", "LetterMerge()");
+                EnsureContextMenu("BTUN_EXCHG_MENU", "Exchange Rates", "ExchangeRates()");
+                EnsureContextMenu("BTUN_PLDEXT_MENU", "PLD Extensions", "PLDExtensions()");
+                EnsureContextMenu("BTUN_VALID_MENU", "Validation System", "ValidationSystem()");
+                EnsureContextMenu("BTUN_PRDEL_MENU", "Print & Delivery", "PrintDelivery()");
             }
             catch (Exception ex)
             {
                 B1App.Instance.Application.SetStatusBarMessage($"Error agregando menús B1TuneUp: {ex.Message}", BoMessageTime.bmt_Short, true);
                 ExceptionLogger.LogHandled(ex, $"RightClickMenuManager.AddB1Menus:{oForm?.TypeEx}");
+            }
+        }
+
+        private static void EnsureContextMenu(string menuId, string caption, string actionMacro)
+        {
+            try
+            {
+                var menus = B1App.Instance.Application.Menus;
+                if (!menus.Exists(menuId))
+                {
+                    MenuCreationParams creationParams = (MenuCreationParams)B1App.Instance.Application.CreateObject(BoCreatableObjectType.cot_MenuCreationParams);
+                    creationParams.Type = BoMenuType.mt_STRING;
+                    creationParams.UniqueID = menuId;
+                    creationParams.String = caption;
+                    creationParams.Position = -1;
+
+                    menus.Item("1280").SubMenus.AddEx(creationParams);
+                }
+                _rcActions[menuId] = actionMacro ?? string.Empty;
+            }
+            catch (Exception ex)
+            {
+                B1App.Instance.Application.SetStatusBarMessage($"Error asegurando menú contextual {menuId}: {ex.Message}", BoMessageTime.bmt_Short, true);
+                ExceptionLogger.LogHandled(ex, $"RightClickMenuManager.EnsureContextMenu:{menuId}");
             }
         }
 

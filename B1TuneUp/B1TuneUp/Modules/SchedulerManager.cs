@@ -43,13 +43,24 @@ namespace B1TuneUp.Modules
 
                     if ((DateTime.Now - lastRun).TotalMinutes >= interval)
                     {
-                        MacroEngine.ExecuteMacro(action);
-                        UpdateLastRun(docEntry);
+                        try
+                        {
+                            MacroEngine.ExecuteMacro(action);
+                            UpdateLastRun(docEntry);
+                        }
+                        catch (Exception jobEx)
+                        {
+                            B1App.Instance.Application.SetStatusBarMessage($"Error en tarea programada {docEntry}: {jobEx.Message}", SAPbouiCOM.BoMessageTime.bmt_Short, true);
+                            ExceptionLogger.LogHandled(jobEx, $"SchedulerManager.Job:{docEntry}");
+                        }
                     }
                     rs.MoveNext();
                 }
             }
-            catch { }
+            catch (Exception ex)
+            {
+                ExceptionLogger.LogHandled(ex, "SchedulerManager.CheckTasks");
+            }
             finally
             {
                 ComObjectManager.Release(rs);
@@ -65,6 +76,10 @@ namespace B1TuneUp.Modules
                     ? $"UPDATE \"@BTUN_SCHED\" SET \"U_LastRun\" = CURRENT_TIMESTAMP WHERE \"Code\" = '{docEntry}'"
                     : $"UPDATE [@BTUN_SCHED] SET [U_LastRun] = GETDATE() WHERE [Code] = '{docEntry}'";
                 rs.DoQuery(sql);
+            }
+            catch (Exception ex)
+            {
+                ExceptionLogger.LogHandled(ex, $"SchedulerManager.UpdateLastRun:{docEntry}");
             }
             finally
             {

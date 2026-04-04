@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Runtime.InteropServices;
+using System.Threading.Tasks;
 using B1TuneUp.Utils;
 using SAPbouiCOM;
 using SAPbouiCOM.Framework;
@@ -46,20 +47,32 @@ namespace B1TuneUp.Core
                 {
                     try
                     {
-                        var ex = e.ExceptionObject as Exception;
-                        if (ex != null) Logger.Error("Unhandled exception", ex);
+                        if (e.ExceptionObject is Exception ex)
+                        {
+                            ExceptionLogger.LogUnhandled(ex, "AppDomain");
+                        }
                     }
                     catch { }
                 };
                 System.Windows.Forms.Application.ThreadException += (s, e) =>
                 {
-                    try { Logger.Error("UI thread exception", e.Exception); } catch { }
+                    try { ExceptionLogger.LogUnhandled(e.Exception, "UIThread"); } catch { }
+                };
+                TaskScheduler.UnobservedTaskException += (s, e) =>
+                {
+                    try
+                    {
+                        ExceptionLogger.LogUnhandled(e.Exception, "TaskScheduler");
+                        e.SetObserved();
+                    }
+                    catch { }
                 };
             }
             catch (Exception ex)
             {
                 var msg = string.Format(LocalizationManager.GetString("Error.Connecting"), ex.Message);
                 Logger.Error(msg, ex);
+                ExceptionLogger.LogUnhandled(ex, "B1App.Connect");
                 System.Windows.Forms.MessageBox.Show(msg);
                 Environment.Exit(0);
             }

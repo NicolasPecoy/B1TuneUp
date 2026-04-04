@@ -436,3 +436,5 @@ FodyWeavers.xsd
 /B1TuneUp/.dotnet
 /B1TuneUp/obj
 /B1TuneUp/obj/Debug
+/B1TuneUp/bin/Debug/net48
+/B1TuneUp/bin/Debug

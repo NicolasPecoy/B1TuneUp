@@ -450,6 +450,7 @@ namespace B1TuneUp.Modules
             catch (Exception ex)
             {
                 B1App.Instance.Application.SetStatusBarMessage($"Error en Macro: {ex.Message}", BoMessageTime.bmt_Short, true);
+                ExceptionLogger.LogHandled(ex, $"MacroEngine.ProcessCommand:{command}");
             }
         }
 

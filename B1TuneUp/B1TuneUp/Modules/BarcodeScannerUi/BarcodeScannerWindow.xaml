@@ -3,7 +3,7 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         Title="B1TuneUp · Barcode Scanner"
         Width="480"
-        Height="494"
+        Height="489"
         MinWidth="420"
         MinHeight="260"
         Background="{DynamicResource WindowBackgroundBrush}"
@@ -29,7 +29,7 @@
         </ResourceDictionary>
     </Window.Resources>
 
-    <Grid>
+    <Grid Margin="0,0,0,-10">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />

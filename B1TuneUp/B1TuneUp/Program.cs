@@ -45,6 +45,7 @@ namespace B1TuneUp
             }
             catch (Exception ex)
             {
+                ExceptionLogger.LogUnhandled(ex, "Program.Main");
                 MessageBox.Show($"Fatal Error: {ex.Message}");
             }
         }

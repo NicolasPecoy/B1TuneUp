@@ -40,6 +40,7 @@ namespace B1TuneUp.Modules
             }
             catch (Exception ex)
             {
+                ExceptionLogger.LogHandled(ex, $"IntegrationManager.CallRest:{method}:{url}");
                 return "ERROR: " + ex.Message;
             }
         }
@@ -60,6 +61,7 @@ namespace B1TuneUp.Modules
             }
             catch (Exception ex)
             {
+                ExceptionLogger.LogHandled(ex, $"IntegrationManager.CallSoap:{action}:{url}");
                 return "ERROR: " + ex.Message;
             }
         }
@@ -117,10 +119,16 @@ namespace B1TuneUp.Modules
                             {
                                 MacroEngine.ExecuteMacro(handlerMacro);
                             }
-                            catch { }
+                            catch (Exception execEx)
+                            {
+                                ExceptionLogger.LogHandled(execEx, $"IntegrationManager.RunHandler:{id}");
+                            }
                         }
                     }
-                    catch { }
+                    catch (Exception loopEx)
+                    {
+                        ExceptionLogger.LogHandled(loopEx, $"IntegrationManager.SyncFetcher:{id}");
+                    }
                 }, null, 0, intervalSeconds * 1000);
 
                 _syncTimers[id] = timer;
@@ -188,6 +196,7 @@ namespace B1TuneUp.Modules
             catch (Exception ex)
             {
                 B1App.Instance.Application.SetStatusBarMessage($"Error importando CSV: {ex.Message}", BoMessageTime.bmt_Short, true);
+                ExceptionLogger.LogHandled(ex, $"IntegrationManager.ImportCsv:{filePath}");
                 return false;
             }
         }
@@ -231,6 +240,7 @@ namespace B1TuneUp.Modules
             catch (Exception ex)
             {
                 B1App.Instance.Application.SetStatusBarMessage($"Error exportando CSV: {ex.Message}", BoMessageTime.bmt_Short, true);
+                ExceptionLogger.LogHandled(ex, $"IntegrationManager.ExportCsv:{filePath}:{gridId}");
                 return false;
             }
         }

@@ -55,6 +55,7 @@ namespace B1TuneUp.Core
             {
                 // Si la tabla no existe aún o falla la carga, registramos el error
                 B1App.Instance.Application.SetStatusBarMessage($"Error cargando reglas: {ex.Message}", BoMessageTime.bmt_Short, true);
+                ExceptionLogger.LogHandled(ex, "EventDispatcher.LoadRules");
             }
             finally
             {
@@ -261,6 +262,7 @@ namespace B1TuneUp.Core
             catch (Exception ex)
             {
                 B1App.Instance.Application.SetStatusBarMessage($"Error en ItemEvent: {ex.Message}", BoMessageTime.bmt_Short, true);
+                ExceptionLogger.LogHandled(ex, $"EventDispatcher.OnItemEvent:{pVal.EventType}");
             }
         }
 
@@ -277,40 +279,48 @@ namespace B1TuneUp.Core
         {
             BubbleEvent = true;
 
-            // Validaciones antes de guardar
-            if (BusinessObjectInfo.BeforeAction && (BusinessObjectInfo.EventType == BoEventTypes.et_FORM_DATA_ADD || BusinessObjectInfo.EventType == BoEventTypes.et_FORM_DATA_UPDATE))
+            try
             {
-                Form oForm = null;
-                try { oForm = B1App.Instance.Application.Forms.Item(BusinessObjectInfo.FormUID); } catch { }
-
-                if (oForm != null)
+                // Validaciones antes de guardar
+                if (BusinessObjectInfo.BeforeAction && (BusinessObjectInfo.EventType == BoEventTypes.et_FORM_DATA_ADD || BusinessObjectInfo.EventType == BoEventTypes.et_FORM_DATA_UPDATE))
                 {
-                    // 1. Validar campos obligatorios dinámicos
-                    if (!MandatoryFieldManager.ValidateMandatoryFields(oForm))
-                    {
-                        BubbleEvent = false;
-                        return;
-                    }
+                    Form oForm = null;
+                    try { oForm = B1App.Instance.Application.Forms.Item(BusinessObjectInfo.FormUID); } catch { }
 
-                    // 2. Validar reglas personalizadas
-                    var info = BusinessObjectInfo;
-                    var matchingRules = _rules.Where(r =>
-                        (r.FormType == info.FormTypeEx || string.IsNullOrEmpty(r.FormType)) &&
-                        r.Type == RuleType.Validation &&
-                        r.BeforeAction == true
-                    );
-
-                    foreach (var rule in matchingRules)
+                    if (oForm != null)
                     {
-                        if (MacroEngine.CheckCondition(rule.Condition, oForm))
+                        // 1. Validar campos obligatorios dinámicos
+                        if (!MandatoryFieldManager.ValidateMandatoryFields(oForm))
                         {
-                            AuditLogManager.LogAction("ValidationRule", $"Rule ID: {rule.ID}, Blocking event for Form: {rule.FormType}");
                             BubbleEvent = false;
-                            MacroEngine.ExecuteMacro(rule.Action, oForm);
-                            break;
+                            return;
+                        }
+
+                        // 2. Validar reglas personalizadas
+                        var info = BusinessObjectInfo;
+                        var matchingRules = _rules.Where(r =>
+                            (r.FormType == info.FormTypeEx || string.IsNullOrEmpty(r.FormType)) &&
+                            r.Type == RuleType.Validation &&
+                            r.BeforeAction == true
+                        );
+
+                        foreach (var rule in matchingRules)
+                        {
+                            if (MacroEngine.CheckCondition(rule.Condition, oForm))
+                            {
+                                AuditLogManager.LogAction("ValidationRule", $"Rule ID: {rule.ID}, Blocking event for Form: {rule.FormType}");
+                                BubbleEvent = false;
+                                MacroEngine.ExecuteMacro(rule.Action, oForm);
+                                break;
+                            }
                         }
                     }
                 }
+            }
+            catch (Exception ex)
+            {
+                B1App.Instance.Application.SetStatusBarMessage($"Error en FormDataEvent: {ex.Message}", BoMessageTime.bmt_Short, true);
+                ExceptionLogger.LogHandled(ex, $"EventDispatcher.OnFormDataEvent:{BusinessObjectInfo.EventType}");
             }
         }
 

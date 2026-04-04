@@ -73,6 +73,7 @@ namespace B1TuneUp.Modules
             catch (Exception ex)
             {
                 B1App.Instance.Application.SetStatusBarMessage($"Error cargando menús: {ex.Message}", BoMessageTime.bmt_Short, true);
+                LogMenuError(ex, "LoadCustomMenus");
             }
             finally
             {
@@ -122,6 +123,7 @@ namespace B1TuneUp.Modules
             catch (Exception ex)
             {
                 B1App.Instance.Application.SetStatusBarMessage($"Error creando menú {menuId}: {ex.Message}", BoMessageTime.bmt_Short, true);
+                LogMenuError(ex, $"AddMenuItem:{menuId}");
             }
         }
 
@@ -187,6 +189,7 @@ namespace B1TuneUp.Modules
             catch (Exception ex)
             {
                 app.SetStatusBarMessage($"Error creando menú de integraciones: {ex.Message}", BoMessageTime.bmt_Short, true);
+                LogMenuError(ex, "EnsureIntegrationMenu");
             }
         }
 
@@ -218,6 +221,7 @@ namespace B1TuneUp.Modules
             catch (Exception ex)
             {
                 app.SetStatusBarMessage($"Error creando menú UI Customizer: {ex.Message}", BoMessageTime.bmt_Short, true);
+                LogMenuError(ex, "EnsureUiDesignerMenu");
             }
         }
 
@@ -249,6 +253,7 @@ namespace B1TuneUp.Modules
             catch (Exception ex)
             {
                 app.SetStatusBarMessage($"Error creando menú Scheduler Studio: {ex.Message}", BoMessageTime.bmt_Short, true);
+                LogMenuError(ex, "EnsureSchedulerMenu");
             }
         }
 
@@ -280,6 +285,7 @@ namespace B1TuneUp.Modules
             catch (Exception ex)
             {
                 app.SetStatusBarMessage($"Error creando menú Rule Builder: {ex.Message}", BoMessageTime.bmt_Short, true);
+                LogMenuError(ex, "EnsureRuleBuilderMenu");
             }
         }
 
@@ -311,6 +317,7 @@ namespace B1TuneUp.Modules
             catch (Exception ex)
             {
                 app.SetStatusBarMessage($"Error creando menú Process Designer: {ex.Message}", BoMessageTime.bmt_Short, true);
+                LogMenuError(ex, "EnsureProcessDesignerMenu");
             }
         }
 
@@ -342,6 +349,7 @@ namespace B1TuneUp.Modules
             catch (Exception ex)
             {
                 app.SetStatusBarMessage($"Error creando menú Audit Log: {ex.Message}", BoMessageTime.bmt_Short, true);
+                LogMenuError(ex, "EnsureAuditLogMenu");
             }
         }
 
@@ -378,6 +386,7 @@ namespace B1TuneUp.Modules
             catch (Exception ex)
             {
                 app.SetStatusBarMessage($"Error creando menú Template & Report: {ex.Message}", BoMessageTime.bmt_Short, true);
+                LogMenuError(ex, "EnsureTemplateReportMenu");
             }
         }
 
@@ -414,6 +423,7 @@ namespace B1TuneUp.Modules
             catch (Exception ex)
             {
                 app.SetStatusBarMessage($"Error creando menú Email Designer: {ex.Message}", BoMessageTime.bmt_Short, true);
+                LogMenuError(ex, "EnsureEmailDesignerMenu");
             }
         }
 
@@ -450,6 +460,7 @@ namespace B1TuneUp.Modules
             catch (Exception ex)
             {
                 app.SetStatusBarMessage($"Error creando menú Toolbox: {ex.Message}", BoMessageTime.bmt_Short, true);
+                LogMenuError(ex, "EnsureToolboxMenu");
             }
         }
 
@@ -486,6 +497,7 @@ namespace B1TuneUp.Modules
             catch (Exception ex)
             {
                 app.SetStatusBarMessage($"Error creando menú Validation Manager: {ex.Message}", BoMessageTime.bmt_Short, true);
+                LogMenuError(ex, "EnsureValidationMenu");
             }
         }
 
@@ -522,6 +534,7 @@ namespace B1TuneUp.Modules
             catch (Exception ex)
             {
                 app.SetStatusBarMessage($"Error creando menu Dashboard/Search/Macro: {ex.Message}", BoMessageTime.bmt_Short, true);
+                LogMenuError(ex, "EnsureDashboardSearchMacroMenu");
             }
         }
 
@@ -558,6 +571,7 @@ namespace B1TuneUp.Modules
             catch (Exception ex)
             {
                 app.SetStatusBarMessage($"Error creando menu Action Pad Studio: {ex.Message}", BoMessageTime.bmt_Short, true);
+                LogMenuError(ex, "EnsureActionQuickMenu");
             }
         }
 
@@ -594,6 +608,7 @@ namespace B1TuneUp.Modules
             catch (Exception ex)
             {
                 app.SetStatusBarMessage($"Error creando menu Macro Engine: {ex.Message}", BoMessageTime.bmt_Short, true);
+                LogMenuError(ex, "EnsureMacroEngineMenu");
             }
         }
 
@@ -630,6 +645,7 @@ namespace B1TuneUp.Modules
             catch (Exception ex)
             {
                 app.SetStatusBarMessage($"Error creando menu Form Enhancements: {ex.Message}", BoMessageTime.bmt_Short, true);
+                LogMenuError(ex, "EnsureFormEnhancementMenu");
             }
         }
 
@@ -666,6 +682,7 @@ namespace B1TuneUp.Modules
             catch (Exception ex)
             {
                 app.SetStatusBarMessage($"Error creando menu Automation Dashboard: {ex.Message}", BoMessageTime.bmt_Short, true);
+                LogMenuError(ex, "EnsureAutomationDashboardMenu");
             }
         }
 
@@ -707,6 +724,7 @@ namespace B1TuneUp.Modules
             catch (Exception ex)
             {
                 app.SetStatusBarMessage($"Error creando menu Item Placement: {ex.Message}", BoMessageTime.bmt_Short, true);
+                LogMenuError(ex, "EnsurePlacementEnhancementMenu");
             }
         }
 
@@ -719,6 +737,11 @@ namespace B1TuneUp.Modules
             catch { }
         }
 
+        private static void LogMenuError(Exception ex, string context)
+        {
+            try { ExceptionLogger.LogHandled(ex, $"MenuManager.{context}"); } catch { }
+        }
+
         public static void HandleMenuEvent(ref MenuEvent pVal)
         {
             if (!pVal.BeforeAction && _menuActions.ContainsKey(pVal.MenuUID))
@@ -727,7 +750,12 @@ namespace B1TuneUp.Modules
             }
             else if (!pVal.BeforeAction && pVal.MenuUID == "BTUN_LANG")
             {
-                try { LanguageSelectorUi.LanguageSelectorLauncher.Show(); } catch { }
+                try { LanguageSelectorUi.LanguageSelectorLauncher.Show(); }
+                catch (Exception ex)
+                {
+                    B1App.Instance.Application.SetStatusBarMessage($"Error abriendo selector de idioma: {ex.Message}", BoMessageTime.bmt_Short, true);
+                    LogMenuError(ex, $"HandleMenuEvent:{pVal.MenuUID}");
+                }
             }
             else if (!pVal.BeforeAction && pVal.MenuUID == IntegrationMenuId)
             {
@@ -735,6 +763,7 @@ namespace B1TuneUp.Modules
                 catch (Exception ex)
                 {
                     B1App.Instance.Application.SetStatusBarMessage($"Error abriendo Integration Studio: {ex.Message}", BoMessageTime.bmt_Short, true);
+                    LogMenuError(ex, $"HandleMenuEvent:{pVal.MenuUID}");
                 }
             }
             else if (!pVal.BeforeAction && pVal.MenuUID == UiDesignerMenuId)
@@ -743,6 +772,7 @@ namespace B1TuneUp.Modules
                 catch (Exception ex)
                 {
                     B1App.Instance.Application.SetStatusBarMessage($"Error abriendo UI Customizer: {ex.Message}", BoMessageTime.bmt_Short, true);
+                    LogMenuError(ex, $"HandleMenuEvent:{pVal.MenuUID}");
                 }
             }
             else if (!pVal.BeforeAction && pVal.MenuUID == SchedulerMenuId)
@@ -751,6 +781,7 @@ namespace B1TuneUp.Modules
                 catch (Exception ex)
                 {
                     B1App.Instance.Application.SetStatusBarMessage($"Error abriendo Scheduler Studio: {ex.Message}", BoMessageTime.bmt_Short, true);
+                    LogMenuError(ex, $"HandleMenuEvent:{pVal.MenuUID}");
                 }
             }
             else if (!pVal.BeforeAction && pVal.MenuUID == RuleBuilderMenuId)
@@ -759,6 +790,7 @@ namespace B1TuneUp.Modules
                 catch (Exception ex)
                 {
                     B1App.Instance.Application.SetStatusBarMessage($"Error abriendo Rule Builder: {ex.Message}", BoMessageTime.bmt_Short, true);
+                    LogMenuError(ex, $"HandleMenuEvent:{pVal.MenuUID}");
                 }
             }
             else if (!pVal.BeforeAction && pVal.MenuUID == ProcessDesignerMenuId)
@@ -767,6 +799,7 @@ namespace B1TuneUp.Modules
                 catch (Exception ex)
                 {
                     B1App.Instance.Application.SetStatusBarMessage($"Error abriendo Process Designer: {ex.Message}", BoMessageTime.bmt_Short, true);
+                    LogMenuError(ex, $"HandleMenuEvent:{pVal.MenuUID}");
                 }
             }
             else if (!pVal.BeforeAction && pVal.MenuUID == AuditLogMenuId)
@@ -775,6 +808,7 @@ namespace B1TuneUp.Modules
                 catch (Exception ex)
                 {
                     B1App.Instance.Application.SetStatusBarMessage($"Error abriendo Log Viewer: {ex.Message}", BoMessageTime.bmt_Short, true);
+                    LogMenuError(ex, $"HandleMenuEvent:{pVal.MenuUID}");
                 }
             }
             else if (!pVal.BeforeAction && pVal.MenuUID == TemplateReportMenuId)
@@ -783,6 +817,7 @@ namespace B1TuneUp.Modules
                 catch (Exception ex)
                 {
                     B1App.Instance.Application.SetStatusBarMessage($"Error abriendo Template & Report Studio: {ex.Message}", BoMessageTime.bmt_Short, true);
+                    LogMenuError(ex, $"HandleMenuEvent:{pVal.MenuUID}");
                 }
             }
             else if (!pVal.BeforeAction && pVal.MenuUID == EmailDesignerMenuId)
@@ -791,6 +826,7 @@ namespace B1TuneUp.Modules
                 catch (Exception ex)
                 {
                     B1App.Instance.Application.SetStatusBarMessage($"Error abriendo Email & Notification Designer: {ex.Message}", BoMessageTime.bmt_Short, true);
+                    LogMenuError(ex, $"HandleMenuEvent:{pVal.MenuUID}");
                 }
             }
             else if (!pVal.BeforeAction && pVal.MenuUID == ToolboxMenuId)
@@ -799,6 +835,7 @@ namespace B1TuneUp.Modules
                 catch (Exception ex)
                 {
                     B1App.Instance.Application.SetStatusBarMessage($"Error abriendo Toolbox Settings: {ex.Message}", BoMessageTime.bmt_Short, true);
+                    LogMenuError(ex, $"HandleMenuEvent:{pVal.MenuUID}");
                 }
             }
             else if (!pVal.BeforeAction && pVal.MenuUID == ValidationMenuId)
@@ -807,6 +844,7 @@ namespace B1TuneUp.Modules
                 catch (Exception ex)
                 {
                     B1App.Instance.Application.SetStatusBarMessage($"Error abriendo Validation Designer: {ex.Message}", BoMessageTime.bmt_Short, true);
+                    LogMenuError(ex, $"HandleMenuEvent:{pVal.MenuUID}");
                 }
             }
             else if (!pVal.BeforeAction && pVal.MenuUID == DashboardSearchMacroMenuId)
@@ -815,6 +853,7 @@ namespace B1TuneUp.Modules
                 catch (Exception ex)
                 {
                     B1App.Instance.Application.SetStatusBarMessage($"Error abriendo Dashboard/Search/Macro Studio: {ex.Message}", BoMessageTime.bmt_Short, true);
+                    LogMenuError(ex, $"HandleMenuEvent:{pVal.MenuUID}");
                 }
             }
             else if (!pVal.BeforeAction && pVal.MenuUID == ActionQuickMenuId)
@@ -823,6 +862,7 @@ namespace B1TuneUp.Modules
                 catch (Exception ex)
                 {
                     B1App.Instance.Application.SetStatusBarMessage($"Error abriendo Action Pad Studio: {ex.Message}", BoMessageTime.bmt_Short, true);
+                    LogMenuError(ex, $"HandleMenuEvent:{pVal.MenuUID}");
                 }
             }
             else if (!pVal.BeforeAction && pVal.MenuUID == MacroEngineMenuId)
@@ -831,6 +871,7 @@ namespace B1TuneUp.Modules
                 catch (Exception ex)
                 {
                     B1App.Instance.Application.SetStatusBarMessage($"Error abriendo Macro Engine Studio: {ex.Message}", BoMessageTime.bmt_Short, true);
+                    LogMenuError(ex, $"HandleMenuEvent:{pVal.MenuUID}");
                 }
             }
             else if (!pVal.BeforeAction && pVal.MenuUID == FormEnhancementMenuId)
@@ -839,6 +880,7 @@ namespace B1TuneUp.Modules
                 catch (Exception ex)
                 {
                     B1App.Instance.Application.SetStatusBarMessage($"Error abriendo Form Enhancements Studio: {ex.Message}", BoMessageTime.bmt_Short, true);
+                    LogMenuError(ex, $"HandleMenuEvent:{pVal.MenuUID}");
                 }
             }
             else if (!pVal.BeforeAction && pVal.MenuUID == PlacementEnhancementMenuId)
@@ -847,6 +889,7 @@ namespace B1TuneUp.Modules
                 catch (Exception ex)
                 {
                     B1App.Instance.Application.SetStatusBarMessage($"Error abriendo Item Placement & UI Enhancer: {ex.Message}", BoMessageTime.bmt_Short, true);
+                    LogMenuError(ex, $"HandleMenuEvent:{pVal.MenuUID}");
                 }
             }
             else if (!pVal.BeforeAction && pVal.MenuUID == AutomationDashboardMenuId)
@@ -855,6 +898,7 @@ namespace B1TuneUp.Modules
                 catch (Exception ex)
                 {
                     B1App.Instance.Application.SetStatusBarMessage($"Error abriendo Automation Dashboard: {ex.Message}", BoMessageTime.bmt_Short, true);
+                    LogMenuError(ex, $"HandleMenuEvent:{pVal.MenuUID}");
                 }
             }
         }

@@ -27,6 +27,7 @@ namespace B1TuneUp.Modules
             catch (Exception ex)
             {
                 B1App.Instance.Application.SetStatusBarMessage($"Error creando template: {ex.Message}", BoMessageTime.bmt_Short, true);
+                ExceptionLogger.LogHandled(ex, $"TemplateManager.CreateTemplate:{oForm?.TypeEx}");
             }
         }
 
@@ -44,6 +45,7 @@ namespace B1TuneUp.Modules
             catch (Exception ex)
             {
                 B1App.Instance.Application.SetStatusBarMessage($"Error cargando template: {ex.Message}", BoMessageTime.bmt_Short, true);
+                ExceptionLogger.LogHandled(ex, $"TemplateManager.LoadTemplate:{oForm?.TypeEx}");
             }
         }
 
@@ -98,6 +100,7 @@ namespace B1TuneUp.Modules
             catch (Exception ex)
             {
                 B1App.Instance.Application.SetStatusBarMessage($"Error guardando template: {ex.Message}", BoMessageTime.bmt_Short, true);
+                ExceptionLogger.LogHandled(ex, $"TemplateManager.SaveTemplate:{templateName}");
             }
             finally
             {
@@ -131,6 +134,7 @@ namespace B1TuneUp.Modules
             catch (Exception ex)
             {
                 B1App.Instance.Application.SetStatusBarMessage($"Error cargando template: {ex.Message}", BoMessageTime.bmt_Short, true);
+                ExceptionLogger.LogHandled(ex, $"TemplateManager.LoadTemplateToForm:{templateName}");
             }
             finally
             {
@@ -194,6 +198,7 @@ namespace B1TuneUp.Modules
             catch (Exception ex)
             {
                 B1App.Instance.Application.SetStatusBarMessage($"Error serializando datos: {ex.Message}", BoMessageTime.bmt_Short, true);
+                ExceptionLogger.LogHandled(ex, $"TemplateManager.SerializeFormData:{oForm?.TypeEx}");
                 return "";
             }
         }
@@ -269,6 +274,7 @@ namespace B1TuneUp.Modules
             catch (Exception ex)
             {
                 B1App.Instance.Application.SetStatusBarMessage($"Error deserializando datos: {ex.Message}", BoMessageTime.bmt_Short, true);
+                ExceptionLogger.LogHandled(ex, $"TemplateManager.DeserializeFormData:{oForm?.TypeEx}");
             }
         }
 
@@ -349,6 +355,7 @@ namespace B1TuneUp.Modules
             catch (Exception ex)
             {
                 B1App.Instance.Application.SetStatusBarMessage($"Error mostrando selección de template: {ex.Message}", BoMessageTime.bmt_Short, true);
+                ExceptionLogger.LogHandled(ex, "TemplateManager.ShowTemplateSelectionDialog");
                 return "";
             }
         }
@@ -402,6 +409,7 @@ namespace B1TuneUp.Modules
             catch (Exception ex)
             {
                 B1App.Instance.Application.SetStatusBarMessage($"Error gestionando templates: {ex.Message}", BoMessageTime.bmt_Short, true);
+                ExceptionLogger.LogHandled(ex, "TemplateManager.ManageTemplates");
             }
         }
 
@@ -443,6 +451,7 @@ namespace B1TuneUp.Modules
             catch (Exception ex)
             {
                 B1App.Instance.Application.SetStatusBarMessage($"Error cargando templates a la grilla: {ex.Message}", BoMessageTime.bmt_Short, true);
+                ExceptionLogger.LogHandled(ex, "TemplateManager.LoadTemplatesToGrid");
             }
             finally
             {

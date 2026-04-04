@@ -64,6 +64,7 @@ namespace B1TuneUp.Modules
                 B1App.Instance.Application.SetStatusBarMessage(
                     $"Error abriendo Process Steps: {ex.Message}",
                     BoMessageTime.bmt_Short, true);
+                ExceptionLogger.LogHandled(ex, $"ProcessStepsManager.ShowProcessSteps:{oForm?.TypeEx}:{processEntry}");
             }
         }
 
@@ -114,6 +115,7 @@ namespace B1TuneUp.Modules
                 B1App.Instance.Application.SetStatusBarMessage(
                     $"Error cargando pasos del proceso: {ex.Message}",
                     BoMessageTime.bmt_Short, true);
+                ExceptionLogger.LogHandled(ex, $"ProcessStepsManager.LoadSteps:{processEntry}");
             }
             finally
             {
@@ -139,6 +141,7 @@ namespace B1TuneUp.Modules
                 B1App.Instance.Application.SetStatusBarMessage(
                     $"Error ejecutando acción del paso: {ex.Message}",
                     BoMessageTime.bmt_Short, true);
+                ExceptionLogger.LogHandled(ex, $"ProcessStepsManager.ExecuteStepAction:{step?.Name}");
             }
         }
 

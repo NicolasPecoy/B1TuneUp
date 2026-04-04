@@ -124,6 +124,7 @@ namespace B1TuneUp.Modules
             catch (Exception ex)
             {
                 B1App.Instance.Application.SetStatusBarMessage($"Error ejecutando tarea: {ex.Message}", SAPbouiCOM.BoMessageTime.bmt_Short, true);
+                ExceptionLogger.LogHandled(ex, $"SchedulerService.RunNow:{entry?.Name}");
             }
         }
 

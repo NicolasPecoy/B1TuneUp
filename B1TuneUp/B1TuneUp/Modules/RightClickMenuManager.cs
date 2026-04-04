@@ -28,7 +28,11 @@ namespace B1TuneUp.Modules
                     // pero mantenemos la consistencia.
                 }
             }
-            catch { }
+            catch (Exception ex)
+            {
+                B1App.Instance.Application.SetStatusBarMessage($"Error manejando menú contextual: {ex.Message}", BoMessageTime.bmt_Short, true);
+                ExceptionLogger.LogHandled(ex, $"RightClickMenuManager.OnRightClickEvent:{eventInfo.FormUID}");
+            }
         }
 
         private static void AddCustomContextMenus(SAPbouiCOM.Form oForm, ContextMenuInfo eventInfo)
@@ -78,6 +82,7 @@ namespace B1TuneUp.Modules
             catch (Exception ex)
             {
                 B1App.Instance.Application.SetStatusBarMessage($"Error en menú contextual: {ex.Message}", BoMessageTime.bmt_Short, true);
+                ExceptionLogger.LogHandled(ex, $"RightClickMenuManager.AddCustomContextMenus:{oForm?.TypeEx}");
             }
             finally
             {
@@ -331,6 +336,7 @@ namespace B1TuneUp.Modules
             catch (Exception ex)
             {
                 B1App.Instance.Application.SetStatusBarMessage($"Error agregando menús B1TuneUp: {ex.Message}", BoMessageTime.bmt_Short, true);
+                ExceptionLogger.LogHandled(ex, $"RightClickMenuManager.AddB1Menus:{oForm?.TypeEx}");
             }
         }
 
@@ -339,7 +345,15 @@ namespace B1TuneUp.Modules
             BubbleEvent = true;
             if (!pVal.BeforeAction && _rcActions.ContainsKey(pVal.MenuUID))
             {
-                MacroEngine.ExecuteMacro(_rcActions[pVal.MenuUID]);
+                try
+                {
+                    MacroEngine.ExecuteMacro(_rcActions[pVal.MenuUID]);
+                }
+                catch (Exception ex)
+                {
+                    B1App.Instance.Application.SetStatusBarMessage($"Error ejecutando menú contextual: {ex.Message}", BoMessageTime.bmt_Short, true);
+                    ExceptionLogger.LogHandled(ex, $"RightClickMenuManager.HandleMenuEvent:{pVal.MenuUID}");
+                }
             }
         }
     }

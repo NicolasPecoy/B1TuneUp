@@ -76,6 +76,7 @@ namespace B1TuneUp.Modules
                 B1App.Instance.Application.SetStatusBarMessage(
                     $"Error agregando botones de copia rápida: {ex.Message}",
                     BoMessageTime.bmt_Short, true);
+                ExceptionLogger.LogHandled(ex, $"QuickCopyManager.AddQuickCopyButtons:{oForm?.TypeEx}");
             }
             finally
             {
@@ -178,6 +179,7 @@ namespace B1TuneUp.Modules
             {
                 B1App.Instance.Application.SetStatusBarMessage(
                     $"Error en copia rápida: {ex.Message}", BoMessageTime.bmt_Short, true);
+                ExceptionLogger.LogHandled(ex, $"QuickCopyManager.ExecuteCopy:{srcObjType}->{tgtObjType}");
             }
             finally
             {

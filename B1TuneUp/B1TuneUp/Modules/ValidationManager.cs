@@ -9,7 +9,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace B1TuneUp.B1TuneUp.Modules
+namespace B1TuneUp.Modules
 {
     public class ValidationManager
     {

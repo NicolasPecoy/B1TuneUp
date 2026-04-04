@@ -1,5 +1,8 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Text.Json;
 using B1TuneUp.Core;
 using B1TuneUp.Models;
 using B1TuneUp.Utils;
@@ -176,6 +179,172 @@ namespace B1TuneUp.Modules
             {
                 B1App.Instance.Application.SetStatusBarMessage($"Item Placement no disponible: {ex.Message}", SAPbouiCOM.BoMessageTime.bmt_Short, true);
             }
+        }
+
+        public static UiCustomizationPackage BuildPackage(string formType)
+        {
+            if (string.IsNullOrWhiteSpace(formType))
+                throw new ArgumentException("FormType is required to export a UI package.", nameof(formType));
+
+            string normalized = formType.Trim();
+            var package = new UiCustomizationPackage
+            {
+                FormType = normalized,
+                ExportedAt = DateTime.UtcNow,
+                ExportedBy = SafeGetCurrentUser()
+            };
+
+            package.UiEntries = new List<UiCustomizationEntry>(GetAll(normalized));
+
+            var validations = ValidationRuleService.GetAll();
+            package.ValidationRules = validations
+                .Where(v => string.Equals(v.FormType, normalized, StringComparison.OrdinalIgnoreCase))
+                .Select(CloneValidationForExport)
+                .ToList();
+
+            var mandatory = MandatoryFieldService.GetAll();
+            package.MandatoryRules = mandatory
+                .Where(v => string.Equals(v.FormType, normalized, StringComparison.OrdinalIgnoreCase))
+                .Select(CloneMandatoryForExport)
+                .ToList();
+
+            var pads = ActionPadService.GetAll();
+            package.ActionPads = pads
+                .Where(p => string.Equals(p.FormType, normalized, StringComparison.OrdinalIgnoreCase))
+                .Select(ClonePadForExport)
+                .ToList();
+
+            return package;
+        }
+
+        public static void ExportPackage(string formType, string filePath)
+        {
+            if (string.IsNullOrWhiteSpace(filePath))
+                throw new ArgumentException("Destination file path is required.", nameof(filePath));
+
+            var package = BuildPackage(formType);
+            var options = new JsonSerializerOptions
+            {
+                WriteIndented = true
+            };
+            string directory = Path.GetDirectoryName(filePath);
+            if (!string.IsNullOrEmpty(directory) && !Directory.Exists(directory))
+            {
+                Directory.CreateDirectory(directory);
+            }
+            File.WriteAllText(filePath, JsonSerializer.Serialize(package, options));
+        }
+
+        public static UiCustomizationPackage ImportPackage(string filePath, bool includeLayout = true, bool includeValidations = true, bool includeMandatory = true, bool includeActionPads = true)
+        {
+            if (string.IsNullOrWhiteSpace(filePath) || !File.Exists(filePath))
+                throw new FileNotFoundException("UI package file not found.", filePath);
+
+            var json = File.ReadAllText(filePath);
+            var package = JsonSerializer.Deserialize<UiCustomizationPackage>(json) ?? throw new InvalidOperationException("Archivo de paquete inválido.");
+            string formType = package.FormType?.Trim();
+            if (string.IsNullOrWhiteSpace(formType))
+                throw new InvalidOperationException("El paquete no especifica FormType.");
+
+            if (includeLayout)
+            {
+                foreach (var entry in package.UiEntries ?? Array.Empty<UiCustomizationEntry>())
+                {
+                    var copy = entry.Clone();
+                    copy.Code = null;
+                    copy.FormType = formType;
+                    UICustomizerService.Save(copy);
+                }
+            }
+
+            if (includeValidations)
+            {
+                foreach (var entry in package.ValidationRules ?? Array.Empty<ValidationRuleEntry>())
+                {
+                    var copy = entry.Clone();
+                    copy.Code = Guid.NewGuid().ToString("N").Substring(0, 8).ToUpperInvariant();
+                    copy.FormType = formType;
+                    ValidationRuleService.Save(copy);
+                }
+            }
+
+            if (includeMandatory)
+            {
+                foreach (var entry in package.MandatoryRules ?? Array.Empty<MandatoryFieldEntry>())
+                {
+                    var copy = entry.Clone();
+                    copy.Code = Guid.NewGuid().ToString("N").Substring(0, 8).ToUpperInvariant();
+                    copy.FormType = formType;
+                    MandatoryFieldService.Save(copy);
+                }
+            }
+
+            if (includeActionPads)
+            {
+                foreach (var pad in package.ActionPads ?? Array.Empty<ActionPadEntry>())
+                {
+                    var copy = pad.Clone();
+                    copy.DocEntry = 0;
+                    copy.FormType = formType;
+                    foreach (var button in copy.Buttons)
+                    {
+                        button.DocEntry = 0;
+                        button.PadEntry = 0;
+                    }
+                    ActionPadService.Save(copy);
+                }
+            }
+
+            return package;
+        }
+
+        private static string SafeGetCurrentUser()
+        {
+            try { return B1App.Instance?.Application?.Company?.UserName ?? Environment.UserName; }
+            catch { return Environment.UserName; }
+        }
+
+        private static ValidationRuleEntry CloneValidationForExport(ValidationRuleEntry entry)
+        {
+            return new ValidationRuleEntry
+            {
+                Code = entry.Code,
+                Name = entry.Name,
+                FormType = entry.FormType,
+                ItemName = entry.ItemName,
+                EventType = entry.EventType,
+                Condition = entry.Condition,
+                Action = entry.Action,
+                Severity = entry.Severity,
+                Active = entry.Active,
+                AppliesToUser = entry.AppliesToUser,
+                AppliesToUserGroup = entry.AppliesToUserGroup,
+                Message = entry.Message,
+                BlockAlways = entry.BlockAlways,
+                Sequence = entry.Sequence,
+                PromptButtons = entry.PromptButtons,
+                Notes = entry.Notes
+            };
+        }
+
+        private static MandatoryFieldEntry CloneMandatoryForExport(MandatoryFieldEntry entry)
+        {
+            return new MandatoryFieldEntry
+            {
+                Code = entry.Code,
+                Name = entry.Name,
+                FormType = entry.FormType,
+                ItemId = entry.ItemId,
+                ColumnId = entry.ColumnId,
+                Condition = entry.Condition,
+                ErrorMessage = entry.ErrorMessage
+            };
+        }
+
+        private static ActionPadEntry ClonePadForExport(ActionPadEntry pad)
+        {
+            var clone = pad.Clone();
+            return clone;
         }
 
         private static int? ToNullableInt(object value)

@@ -30,8 +30,14 @@ namespace B1TuneUp.Modules.ValidationUi
         private string _busyMessage;
         private string _statusMessage;
 
-        public ValidationDesignerViewModel()
+        private readonly string _initialValidationFilter;
+        private readonly string _initialItemSearch;
+
+        public ValidationDesignerViewModel(string defaultFormFilter = null, string defaultItemSearch = null)
         {
+            _initialValidationFilter = defaultFormFilter;
+            _initialItemSearch = defaultItemSearch;
+
             _validationView = (ListCollectionView)CollectionViewSource.GetDefaultView(_validationEntries);
             _validationView.Filter = FilterValidation;
 
@@ -53,6 +59,17 @@ namespace B1TuneUp.Modules.ValidationUi
             DuplicateMandatoryCommand = new RelayCommand(DuplicateMandatory, () => SelectedMandatory != null);
             SaveMandatoryCommand = new RelayCommand(async () => await SaveMandatoryAsync(), () => SelectedMandatory != null);
             DeleteMandatoryCommand = new RelayCommand(async () => await DeleteMandatoryAsync(), () => SelectedMandatory != null);
+
+            if (!string.IsNullOrWhiteSpace(defaultFormFilter))
+            {
+                ValidationFormFilter = defaultFormFilter;
+                MandatoryFormFilter = defaultFormFilter;
+            }
+            if (!string.IsNullOrWhiteSpace(defaultItemSearch))
+            {
+                ValidationSearch = defaultItemSearch;
+                MandatorySearch = defaultItemSearch;
+            }
         }
 
         public ICollectionView ValidationView => _validationView;

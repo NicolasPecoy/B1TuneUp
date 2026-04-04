@@ -26,8 +26,14 @@ namespace B1TuneUp.Modules.ItemActionsUi
         private string _busyMessage;
         private string _statusMessage;
 
-        public ItemActionsViewModel()
+        private readonly string _initialFormFilter;
+        private readonly string _initialItemId;
+
+        public ItemActionsViewModel(string formFilter = null, string itemId = null)
         {
+            _initialFormFilter = formFilter;
+            _initialItemId = itemId;
+
             _dispatcher = System.Windows.Application.Current?.Dispatcher ?? Dispatcher.CurrentDispatcher;
             _entriesView = CollectionViewSource.GetDefaultView(_entries);
             _entriesView.Filter = FilterEntry;
@@ -39,6 +45,11 @@ namespace B1TuneUp.Modules.ItemActionsUi
             DeleteCommand = new RelayCommand(async () => await DeleteSelectedAsync(), () => SelectedEntry != null && SelectedEntry.DocEntry > 0);
 
             EventOptions = new List<string> { "Change", "ItemPressed", "DoubleClick", "LostFocus", "GotFocus", "FormLoad" };
+
+            if (!string.IsNullOrWhiteSpace(formFilter) || !string.IsNullOrWhiteSpace(itemId))
+            {
+                SearchTerm = $"{formFilter} {itemId}".Trim();
+            }
         }
 
         public event PropertyChangedEventHandler PropertyChanged;
@@ -129,11 +140,26 @@ namespace B1TuneUp.Modules.ItemActionsUi
                     }
                     else
                     {
-                        SelectedEntry = _entries.FirstOrDefault();
+                        SelectedEntry = TrySelectInitialEntry();
                     }
                 }, DispatcherPriority.DataBind);
                 StatusMessage = $"Total acciones: {_entries.Count}";
             }, "Cargando acciones...");
+        }
+
+        private ItemActionEntry TrySelectInitialEntry()
+        {
+            if (!string.IsNullOrWhiteSpace(_initialItemId))
+            {
+                var match = _entries.FirstOrDefault(e => string.Equals(e.ItemId, _initialItemId, StringComparison.OrdinalIgnoreCase));
+                if (match != null) return match;
+            }
+            if (!string.IsNullOrWhiteSpace(_initialFormFilter))
+            {
+                var match = _entries.FirstOrDefault(e => string.Equals(e.FormType, _initialFormFilter, StringComparison.OrdinalIgnoreCase));
+                if (match != null) return match;
+            }
+            return _entries.FirstOrDefault();
         }
 
         private void NewEntry()

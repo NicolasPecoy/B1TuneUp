@@ -4,7 +4,6 @@ using SAPbobsCOM;
 using SAPbouiCOM;
 using B1TuneUp.Core;
 using B1TuneUp.Utils;
-using B1TuneUp.B1TuneUp.Modules;
 using B1TuneUp.Modules.ItemActionsUi;
 using B1TuneUp.Modules.LayoutManagerUi;
 
@@ -402,6 +401,12 @@ namespace B1TuneUp.Modules
                 else if (command.StartsWith("OpenDesigner()"))
                 {
                     try { var d = new Forms.DesignSurfaceForm(activeForm); d.Show(); } catch { var d = new Forms.DesignSurfaceForm(null); d.Show(); }
+                }
+                else if (command.StartsWith("OpenInlineDesigner("))
+                {
+                    string itemId = ExtractParameter(command, "OpenInlineDesigner");
+                    try { PlacementEnhancementUi.InlineDesignerManager.ShowOverlay(activeForm, string.IsNullOrWhiteSpace(itemId) ? null : itemId.Trim('\'', ' ')); }
+                    catch { PlacementEnhancementUi.InlineDesignerManager.ShowOverlay(null, null); }
                 }
                 else if (command.StartsWith("ExportSRF("))
                 {

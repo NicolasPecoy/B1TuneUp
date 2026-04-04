@@ -8,11 +8,12 @@ namespace B1TuneUp.Modules.ItemActionsUi
 {
     public partial class ItemActionsWindow : Window
     {
-        private readonly ItemActionsViewModel _viewModel = new ItemActionsViewModel();
+        private readonly ItemActionsViewModel _viewModel;
 
-        public ItemActionsWindow()
+        public ItemActionsWindow(string formFilter = null, string itemId = null)
         {
             InitializeComponent();
+            _viewModel = new ItemActionsViewModel(formFilter, itemId);
             DataContext = _viewModel;
             ElementHost.EnableModelessKeyboardInterop(this);
             Loaded += OnLoaded;

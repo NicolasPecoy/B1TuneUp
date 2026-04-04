@@ -8,11 +8,12 @@ namespace B1TuneUp.Modules.ValidationUi
 {
     public partial class ValidationDesignerWindow : Window
     {
-        private readonly ValidationDesignerViewModel _viewModel = new ValidationDesignerViewModel();
+        private readonly ValidationDesignerViewModel _viewModel;
 
-        public ValidationDesignerWindow()
+        public ValidationDesignerWindow(string formFilter = null, string itemFilter = null)
         {
             InitializeComponent();
+            _viewModel = new ValidationDesignerViewModel(formFilter, itemFilter);
             DataContext = _viewModel;
             ElementHost.EnableModelessKeyboardInterop(this);
             Loaded += OnLoaded;

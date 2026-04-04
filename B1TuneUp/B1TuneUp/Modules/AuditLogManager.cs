@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Globalization;
 using SAPbobsCOM;
 using B1TuneUp.Core;
 using B1TuneUp.Utils;
@@ -15,18 +16,15 @@ namespace B1TuneUp.Modules
                 // Limpiar comillas simples para evitar errores SQL
                 details = details.Replace("'", "''");
 
-                string sql;
-                if (B1App.Instance.IsHana)
-                {
-                    sql = $@"INSERT INTO ""@BTUN_LOG"" (""DocEntry"", ""U_Date"", ""U_Type"", ""U_Details"", ""U_Status"", ""U_User"") 
-                             VALUES ((SELECT IFNULL(MAX(""DocEntry""), 0) + 1 FROM ""@BTUN_LOG""), CURRENT_TIMESTAMP, '{actionType}', '{details}', '{status}', '{B1App.Instance.Company.UserName}')";
-                }
-                else
-                {
-                    sql = $@"INSERT INTO [@BTUN_LOG] (DocEntry, U_Date, U_Type, U_Details, U_Status, U_User) 
-                             VALUES ((SELECT ISNULL(MAX(DocEntry), 0) + 1 FROM [@BTUN_LOG]), GETDATE(), '{actionType}', '{details}', '{status}', '{B1App.Instance.Company.UserName}')";
-                }
-
+                bool isHana = B1App.Instance.IsHana;
+                int nextCode = UserTableCodeGenerator.GetNext("@BTUN_LOG");
+                string codeValue = nextCode.ToString(CultureInfo.InvariantCulture);
+                string nameValue = $"LOG_{codeValue}";
+                string sql = isHana
+                    ? $@"INSERT INTO ""@BTUN_LOG"" (""Code"", ""Name"", ""U_Date"", ""U_Type"", ""U_Details"", ""U_Status"", ""U_User"") 
+                             VALUES ('{codeValue}', '{nameValue}', CURRENT_TIMESTAMP, '{actionType}', '{details}', '{status}', '{B1App.Instance.Company.UserName}')"
+                    : $@"INSERT INTO [@BTUN_LOG] ([Code], [Name], U_Date, U_Type, U_Details, U_Status, U_User) 
+                             VALUES ('{codeValue}', '{nameValue}', GETDATE(), '{actionType}', '{details}', '{status}', '{B1App.Instance.Company.UserName}')";
                 rs.DoQuery(sql);
             }
             catch { }
@@ -43,16 +41,13 @@ namespace B1TuneUp.Modules
             {
                 string fullDetails = $"{details} | FormType: {formType} | Additional: {additionalInfo}".Replace("'", "''");
 
-                string sql;
-                if (B1App.Instance.IsHana)
-                {
-                    sql = $"INSERT INTO \"@BTUN_LOG\" (\"DocEntry\", \"U_Date\", \"U_Type\", \"U_Details\", \"U_Status\", \"U_User\") VALUES ((SELECT IFNULL(MAX(\"DocEntry\"), 0) + 1 FROM \"@BTUN_LOG\"), CURRENT_TIMESTAMP, '{actionType}', '{fullDetails}', '{status}', '{userId}')";
-                }
-                else
-                {
-                    sql = $"INSERT INTO [@BTUN_LOG] (DocEntry, U_Date, U_Type, U_Details, U_Status, U_User) VALUES ((SELECT ISNULL(MAX(DocEntry), 0) + 1 FROM [@BTUN_LOG]), GETDATE(), '{actionType}', '{fullDetails}', '{status}', '{userId}')";
-                }
-
+                bool isHana = B1App.Instance.IsHana;
+                int nextCode = UserTableCodeGenerator.GetNext("@BTUN_LOG");
+                string codeValue = nextCode.ToString(CultureInfo.InvariantCulture);
+                string nameValue = $"LOG_{codeValue}";
+                string sql = isHana
+                    ? $"INSERT INTO \"@BTUN_LOG\" (\"Code\", \"Name\", \"U_Date\", \"U_Type\", \"U_Details\", \"U_Status\", \"U_User\") VALUES ('{codeValue}', '{nameValue}', CURRENT_TIMESTAMP, '{actionType}', '{fullDetails}', '{status}', '{userId}')"
+                    : $"INSERT INTO [@BTUN_LOG] ([Code], [Name], U_Date, U_Type, U_Details, U_Status, U_User) VALUES ('{codeValue}', '{nameValue}', GETDATE(), '{actionType}', '{fullDetails}', '{status}', '{userId}')";
                 rs.DoQuery(sql);
             }
             catch { }

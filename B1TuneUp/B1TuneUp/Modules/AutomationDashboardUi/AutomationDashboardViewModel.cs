@@ -278,7 +278,7 @@ namespace B1TuneUp.Modules.AutomationDashboardUi
         {
             if (SelectedMacro == null) return;
             var copy = SelectedMacro.Clone();
-            copy.DocEntry = 0;
+            copy.Code = null;
             copy.Name = SelectedMacro.Name + " Copy";
             _macros.Add(copy);
             SelectedMacro = copy;
@@ -299,7 +299,7 @@ namespace B1TuneUp.Modules.AutomationDashboardUi
         {
             if (SelectedMacro == null) return;
             var target = SelectedMacro;
-            if (target.DocEntry > 0)
+            if (!string.IsNullOrEmpty(target.Code))
             {
                 await RunSafeAsync("Eliminando macro...", async () =>
                 {

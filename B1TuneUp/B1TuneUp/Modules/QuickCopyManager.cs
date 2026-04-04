@@ -33,15 +33,15 @@ namespace B1TuneUp.Modules
             try
             {
                 string sql = B1App.Instance.IsHana
-                    ? $"SELECT * FROM \"@BTUN_QCOPY\" WHERE \"U_SrcFormType\" = '{oForm.TypeEx}' AND \"U_Active\" = 'Y' ORDER BY \"DocEntry\""
-                    : $"SELECT * FROM [@BTUN_QCOPY] WHERE [U_SrcFormType] = '{oForm.TypeEx}' AND [U_Active] = 'Y' ORDER BY [DocEntry]";
+                    ? $"SELECT * FROM \"@BTUN_QCOPY\" WHERE \"U_SrcFormType\" = '{oForm.TypeEx}' AND \"U_Active\" = 'Y' ORDER BY \"Code\""
+                    : $"SELECT * FROM [@BTUN_QCOPY] WHERE [U_SrcFormType] = '{oForm.TypeEx}' AND [U_Active] = 'Y' ORDER BY [Code]";
 
                 rs.DoQuery(sql);
                 int idx = 0;
 
                 while (!rs.EoF)
                 {
-                    string docEntry  = rs.Fields.Item("DocEntry").Value.ToString();
+                    string docEntry  = rs.Fields.Item("Code").Value.ToString();
                     string srcObj    = rs.Fields.Item("U_SrcObjType").Value.ToString();
                     string tgtObj    = rs.Fields.Item("U_TgtObjType").Value.ToString();
                     string btnLabel  = rs.Fields.Item("U_BtnLabel").Value.ToString();

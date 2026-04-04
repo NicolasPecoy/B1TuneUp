@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Data;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -32,9 +33,11 @@ namespace B1TuneUp.Modules
             try
             {
                 rs = (Recordset)B1App.Instance.Company.GetBusinessObject(BoObjectTypes.BoRecordset);
-                string checkSql = B1App.Instance.IsHana
-                    ? $"SELECT \"DocEntry\" FROM \"@BTUN_DMAPPER\" WHERE \"U_Name\" = '{name.Replace("'","''")}'"
-                    : $"SELECT DocEntry FROM [@BTUN_DMAPPER] WHERE [U_Name] = '{name.Replace("'","''")}'";
+                bool isHana = B1App.Instance.IsHana;
+                string escapedName = name.Replace("'", "''");
+                string checkSql = isHana
+                    ? $"SELECT \"Code\" FROM \"@BTUN_DMAPPER\" WHERE \"U_Name\" = '{escapedName}'"
+                    : $"SELECT [Code] FROM [@BTUN_DMAPPER] WHERE [U_Name] = '{escapedName}'";
 
                 rs.DoQuery(checkSql);
                 string encoded = definition == null ? "" : definition.Replace("'", "''");
@@ -42,17 +45,20 @@ namespace B1TuneUp.Modules
 
                 if (!rs.EoF)
                 {
-                    string docEntry = rs.Fields.Item(0).Value.ToString();
-                    string updateSql = B1App.Instance.IsHana
-                        ? $"UPDATE \"@BTUN_DMAPPER\" SET \"U_Def\" = '{encoded}', \"U_Desc\" = '{desc}', \"U_UpdatedAt\" = CURRENT_TIMESTAMP WHERE \"DocEntry\" = '{docEntry}'"
-                        : $"UPDATE [@BTUN_DMAPPER] SET U_Def = '{encoded}', U_Desc = '{desc}', U_UpdatedAt = GETDATE() WHERE DocEntry = '{docEntry}'";
+                    string codeValue = rs.Fields.Item(0).Value?.ToString();
+                    string updateSql = isHana
+                        ? $"UPDATE \"@BTUN_DMAPPER\" SET \"U_Def\" = '{encoded}', \"U_Desc\" = '{desc}', \"U_UpdatedAt\" = CURRENT_TIMESTAMP WHERE \"Code\" = '{codeValue}'"
+                        : $"UPDATE [@BTUN_DMAPPER] SET U_Def = '{encoded}', U_Desc = '{desc}', U_UpdatedAt = GETDATE() WHERE [Code] = '{codeValue}'";
                     rs.DoQuery(updateSql);
                 }
                 else
                 {
-                    string insertSql = B1App.Instance.IsHana
-                        ? $"INSERT INTO \"@BTUN_DMAPPER\" (\"U_Name\", \"U_Desc\", \"U_Def\", \"U_CreatedAt\") VALUES ('{name.Replace("'","''")}', '{desc}', '{encoded}', CURRENT_TIMESTAMP)"
-                        : $"INSERT INTO [@BTUN_DMAPPER] (U_Name, U_Desc, U_Def, U_CreatedAt) VALUES ('{name.Replace("'","''")}', '{desc}', '{encoded}', GETDATE())";
+                    int nextCode = UserTableCodeGenerator.GetNext("@BTUN_DMAPPER");
+                    string codeValue = nextCode.ToString(CultureInfo.InvariantCulture);
+                    string nameValue = $"MAP_{escapedName}" ;
+                    string insertSql = isHana
+                        ? $"INSERT INTO \"@BTUN_DMAPPER\" (\"Code\",\"Name\",\"U_Name\", \"U_Desc\", \"U_Def\", \"U_CreatedAt\") VALUES ('{codeValue}','{nameValue}','{escapedName}', '{desc}', '{encoded}', CURRENT_TIMESTAMP)"
+                        : $"INSERT INTO [@BTUN_DMAPPER] ([Code],[Name],U_Name, U_Desc, U_Def, U_CreatedAt) VALUES ('{codeValue}','{nameValue}','{escapedName}', '{desc}', '{encoded}', GETDATE())";
                     rs.DoQuery(insertSql);
                 }
 

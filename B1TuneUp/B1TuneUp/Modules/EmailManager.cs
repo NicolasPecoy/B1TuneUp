@@ -16,8 +16,8 @@ namespace B1TuneUp.Modules
             try
             {
                 string sql = B1App.Instance.IsHana
-                    ? $"SELECT * FROM \"@BTUN_EMAIL\" WHERE \"DocEntry\" = '{docEntry}'"
-                    : $"SELECT * FROM [@BTUN_EMAIL] WHERE [DocEntry] = '{docEntry}'";
+                    ? $"SELECT * FROM \"@BTUN_EMAIL\" WHERE \"Code\" = '{docEntry}'"
+                    : $"SELECT * FROM [@BTUN_EMAIL] WHERE [Code] = '{docEntry}'";
 
                 rs.DoQuery(sql);
                 if (!rs.EoF)

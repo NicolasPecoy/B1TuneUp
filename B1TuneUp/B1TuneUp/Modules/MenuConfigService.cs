@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using B1TuneUp.Core;
 using B1TuneUp.Models;
 using B1TuneUp.Utils;
@@ -17,8 +18,8 @@ namespace B1TuneUp.Modules
             {
                 bool isHana = B1App.Instance.IsHana;
                 string sql = isHana
-                    ? "SELECT \"DocEntry\",\"U_ParentID\",\"U_MenuID\",\"U_Name\",\"U_Position\",\"U_Action\" FROM \"@BTUN_MENUS\" ORDER BY \"U_Position\""
-                    : "SELECT DocEntry,U_ParentID,U_MenuID,U_Name,U_Position,U_Action FROM [@BTUN_MENUS] ORDER BY U_Position";
+                    ? "SELECT \"Code\",\"U_ParentID\",\"U_MenuID\",\"U_Name\",\"U_Position\",\"U_Action\" FROM \"@BTUN_MENUS\" ORDER BY \"U_Position\""
+                    : "SELECT [Code],U_ParentID,U_MenuID,U_Name,U_Position,U_Action FROM [@BTUN_MENUS] ORDER BY U_Position";
                 rs = (Recordset)B1App.Instance.Company.GetBusinessObject(BoObjectTypes.BoRecordset);
                 rs.DoQuery(sql);
                 while (!rs.EoF)
@@ -46,19 +47,25 @@ namespace B1TuneUp.Modules
         {
             if (entry == null) throw new ArgumentNullException(nameof(entry));
             bool isHana = B1App.Instance.IsHana;
+            string codeValue = entry.DocEntry > 0
+                ? entry.DocEntry.ToString(CultureInfo.InvariantCulture)
+                : null;
             if (entry.DocEntry <= 0)
             {
+                int nextCode = UserTableCodeGenerator.GetNext("@BTUN_MENUS");
+                entry.DocEntry = nextCode;
+                codeValue = nextCode.ToString(CultureInfo.InvariantCulture);
+                string name = $"MENU_{Esc(entry.MenuId ?? codeValue)}";
                 string insertSql = isHana
-                    ? $"INSERT INTO \"@BTUN_MENUS\" (\"U_ParentID\",\"U_MenuID\",\"U_Name\",\"U_Position\",\"U_Action\") VALUES ('{Esc(entry.ParentId)}','{Esc(entry.MenuId)}','{Esc(entry.Caption)}',{entry.Position},'{Esc(entry.Action)}')"
-                    : $"INSERT INTO [@BTUN_MENUS] (U_ParentID,U_MenuID,U_Name,U_Position,U_Action) VALUES ('{Esc(entry.ParentId)}','{Esc(entry.MenuId)}','{Esc(entry.Caption)}',{entry.Position},'{Esc(entry.Action)}')";
+                    ? $"INSERT INTO \"@BTUN_MENUS\" (\"Code\",\"Name\",\"U_ParentID\",\"U_MenuID\",\"U_Name\",\"U_Position\",\"U_Action\") VALUES ('{codeValue}','{name}','{Esc(entry.ParentId)}','{Esc(entry.MenuId)}','{Esc(entry.Caption)}',{entry.Position},'{Esc(entry.Action)}')"
+                    : $"INSERT INTO [@BTUN_MENUS] ([Code],[Name],U_ParentID,U_MenuID,U_Name,U_Position,U_Action) VALUES ('{codeValue}','{name}','{Esc(entry.ParentId)}','{Esc(entry.MenuId)}','{Esc(entry.Caption)}',{entry.Position},'{Esc(entry.Action)}')";
                 ExecuteNonQuery(insertSql);
-                entry.DocEntry = GetLastDocEntry();
             }
             else
             {
                 string updateSql = isHana
-                    ? $"UPDATE \"@BTUN_MENUS\" SET \"U_ParentID\"='{Esc(entry.ParentId)}',\"U_MenuID\"='{Esc(entry.MenuId)}',\"U_Name\"='{Esc(entry.Caption)}',\"U_Position\"={entry.Position},\"U_Action\"='{Esc(entry.Action)}' WHERE \"DocEntry\"={entry.DocEntry}"
-                    : $"UPDATE [@BTUN_MENUS] SET U_ParentID='{Esc(entry.ParentId)}',U_MenuID='{Esc(entry.MenuId)}',U_Name='{Esc(entry.Caption)}',U_Position={entry.Position},U_Action='{Esc(entry.Action)}' WHERE DocEntry={entry.DocEntry}";
+                    ? $"UPDATE \"@BTUN_MENUS\" SET \"U_ParentID\"='{Esc(entry.ParentId)}',\"U_MenuID\"='{Esc(entry.MenuId)}',\"U_Name\"='{Esc(entry.Caption)}',\"U_Position\"={entry.Position},\"U_Action\"='{Esc(entry.Action)}' WHERE \"Code\"='{codeValue}'"
+                    : $"UPDATE [@BTUN_MENUS] SET U_ParentID='{Esc(entry.ParentId)}',U_MenuID='{Esc(entry.MenuId)}',U_Name='{Esc(entry.Caption)}',U_Position={entry.Position},U_Action='{Esc(entry.Action)}' WHERE [Code]='{codeValue}'";
                 ExecuteNonQuery(updateSql);
             }
             return entry;
@@ -68,31 +75,11 @@ namespace B1TuneUp.Modules
         {
             if (docEntry <= 0) return;
             bool isHana = B1App.Instance.IsHana;
+            string codeValue = docEntry.ToString(CultureInfo.InvariantCulture);
             string sql = isHana
-                ? $"DELETE FROM \"@BTUN_MENUS\" WHERE \"DocEntry\"={docEntry}"
-                : $"DELETE FROM [@BTUN_MENUS] WHERE DocEntry={docEntry}";
+                ? $"DELETE FROM \"@BTUN_MENUS\" WHERE \"Code\"='{codeValue}'"
+                : $"DELETE FROM [@BTUN_MENUS] WHERE [Code]='{codeValue}'";
             ExecuteNonQuery(sql);
-        }
-
-        private static int GetLastDocEntry()
-        {
-            Recordset rs = null;
-            try
-            {
-                bool isHana = B1App.Instance.IsHana;
-                string sql = isHana ? "SELECT MAX(\"DocEntry\") FROM \"@BTUN_MENUS\"" : "SELECT MAX(DocEntry) FROM [@BTUN_MENUS]";
-                rs = (Recordset)B1App.Instance.Company.GetBusinessObject(BoObjectTypes.BoRecordset);
-                rs.DoQuery(sql);
-                if (!rs.EoF)
-                {
-                    return Convert.ToInt32(rs.Fields.Item(0).Value);
-                }
-            }
-            finally
-            {
-                ComObjectManager.Release(rs);
-            }
-            return 0;
         }
 
         private static void ExecuteNonQuery(string sql)

@@ -1,6 +1,7 @@
 using System;
 using System.Text;
 using System.Collections.Generic;
+using System.Globalization;
 using SAPbouiCOM;
 using SAPbobsCOM;
 using B1TuneUp.Core;
@@ -144,22 +145,28 @@ namespace B1TuneUp.Modules
         {
             string userCode = B1App.Instance.Company.UserName;
 
-            // Buscar DocEntry existente
-            int existingEntry = FindExistingEntry(formType, userCode);
+            // Buscar código existente
+            string existingEntry = FindExistingEntry(formType, userCode);
 
             SAPbobsCOM.UserTable table = null;
             try
             {
                 table = (SAPbobsCOM.UserTable)B1App.Instance.Company.UserTables.Item("BTUN_FSET");
 
-                if (existingEntry > 0)
+                if (!string.IsNullOrEmpty(existingEntry))
                 {
-                    table.GetByKey(existingEntry.ToString());
-                    table.UserFields.Fields.Item("U_Data").Value = data;
-                    table.Update();
+                    if (table.GetByKey(existingEntry))
+                    {
+                        table.UserFields.Fields.Item("U_Data").Value = data;
+                        table.Update();
+                    }
                 }
                 else
                 {
+                    int nextCode = UserTableCodeGenerator.GetNext("@BTUN_FSET");
+                    string codeValue = nextCode.ToString(CultureInfo.InvariantCulture);
+                    table.Code = codeValue;
+                    table.Name = $"FSET_{formType}_{userCode}";
                     table.UserFields.Fields.Item("U_FormType").Value = formType;
                     table.UserFields.Fields.Item("U_UserCode").Value  = userCode;
                     table.UserFields.Fields.Item("U_Data").Value      = data;
@@ -170,22 +177,22 @@ namespace B1TuneUp.Modules
             finally { ComObjectManager.Release(table); }
         }
 
-        private static int FindExistingEntry(string formType, string userCode)
+        private static string FindExistingEntry(string formType, string userCode)
         {
             Recordset rs = (Recordset)B1App.Instance.Company.GetBusinessObject(BoObjectTypes.BoRecordset);
             try
             {
                 string sql = B1App.Instance.IsHana
-                    ? $"SELECT \"DocEntry\" FROM \"@BTUN_FSET\" WHERE \"U_FormType\" = '{EscSql(formType)}' AND \"U_UserCode\" = '{EscSql(userCode)}'"
-                    : $"SELECT [DocEntry] FROM [@BTUN_FSET] WHERE [U_FormType] = '{EscSql(formType)}' AND [U_UserCode] = '{EscSql(userCode)}'";
+                    ? $"SELECT \"Code\" FROM \"@BTUN_FSET\" WHERE \"U_FormType\" = '{EscSql(formType)}' AND \"U_UserCode\" = '{EscSql(userCode)}'"
+                    : $"SELECT [Code] FROM [@BTUN_FSET] WHERE [U_FormType] = '{EscSql(formType)}' AND [U_UserCode] = '{EscSql(userCode)}'";
 
                 rs.DoQuery(sql);
                 if (!rs.EoF)
-                    return (int)rs.Fields.Item("DocEntry").Value;
+                    return rs.Fields.Item(0).Value?.ToString();
             }
             catch { }
             finally { ComObjectManager.Release(rs); }
-            return -1;
+            return null;
         }
 
         // ─── Helpers ─────────────────────────────────────────────────────────────

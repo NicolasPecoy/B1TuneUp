@@ -84,7 +84,7 @@ namespace B1TuneUp.Modules
                 rs.DoQuery(sql);
                 while (!rs.EoF)
                 {
-                    string stepEntry    = rs.Fields.Item("DocEntry").Value.ToString();
+                    string stepEntry    = rs.Fields.Item("Code").Value.ToString();
                     string stepName     = rs.Fields.Item("U_StepName").Value.ToString();
                     string stepDesc     = rs.Fields.Item("U_StepDesc").Value.ToString();
                     string doneCond     = rs.Fields.Item("U_DoneCondition").Value.ToString();
@@ -148,16 +148,16 @@ namespace B1TuneUp.Modules
         {
             return QuerySingleField(
                 B1App.Instance.IsHana
-                    ? $"SELECT \"DocEntry\" FROM \"@BTUN_PSTEP\" WHERE \"U_FormType\" = '{EscSql(formType)}' AND \"U_Active\" = 'Y' AND \"U_AutoShow\" = 'Y' LIMIT 1"
-                    : $"SELECT TOP 1 [DocEntry] FROM [@BTUN_PSTEP] WHERE [U_FormType] = '{EscSql(formType)}' AND [U_Active] = 'Y' AND [U_AutoShow] = 'Y'");
+                    ? $"SELECT \"Code\" FROM \"@BTUN_PSTEP\" WHERE \"U_FormType\" = '{EscSql(formType)}' AND \"U_Active\" = 'Y' AND \"U_AutoShow\" = 'Y' LIMIT 1"
+                    : $"SELECT TOP 1 [Code] FROM [@BTUN_PSTEP] WHERE [U_FormType] = '{EscSql(formType)}' AND [U_Active] = 'Y' AND [U_AutoShow] = 'Y'");
         }
 
         private static string FindFirstActiveProcess(string formType)
         {
             return QuerySingleField(
                 B1App.Instance.IsHana
-                    ? $"SELECT \"DocEntry\" FROM \"@BTUN_PSTEP\" WHERE \"U_FormType\" = '{EscSql(formType)}' AND \"U_Active\" = 'Y' LIMIT 1"
-                    : $"SELECT TOP 1 [DocEntry] FROM [@BTUN_PSTEP] WHERE [U_FormType] = '{EscSql(formType)}' AND [U_Active] = 'Y'");
+                    ? $"SELECT \"Code\" FROM \"@BTUN_PSTEP\" WHERE \"U_FormType\" = '{EscSql(formType)}' AND \"U_Active\" = 'Y' LIMIT 1"
+                    : $"SELECT TOP 1 [Code] FROM [@BTUN_PSTEP] WHERE [U_FormType] = '{EscSql(formType)}' AND [U_Active] = 'Y'");
         }
 
         private static ProcessInfo LoadProcessInfo(string processEntry)
@@ -166,8 +166,8 @@ namespace B1TuneUp.Modules
             try
             {
                 string sql = B1App.Instance.IsHana
-                    ? $"SELECT * FROM \"@BTUN_PSTEP\" WHERE \"DocEntry\" = {processEntry}"
-                    : $"SELECT * FROM [@BTUN_PSTEP] WHERE [DocEntry] = {processEntry}";
+                    ? $"SELECT * FROM \"@BTUN_PSTEP\" WHERE \"Code\" = '{EscSql(processEntry)}'"
+                    : $"SELECT * FROM [@BTUN_PSTEP] WHERE [Code] = '{EscSql(processEntry)}'";
 
                 rs.DoQuery(sql);
                 if (!rs.EoF)

@@ -36,7 +36,7 @@ namespace B1TuneUp.Modules
                 rs.DoQuery(sql);
                 while (!rs.EoF)
                 {
-                    string docEntry = rs.Fields.Item("DocEntry").Value.ToString();
+                    string docEntry = rs.Fields.Item("Code").Value.ToString();
                     string action = rs.Fields.Item("U_Action").Value.ToString();
                     int interval = (int)rs.Fields.Item("U_Interval").Value;
                     DateTime lastRun = (DateTime)rs.Fields.Item("U_LastRun").Value;
@@ -62,8 +62,8 @@ namespace B1TuneUp.Modules
             try
             {
                 string sql = B1App.Instance.IsHana
-                    ? $"UPDATE \"@BTUN_SCHED\" SET \"U_LastRun\" = CURRENT_TIMESTAMP WHERE \"DocEntry\" = '{docEntry}'"
-                    : $"UPDATE [@BTUN_SCHED] SET [U_LastRun] = GETDATE() WHERE [DocEntry] = '{docEntry}'";
+                    ? $"UPDATE \"@BTUN_SCHED\" SET \"U_LastRun\" = CURRENT_TIMESTAMP WHERE \"Code\" = '{docEntry}'"
+                    : $"UPDATE [@BTUN_SCHED] SET [U_LastRun] = GETDATE() WHERE [Code] = '{docEntry}'";
                 rs.DoQuery(sql);
             }
             finally

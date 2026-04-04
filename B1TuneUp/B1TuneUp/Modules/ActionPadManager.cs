@@ -24,7 +24,7 @@ namespace B1TuneUp.Modules
                 rs.DoQuery(sql);
                 if (!rs.EoF)
                 {
-                    string padEntry = rs.Fields.Item("DocEntry").Value.ToString();
+                    string padEntry = rs.Fields.Item("Code").Value.ToString();
                     string title = rs.Fields.Item("U_Title").Value.ToString();
                     string position = rs.Fields.Item("U_Position").Value.ToString();
 
@@ -93,7 +93,7 @@ namespace B1TuneUp.Modules
                 {
                     string label = rs.Fields.Item("U_Label").Value.ToString();
                     string action = rs.Fields.Item("U_Action").Value.ToString();
-                    string btnId = $"btn_{rs.Fields.Item("DocEntry").Value}";
+                    string btnId = $"btn_{rs.Fields.Item("Code").Value}";
 
                     Item item = padForm.Items.Add(btnId, BoFormItemTypes.it_BUTTON);
                     item.Top = top;

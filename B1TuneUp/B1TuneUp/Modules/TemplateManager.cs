@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using SAPbouiCOM;
 using B1TuneUp.Core;
 using B1TuneUp.Utils;
@@ -52,9 +53,11 @@ namespace B1TuneUp.Modules
             try
             {
                 // First, check if template already exists
-                string checkSql = B1App.Instance.IsHana
-                    ? $"SELECT \"DocEntry\" FROM \"@BTUN_TMPL\" WHERE \"U_Name\" = '{templateName}'"
-                    : $"SELECT [DocEntry] FROM [@BTUN_TMPL] WHERE [U_Name] = '{templateName}'";
+                bool isHana = B1App.Instance.IsHana;
+                string safeName = templateName.Replace("'", "''");
+                string checkSql = isHana
+                    ? $"SELECT \"Code\" FROM \"@BTUN_TMPL\" WHERE \"U_Name\" = '{safeName}'"
+                    : $"SELECT [Code] FROM [@BTUN_TMPL] WHERE [U_Name] = '{safeName}'";
 
                 rs.DoQuery(checkSql);
                 string docEntry = "";
@@ -66,22 +69,26 @@ namespace B1TuneUp.Modules
 
                 // Serialize form data to save as template
                 string formData = SerializeFormData(oForm);
+                string safeData = formData.Replace("'", "''");
+                string safeDesc = (description ?? string.Empty).Replace("'", "''");
 
                 if (string.IsNullOrEmpty(docEntry))
                 {
-                    // Insert new template
-                    string insertSql = B1App.Instance.IsHana
-                        ? $"INSERT INTO \"@BTUN_TMPL\" (\"U_Name\", \"U_Desc\", \"U_FormType\", \"U_Data\", \"U_CreatedBy\", \"U_CreatedAt\") VALUES ('{templateName}', '{description}', '{oForm.TypeEx}', '{formData}', '{B1App.Instance.Company.UserName}', CURRENT_TIMESTAMP)"
-                        : $"INSERT INTO [@BTUN_TMPL] (U_Name, U_Desc, U_FormType, U_Data, U_CreatedBy, U_CreatedAt) VALUES ('{templateName}', '{description}', '{oForm.TypeEx}', '{formData}', '{B1App.Instance.Company.UserName}', GETDATE())";
+                    int nextCode = UserTableCodeGenerator.GetNext("@BTUN_TMPL");
+                    string codeValue = nextCode.ToString(CultureInfo.InvariantCulture);
+                    string recordName = $"TMPL_{safeName}";
+                    string insertSql = isHana
+                        ? $"INSERT INTO \"@BTUN_TMPL\" (\"Code\",\"Name\",\"U_Name\", \"U_Desc\", \"U_FormType\", \"U_Data\", \"U_CreatedBy\", \"U_CreatedAt\") VALUES ('{codeValue}','{recordName}','{safeName}', '{safeDesc}', '{oForm.TypeEx}', '{safeData}', '{B1App.Instance.Company.UserName}', CURRENT_TIMESTAMP)"
+                        : $"INSERT INTO [@BTUN_TMPL] ([Code],[Name],U_Name, U_Desc, U_FormType, U_Data, U_CreatedBy, U_CreatedAt) VALUES ('{codeValue}','{recordName}','{safeName}', '{safeDesc}', '{oForm.TypeEx}', '{safeData}', '{B1App.Instance.Company.UserName}', GETDATE())";
 
                     rs.DoQuery(insertSql);
                 }
                 else
                 {
                     // Update existing template
-                    string updateSql = B1App.Instance.IsHana
-                        ? $"UPDATE \"@BTUN_TMPL\" SET \"U_Desc\" = '{description}', \"U_Data\" = '{formData}', \"U_UpdatedAt\" = CURRENT_TIMESTAMP WHERE \"DocEntry\" = '{docEntry}'"
-                        : $"UPDATE [@BTUN_TMPL] SET U_Desc = '{description}', U_Data = '{formData}', U_UpdatedAt = GETDATE() WHERE DocEntry = '{docEntry}'";
+                    string updateSql = isHana
+                        ? $"UPDATE \"@BTUN_TMPL\" SET \"U_Desc\" = '{safeDesc}', \"U_Data\" = '{safeData}', \"U_UpdatedAt\" = CURRENT_TIMESTAMP WHERE \"Code\" = '{docEntry}'"
+                        : $"UPDATE [@BTUN_TMPL] SET U_Desc = '{safeDesc}', U_Data = '{safeData}', U_UpdatedAt = GETDATE() WHERE [Code] = '{docEntry}'";
 
                     rs.DoQuery(updateSql);
                 }

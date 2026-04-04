@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Text;
 using SAPbouiCOM;
 using SAPbobsCOM;
@@ -104,26 +105,32 @@ namespace B1TuneUp.Modules
                 if (string.IsNullOrEmpty(templateName) || reportFileContents == null) return;
 
                 string encoded = Convert.ToBase64String(reportFileContents);
+                string safeTemplateName = templateName.Replace("'", "''");
+                string safeEncoded = encoded.Replace("'", "''");
 
                 rs = (Recordset)B1App.Instance.Company.GetBusinessObject(BoObjectTypes.BoRecordset);
-                string checkSql = B1App.Instance.IsHana
-                    ? $"SELECT \"DocEntry\" FROM \"@BTUN_RPT\" WHERE \"U_Name\"='{templateName}'"
-                    : $"SELECT DocEntry FROM [@BTUN_RPT] WHERE [U_Name]='{templateName}'";
+                bool isHana = B1App.Instance.IsHana;
+                string checkSql = isHana
+                    ? $"SELECT \"Code\" FROM \"@BTUN_RPT\" WHERE \"U_Name\"='{safeTemplateName}'"
+                    : $"SELECT [Code] FROM [@BTUN_RPT] WHERE [U_Name]='{safeTemplateName}'";
 
                 rs.DoQuery(checkSql);
                 if (!rs.EoF)
                 {
-                    string docEntry = rs.Fields.Item(0).Value.ToString();
-                    string updateSql = B1App.Instance.IsHana
-                        ? $"UPDATE \"@BTUN_RPT\" SET \"U_Data\"='{encoded}', \"U_UpdatedAt\"=CURRENT_TIMESTAMP WHERE \"DocEntry\"='{docEntry}'"
-                        : $"UPDATE [@BTUN_RPT] SET U_Data='{encoded}', U_UpdatedAt=GETDATE() WHERE DocEntry='{docEntry}'";
+                    string codeValue = rs.Fields.Item(0).Value.ToString();
+                    string updateSql = isHana
+                        ? $"UPDATE \"@BTUN_RPT\" SET \"U_Data\"='{safeEncoded}', \"U_UpdatedAt\"=CURRENT_TIMESTAMP WHERE \"Code\"='{codeValue}'"
+                        : $"UPDATE [@BTUN_RPT] SET U_Data='{safeEncoded}', U_UpdatedAt=GETDATE() WHERE [Code]='{codeValue}'";
                     rs.DoQuery(updateSql);
                 }
                 else
                 {
-                    string insertSql = B1App.Instance.IsHana
-                        ? $"INSERT INTO \"@BTUN_RPT\" (\"U_Name\", \"U_Data\", \"U_CreatedAt\") VALUES ('{templateName}', '{encoded}', CURRENT_TIMESTAMP)"
-                        : $"INSERT INTO [@BTUN_RPT] (U_Name, U_Data, U_CreatedAt) VALUES ('{templateName}', '{encoded}', GETDATE())";
+                    int nextCode = UserTableCodeGenerator.GetNext("@BTUN_RPT");
+                    string codeValue = nextCode.ToString(CultureInfo.InvariantCulture);
+                    string nameValue = $"RPT_{safeTemplateName}";
+                    string insertSql = isHana
+                        ? $"INSERT INTO \"@BTUN_RPT\" (\"Code\",\"Name\",\"U_Name\", \"U_Data\", \"U_CreatedAt\") VALUES ('{codeValue}','{nameValue}','{safeTemplateName}', '{safeEncoded}', CURRENT_TIMESTAMP)"
+                        : $"INSERT INTO [@BTUN_RPT] ([Code],[Name],U_Name, U_Data, U_CreatedAt) VALUES ('{codeValue}','{nameValue}','{safeTemplateName}', '{safeEncoded}', GETDATE())";
 
                     rs.DoQuery(insertSql);
                 }

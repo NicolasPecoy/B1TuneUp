@@ -19,46 +19,49 @@ namespace B1TuneUp.Modules
             try
             {
                 rs = (SAPbobsCOM.Recordset)B1App.Instance.Company.GetBusinessObject(SAPbobsCOM.BoObjectTypes.BoRecordset);
+                bool isHana = B1App.Instance.IsHana;
+                string table = isHana ? "\"@BTUN_ITEMACT\"" : "[@BTUN_ITEMACT]";
                 string safeForm = formType.Replace("'", "''");
                 string safeItem = itemId.Replace("'", "''");
-                string table = B1App.Instance.IsHana ? ""@BTUN_ITEMACT"" : "[@BTUN_ITEMACT]";
-                string codeColumn = B1App.Instance.IsHana ? ""Code"" : "[Code]";
-                string checkSql = B1App.Instance.IsHana
-                    ? $"SELECT "Code" FROM {table} WHERE "U_FormType"='{safeForm}' AND "U_ItemID"='{safeItem}'"
-                    : $"SELECT Code FROM {table} WHERE [U_FormType]='{safeForm}' AND [U_ItemID]='{safeItem}'";
-                rs.DoQuery(checkSql);
 
                 string act = (actionMacro ?? string.Empty).Replace("'", "''");
                 string eventType = "Change";
                 try
                 {
-                    var parts = actionMacro.Split(new[] { "||" }, StringSplitOptions.RemoveEmptyEntries);
-                    if (parts.Length > 1)
+                    if (!string.IsNullOrEmpty(actionMacro))
                     {
-                        eventType = parts[0];
-                        act = parts[1].Replace("'", "''");
+                        var parts = actionMacro.Split(new[] { "||" }, StringSplitOptions.RemoveEmptyEntries);
+                        if (parts.Length > 1)
+                        {
+                            eventType = parts[0];
+                            act = parts[1].Replace("'", "''");
+                        }
                     }
                 }
                 catch { }
 
+                string safeEvent = eventType.Replace("'", "''");
+                string checkSql = isHana
+                    ? $"SELECT \"Code\" FROM {table} WHERE \"U_FormType\"='{safeForm}' AND \"U_ItemID\"='{safeItem}' AND \"U_Event\"='{safeEvent}'"
+                    : $"SELECT [Code] FROM {table} WHERE [U_FormType]='{safeForm}' AND [U_ItemID]='{safeItem}' AND [U_Event]='{safeEvent}'";
+                rs.DoQuery(checkSql);
+
                 if (!rs.EoF)
                 {
                     string codeValue = rs.Fields.Item(0).Value?.ToString() ?? string.Empty;
-                    string updateSql = B1App.Instance.IsHana
-                        ? $"UPDATE {table} SET "U_Action"='{act}', "U_UpdatedAt"=CURRENT_TIMESTAMP WHERE {codeColumn}='{codeValue}'"
-                        : $"UPDATE {table} SET U_Action='{act}', U_UpdatedAt=GETDATE() WHERE {codeColumn}='{codeValue}'";
+                    string updateSql = isHana
+                        ? $"UPDATE {table} SET \"U_Action\"='{act}', \"U_UpdatedAt\"=CURRENT_TIMESTAMP WHERE \"Code\"='{codeValue}'"
+                        : $"UPDATE {table} SET [U_Action]='{act}', [U_UpdatedAt]=GETDATE() WHERE [Code]='{codeValue}'";
                     rs.DoQuery(updateSql);
                 }
                 else
                 {
                     int nextCode = UserTableCodeGenerator.GetNext("@BTUN_ITEMACT");
-                    string codeValue = nextCode.ToString(System.Globalization.CultureInfo.InvariantCulture);
+                    string codeValue = nextCode.ToString(CultureInfo.InvariantCulture);
                     string name = $"{formType}_{itemId}_{eventType}".Replace("'", "''");
-                    string timestamp = B1App.Instance.IsHana ? "CURRENT_TIMESTAMP" : "GETDATE()";
-                    string safeEvent = eventType.Replace("'", "''");
-                    string insertSql = B1App.Instance.IsHana
-                        ? $"INSERT INTO {table} ("Code","Name","U_FormType", "U_ItemID", "U_Action", "U_CreatedAt", "U_Event") VALUES ('{codeValue}','{name}','{safeForm}', '{safeItem}', '{act}', {timestamp}, '{safeEvent}')"
-                        : $"INSERT INTO {table} (Code,Name,U_FormType, U_ItemID, U_Action, U_CreatedAt, U_Event) VALUES ('{codeValue}','{name}','{safeForm}', '{safeItem}', '{act}', {timestamp}, '{safeEvent}')";
+                    string insertSql = isHana
+                        ? $"INSERT INTO {table} (\"Code\",\"Name\",\"U_FormType\",\"U_ItemID\",\"U_Action\",\"U_CreatedAt\",\"U_Event\") VALUES ('{codeValue}','{name}','{safeForm}','{safeItem}','{act}',CURRENT_TIMESTAMP,'{safeEvent}')"
+                        : $"INSERT INTO {table} ([Code],[Name],[U_FormType],[U_ItemID],[U_Action],[U_CreatedAt],[U_Event]) VALUES ('{codeValue}','{name}','{safeForm}','{safeItem}','{act}',GETDATE(),'{safeEvent}')";
                     rs.DoQuery(insertSql);
                 }
                 B1App.Instance.Application.SetStatusBarMessage($"Action saved for {itemId}", SAPbouiCOM.BoMessageTime.bmt_Short, false);

@@ -4,6 +4,7 @@ using B1TuneUp.Core;
 using B1TuneUp.Models;
 using B1TuneUp.Utils;
 using SAPbobsCOM;
+using System.Globalization;
 
 namespace B1TuneUp.Modules
 {
@@ -17,8 +18,8 @@ namespace B1TuneUp.Modules
             {
                 bool isHana = B1App.Instance.IsHana;
                 string sql = isHana
-                    ? "SELECT \"DocEntry\",\"U_FormType\",\"U_Title\",\"U_Position\" FROM \"@BTUN_PAD\" ORDER BY \"DocEntry\""
-                    : "SELECT DocEntry,U_FormType,U_Title,U_Position FROM [@BTUN_PAD] ORDER BY DocEntry";
+                    ? "SELECT \"Code\",\"U_FormType\",\"U_Title\",\"U_Position\" FROM \"@BTUN_PAD\" ORDER BY \"U_Position\""
+                    : "SELECT [Code],U_FormType,U_Title,U_Position FROM [@BTUN_PAD] ORDER BY U_Position";
                 rs = (Recordset)B1App.Instance.Company.GetBusinessObject(BoObjectTypes.BoRecordset);
                 rs.DoQuery(sql);
                 while (!rs.EoF)
@@ -49,32 +50,40 @@ namespace B1TuneUp.Modules
         {
             if (entry == null) throw new ArgumentNullException(nameof(entry));
             bool isHana = B1App.Instance.IsHana;
+            string padCode = entry.DocEntry > 0 ? entry.DocEntry.ToString(CultureInfo.InvariantCulture) : null;
             if (entry.DocEntry <= 0)
             {
+                int nextCode = UserTableCodeGenerator.GetNext("@BTUN_PAD");
+                entry.DocEntry = nextCode;
+                padCode = nextCode.ToString(CultureInfo.InvariantCulture);
+                string nameValue = $"PAD_{padCode}";
                 string insertSql = isHana
-                    ? $"INSERT INTO \"@BTUN_PAD\" (\"U_FormType\",\"U_Title\",\"U_Position\") VALUES ('{Escape(entry.FormType)}','{Escape(entry.Title)}','{Escape(entry.Position)}')"
-                    : $"INSERT INTO [@BTUN_PAD] (U_FormType,U_Title,U_Position) VALUES ('{Escape(entry.FormType)}','{Escape(entry.Title)}','{Escape(entry.Position)}')";
+                    ? $"INSERT INTO \"@BTUN_PAD\" (\"Code\",\"Name\",\"U_FormType\",\"U_Title\",\"U_Position\") VALUES ('{padCode}','{nameValue}','{Escape(entry.FormType)}','{Escape(entry.Title)}','{Escape(entry.Position)}')"
+                    : $"INSERT INTO [@BTUN_PAD] ([Code],[Name],U_FormType,U_Title,U_Position) VALUES ('{padCode}','{nameValue}','{Escape(entry.FormType)}','{Escape(entry.Title)}','{Escape(entry.Position)}')";
                 ExecuteNonQuery(insertSql);
-                entry.DocEntry = GetLastPadDocEntry();
             }
             else
             {
                 string updateSql = isHana
-                    ? $"UPDATE \"@BTUN_PAD\" SET \"U_FormType\"='{Escape(entry.FormType)}',\"U_Title\"='{Escape(entry.Title)}',\"U_Position\"='{Escape(entry.Position)}' WHERE \"DocEntry\"={entry.DocEntry}"
-                    : $"UPDATE [@BTUN_PAD] SET U_FormType='{Escape(entry.FormType)}',U_Title='{Escape(entry.Title)}',U_Position='{Escape(entry.Position)}' WHERE DocEntry={entry.DocEntry}";
+                    ? $"UPDATE \"@BTUN_PAD\" SET \"U_FormType\"='{Escape(entry.FormType)}',\"U_Title\"='{Escape(entry.Title)}',\"U_Position\"='{Escape(entry.Position)}' WHERE \"Code\"='{padCode}'"
+                    : $"UPDATE [@BTUN_PAD] SET U_FormType='{Escape(entry.FormType)}',U_Title='{Escape(entry.Title)}',U_Position='{Escape(entry.Position)}' WHERE [Code]='{padCode}'";
                 ExecuteNonQuery(updateSql);
             }
 
             string deleteSql = isHana
-                ? $"DELETE FROM \"@BTUN_PADB\" WHERE \"U_PadEntry\"={entry.DocEntry}"
-                : $"DELETE FROM [@BTUN_PADB] WHERE U_PadEntry={entry.DocEntry}";
+                ? $"DELETE FROM \"@BTUN_PADB\" WHERE \"U_PadEntry\"='{padCode}'"
+                : $"DELETE FROM [@BTUN_PADB] WHERE U_PadEntry='{padCode}'";
             ExecuteNonQuery(deleteSql);
 
             foreach (var button in entry.Buttons)
             {
+                int buttonCode = UserTableCodeGenerator.GetNext("@BTUN_PADB");
+                button.DocEntry = buttonCode;
+                string buttonCodeValue = buttonCode.ToString(CultureInfo.InvariantCulture);
+                string buttonName = $"PADBTN_{padCode}_{buttonCodeValue}";
                 string insertButton = isHana
-                    ? $"INSERT INTO \"@BTUN_PADB\" (\"U_PadEntry\",\"U_Label\",\"U_Action\",\"U_Order\") VALUES ({entry.DocEntry},'{Escape(button.Label)}','{Escape(button.Action)}',{button.Order})"
-                    : $"INSERT INTO [@BTUN_PADB] (U_PadEntry,U_Label,U_Action,U_Order) VALUES ({entry.DocEntry},'{Escape(button.Label)}','{Escape(button.Action)}',{button.Order})";
+                    ? $"INSERT INTO \"@BTUN_PADB\" (\"Code\",\"Name\",\"U_PadEntry\",\"U_Label\",\"U_Action\",\"U_Order\") VALUES ('{buttonCodeValue}','{buttonName}','{padCode}','{Escape(button.Label)}','{Escape(button.Action)}',{button.Order})"
+                    : $"INSERT INTO [@BTUN_PADB] ([Code],[Name],U_PadEntry,U_Label,U_Action,U_Order) VALUES ('{buttonCodeValue}','{buttonName}','{padCode}','{Escape(button.Label)}','{Escape(button.Action)}',{button.Order})";
                 ExecuteNonQuery(insertButton);
             }
 
@@ -85,14 +94,15 @@ namespace B1TuneUp.Modules
         {
             if (docEntry <= 0) return;
             bool isHana = B1App.Instance.IsHana;
+            string codeValue = docEntry.ToString(CultureInfo.InvariantCulture);
             string deleteChildren = isHana
-                ? $"DELETE FROM \"@BTUN_PADB\" WHERE \"U_PadEntry\"={docEntry}"
-                : $"DELETE FROM [@BTUN_PADB] WHERE U_PadEntry={docEntry}";
+                ? $"DELETE FROM \"@BTUN_PADB\" WHERE \"U_PadEntry\"='{codeValue}'"
+                : $"DELETE FROM [@BTUN_PADB] WHERE U_PadEntry='{codeValue}'";
             ExecuteNonQuery(deleteChildren);
 
             string deletePad = isHana
-                ? $"DELETE FROM \"@BTUN_PAD\" WHERE \"DocEntry\"={docEntry}"
-                : $"DELETE FROM [@BTUN_PAD] WHERE DocEntry={docEntry}";
+                ? $"DELETE FROM \"@BTUN_PAD\" WHERE \"Code\"='{codeValue}'"
+                : $"DELETE FROM [@BTUN_PAD] WHERE [Code]='{codeValue}'";
             ExecuteNonQuery(deletePad);
         }
 
@@ -103,9 +113,10 @@ namespace B1TuneUp.Modules
             try
             {
                 bool isHana = B1App.Instance.IsHana;
+                string codeValue = docEntry.ToString(CultureInfo.InvariantCulture);
                 string sql = isHana
-                    ? $"SELECT \"DocEntry\",\"U_Label\",\"U_Action\",\"U_Order\" FROM \"@BTUN_PADB\" WHERE \"U_PadEntry\"={docEntry} ORDER BY \"U_Order\""
-                    : $"SELECT DocEntry,U_Label,U_Action,U_Order FROM [@BTUN_PADB] WHERE U_PadEntry={docEntry} ORDER BY U_Order";
+                    ? $"SELECT \"Code\",\"U_Label\",\"U_Action\",\"U_Order\" FROM \"@BTUN_PADB\" WHERE \"U_PadEntry\"='{codeValue}' ORDER BY \"U_Order\""
+                    : $"SELECT [Code],U_Label,U_Action,U_Order FROM [@BTUN_PADB] WHERE U_PadEntry='{codeValue}' ORDER BY U_Order";
                 rs = (Recordset)B1App.Instance.Company.GetBusinessObject(BoObjectTypes.BoRecordset);
                 rs.DoQuery(sql);
                 while (!rs.EoF)
@@ -126,27 +137,6 @@ namespace B1TuneUp.Modules
                 ComObjectManager.Release(rs);
             }
             return list;
-        }
-
-        private static int GetLastPadDocEntry()
-        {
-            Recordset rs = null;
-            try
-            {
-                bool isHana = B1App.Instance.IsHana;
-                string sql = isHana ? "SELECT MAX(\"DocEntry\") FROM \"@BTUN_PAD\"" : "SELECT MAX(DocEntry) FROM [@BTUN_PAD]";
-                rs = (Recordset)B1App.Instance.Company.GetBusinessObject(BoObjectTypes.BoRecordset);
-                rs.DoQuery(sql);
-                if (!rs.EoF)
-                {
-                    return Convert.ToInt32(rs.Fields.Item(0).Value);
-                }
-            }
-            finally
-            {
-                ComObjectManager.Release(rs);
-            }
-            return 0;
         }
 
         private static void ExecuteNonQuery(string sql)

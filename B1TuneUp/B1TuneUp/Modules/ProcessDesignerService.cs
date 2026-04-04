@@ -17,8 +17,8 @@ namespace B1TuneUp.Modules
             {
                 rs = (Recordset)B1App.Instance.Company.GetBusinessObject(BoObjectTypes.BoRecordset);
                 string sql = B1App.Instance.IsHana
-                    ? "SELECT \"Code\",\"Name\",\"DocEntry\",\"U_FormType\",\"U_Desc\",\"U_Active\",\"U_AutoShow\" FROM \"@BTUN_PSTEP\" ORDER BY \"U_FormType\",\"Name\""
-                    : "SELECT [Code],[Name],[DocEntry],[U_FormType],[U_Desc],[U_Active],[U_AutoShow] FROM [@BTUN_PSTEP] ORDER BY [U_FormType],[Name]";
+                    ? "SELECT \"Code\",\"Name\",\"U_FormType\",\"U_Desc\",\"U_Active\",\"U_AutoShow\" FROM \"@BTUN_PSTEP\" ORDER BY \"U_FormType\",\"Name\""
+                    : "SELECT [Code],[Name],[U_FormType],[U_Desc],[U_Active],[U_AutoShow] FROM [@BTUN_PSTEP] ORDER BY [U_FormType],[Name]";
                 rs.DoQuery(sql);
                 while (!rs.EoF)
                 {
@@ -26,11 +26,11 @@ namespace B1TuneUp.Modules
                     {
                         Code = Convert.ToString(rs.Fields.Item(0).Value),
                         Name = Convert.ToString(rs.Fields.Item(1).Value),
-                        DocEntry = Convert.ToString(rs.Fields.Item(2).Value),
-                        FormType = Convert.ToString(rs.Fields.Item(3).Value),
-                        Description = Convert.ToString(rs.Fields.Item(4).Value),
-                        Active = !string.Equals(Convert.ToString(rs.Fields.Item(5).Value), "N", StringComparison.OrdinalIgnoreCase),
-                        AutoShow = string.Equals(Convert.ToString(rs.Fields.Item(6).Value), "Y", StringComparison.OrdinalIgnoreCase)
+                        DocEntry = Convert.ToString(rs.Fields.Item(0).Value),
+                        FormType = Convert.ToString(rs.Fields.Item(2).Value),
+                        Description = Convert.ToString(rs.Fields.Item(3).Value),
+                        Active = !string.Equals(Convert.ToString(rs.Fields.Item(4).Value), "N", StringComparison.OrdinalIgnoreCase),
+                        AutoShow = string.Equals(Convert.ToString(rs.Fields.Item(5).Value), "Y", StringComparison.OrdinalIgnoreCase)
                     };
                     LoadSteps(process);
                     list.Add(process);
@@ -46,14 +46,14 @@ namespace B1TuneUp.Modules
 
         private static void LoadSteps(ProcessDefinition process)
         {
-            if (process == null || string.IsNullOrEmpty(process.DocEntry)) return;
+            if (process == null || string.IsNullOrEmpty(process.Code)) return;
             Recordset rs = null;
             try
             {
                 rs = (Recordset)B1App.Instance.Company.GetBusinessObject(BoObjectTypes.BoRecordset);
                 string sql = B1App.Instance.IsHana
-                    ? $"SELECT \"DocEntry\",\"U_StepOrder\",\"U_StepName\",\"U_StepDesc\",\"U_DoneCondition\",\"U_Action\",\"U_Mandatory\" FROM \"@BTUN_PSTEPD\" WHERE \"U_ProcessEntry\" = '{process.DocEntry}' ORDER BY \"U_StepOrder\""
-                    : $"SELECT [DocEntry],[U_StepOrder],[U_StepName],[U_StepDesc],[U_DoneCondition],[U_Action],[U_Mandatory] FROM [@BTUN_PSTEPD] WHERE [U_ProcessEntry] = '{process.DocEntry}' ORDER BY [U_StepOrder]";
+                    ? $"SELECT \"Code\",\"U_StepOrder\",\"U_StepName\",\"U_StepDesc\",\"U_DoneCondition\",\"U_Action\",\"U_Mandatory\" FROM \"@BTUN_PSTEPD\" WHERE \"U_ProcessEntry\" = '{process.Code}' ORDER BY \"U_StepOrder\""
+                    : $"SELECT [Code],[U_StepOrder],[U_StepName],[U_StepDesc],[U_DoneCondition],[U_Action],[U_Mandatory] FROM [@BTUN_PSTEPD] WHERE [U_ProcessEntry] = '{process.Code}' ORDER BY [U_StepOrder]";
                 rs.DoQuery(sql);
                 process.Steps.Clear();
                 while (!rs.EoF)
@@ -108,7 +108,7 @@ namespace B1TuneUp.Modules
                     throw new InvalidOperationException($"SAP SDK error: {B1App.Instance.Company.GetLastErrorDescription()}");
                 }
 
-                process.DocEntry = GetDocEntryByCode(process.Code);
+                process.DocEntry = process.Code;
                 SaveSteps(process);
             }
             finally
@@ -119,45 +119,25 @@ namespace B1TuneUp.Modules
             return process;
         }
 
-        private static string GetDocEntryByCode(string code)
-        {
-            if (string.IsNullOrEmpty(code)) return null;
-            Recordset rs = null;
-            try
-            {
-                rs = (Recordset)B1App.Instance.Company.GetBusinessObject(BoObjectTypes.BoRecordset);
-                string sql = B1App.Instance.IsHana
-                    ? $"SELECT \"DocEntry\" FROM \"@BTUN_PSTEP\" WHERE \"Code\" = '{code}'"
-                    : $"SELECT DocEntry FROM [@BTUN_PSTEP] WHERE [Code] = '{code}'";
-                rs.DoQuery(sql);
-                if (!rs.EoF) return Convert.ToString(rs.Fields.Item(0).Value);
-            }
-            finally
-            {
-                ComObjectManager.Release(rs);
-            }
-            return null;
-        }
-
         private static void SaveSteps(ProcessDefinition process)
         {
-            if (process == null || string.IsNullOrEmpty(process.DocEntry)) return;
+            if (process == null || string.IsNullOrEmpty(process.Code)) return;
             Recordset rs = null;
             UserTable table = null;
             try
             {
                 rs = (Recordset)B1App.Instance.Company.GetBusinessObject(BoObjectTypes.BoRecordset);
                 string deleteSql = B1App.Instance.IsHana
-                    ? $"DELETE FROM \"@BTUN_PSTEPD\" WHERE \"U_ProcessEntry\" = '{process.DocEntry}'"
-                    : $"DELETE FROM [@BTUN_PSTEPD] WHERE [U_ProcessEntry] = '{process.DocEntry}'";
+                    ? $"DELETE FROM \"@BTUN_PSTEPD\" WHERE \"U_ProcessEntry\" = '{process.Code}'"
+                    : $"DELETE FROM [@BTUN_PSTEPD] WHERE [U_ProcessEntry] = '{process.Code}'";
                 rs.DoQuery(deleteSql);
 
                 table = B1App.Instance.Company.UserTables.Item("BTUN_PSTEPD");
                 foreach (var step in process.Steps)
                 {
                     table.Code = Guid.NewGuid().ToString("N").Substring(0, 8).ToUpperInvariant();
-                    table.Name = $"{process.DocEntry}_{step.Order}";
-                    table.UserFields.Fields.Item("U_ProcessEntry").Value = process.DocEntry;
+                    table.Name = $"{process.Code}_{step.Order}";
+                    table.UserFields.Fields.Item("U_ProcessEntry").Value = process.Code;
                     table.UserFields.Fields.Item("U_StepOrder").Value = step.Order;
                     table.UserFields.Fields.Item("U_StepName").Value = step.Name ?? string.Empty;
                     table.UserFields.Fields.Item("U_StepDesc").Value = step.Description ?? string.Empty;
@@ -178,17 +158,17 @@ namespace B1TuneUp.Modules
             }
         }
 
-        public static void Delete(string docEntry)
+        public static void Delete(string code)
         {
-            if (string.IsNullOrEmpty(docEntry)) return;
+            if (string.IsNullOrEmpty(code)) return;
             Recordset rs = null;
             try
             {
                 // Delete detail first
                 rs = (Recordset)B1App.Instance.Company.GetBusinessObject(BoObjectTypes.BoRecordset);
                 string deleteSteps = B1App.Instance.IsHana
-                    ? $"DELETE FROM \"@BTUN_PSTEPD\" WHERE \"U_ProcessEntry\" = '{docEntry}'"
-                    : $"DELETE FROM [@BTUN_PSTEPD] WHERE [U_ProcessEntry] = '{docEntry}'";
+                    ? $"DELETE FROM \"@BTUN_PSTEPD\" WHERE \"U_ProcessEntry\" = '{code}'"
+                    : $"DELETE FROM [@BTUN_PSTEPD] WHERE [U_ProcessEntry] = '{code}'";
                 rs.DoQuery(deleteSteps);
             }
             finally
@@ -200,7 +180,7 @@ namespace B1TuneUp.Modules
             try
             {
                 header = B1App.Instance.Company.UserTables.Item("BTUN_PSTEP");
-                if (header.GetByKey(docEntry))
+                if (header.GetByKey(code))
                 {
                     int res = header.Remove();
                     if (res != 0)

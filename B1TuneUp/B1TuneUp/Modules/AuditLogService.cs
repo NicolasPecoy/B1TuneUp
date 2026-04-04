@@ -50,7 +50,7 @@ namespace B1TuneUp.Modules
             string typeColumn = QuoteIdentifier("U_Type", isHana);
             string statusColumn = QuoteIdentifier("U_Status", isHana);
             string userColumn = QuoteIdentifier("U_User", isHana);
-            string docEntryColumn = QuoteIdentifier("DocEntry", isHana);
+            string docEntryColumn = QuoteIdentifier("Code", isHana);
             string detailsColumn = QuoteIdentifier("U_Details", isHana);
             string tableName = QuoteIdentifier("@BTUN_LOG", isHana);
 

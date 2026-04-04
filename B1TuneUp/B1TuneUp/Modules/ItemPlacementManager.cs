@@ -1,5 +1,6 @@
 using System;
 using System.Data;
+using System.Globalization;
 using System.Xml;
 using SAPbouiCOM;
 using SAPbobsCOM;
@@ -48,9 +49,17 @@ namespace B1TuneUp.Modules
                     rs = (SAPbobsCOM.Recordset)B1App.Instance.Company.GetBusinessObject(SAPbobsCOM.BoObjectTypes.BoRecordset);
                     string owner = "";
                     try { owner = B1App.Instance.Application.Company.UserName; } catch { }
+                    string safeForm = formType.Replace("'", "''");
+                    string safeName = layoutName.Replace("'", "''");
+                    string safeFile = System.IO.Path.GetFileName(filePath).Replace("'", "''");
+                    string safeOwner = owner.Replace("'", "''");
+                    string safeB64 = b64.Replace("'", "''");
+                    int nextCode = UserTableCodeGenerator.GetNext("@BTUN_LAYOUT");
+                    string codeValue = nextCode.ToString(CultureInfo.InvariantCulture);
+                    string recordName = $"LAYOUT_{safeName}";
                     string insertSql = B1App.Instance.IsHana
-                        ? $"INSERT INTO \"@BTUN_LAYOUT\" (\"U_FormType\", \"U_Name\", \"U_SRF\", \"U_FileName\", \"U_Owner\", \"U_CreatedAt\") VALUES ('{formType.Replace("'", "''")}', '{layoutName.Replace("'", "''")}', '{b64}', '{System.IO.Path.GetFileName(filePath).Replace("'", "''")}', '{owner.Replace("'", "''")}', CURRENT_TIMESTAMP)"
-                        : $"INSERT INTO [@BTUN_LAYOUT] (U_FormType, U_Name, U_SRF, U_FileName, U_Owner, U_CreatedAt) VALUES ('{formType.Replace("'", "''")}', '{layoutName.Replace("'", "''")}', '{b64}', '{System.IO.Path.GetFileName(filePath).Replace("'", "''")}', '{owner.Replace("'", "''")}', GETDATE())";
+                        ? $"INSERT INTO \"@BTUN_LAYOUT\" (\"Code\",\"Name\",\"U_FormType\", \"U_Name\", \"U_SRF\", \"U_FileName\", \"U_Owner\", \"U_CreatedAt\") VALUES ('{codeValue}','{recordName}','{safeForm}', '{safeName}', '{safeB64}', '{safeFile}', '{safeOwner}', CURRENT_TIMESTAMP)"
+                        : $"INSERT INTO [@BTUN_LAYOUT] ([Code],[Name],U_FormType, U_Name, U_SRF, U_FileName, U_Owner, U_CreatedAt) VALUES ('{codeValue}','{recordName}','{safeForm}', '{safeName}', '{safeB64}', '{safeFile}', '{safeOwner}', GETDATE())";
                     rs.DoQuery(insertSql);
                     B1App.Instance.Application.SetStatusBarMessage($"SRF saved into layout '{layoutName}'.", SAPbouiCOM.BoMessageTime.bmt_Short, false);
                     return true;
@@ -235,9 +244,11 @@ namespace B1TuneUp.Modules
             try
             {
                 rs = (SAPbobsCOM.Recordset)B1App.Instance.Company.GetBusinessObject(SAPbobsCOM.BoObjectTypes.BoRecordset);
+                string safeLayout = layoutName.Replace("'", "''");
+                string safeForm = formType.Replace("'", "''");
                 string checkSql = B1App.Instance.IsHana
-                    ? $"SELECT \"DocEntry\" FROM \"@BTUN_LAYOUT\" WHERE \"U_Name\" = '{layoutName.Replace("'", "''")}' AND \"U_FormType\" = '{formType.Replace("'", "''")}'"
-                    : $"SELECT DocEntry FROM [@BTUN_LAYOUT] WHERE [U_Name] = '{layoutName.Replace("'", "''")}' AND [U_FormType] = '{formType.Replace("'", "''")}'";
+                    ? $"SELECT \"Code\" FROM \"@BTUN_LAYOUT\" WHERE \"U_Name\" = '{safeLayout}' AND \"U_FormType\" = '{safeForm}'"
+                    : $"SELECT [Code] FROM [@BTUN_LAYOUT] WHERE [U_Name] = '{safeLayout}' AND [U_FormType] = '{safeForm}'";
 
                 rs.DoQuery(checkSql);
                 string xmlEsc = layoutXml.Replace("'", "''");
@@ -245,10 +256,10 @@ namespace B1TuneUp.Modules
 
                 if (!rs.EoF)
                 {
-                    string docEntry = rs.Fields.Item(0).Value.ToString();
+                    string codeValue = rs.Fields.Item(0).Value.ToString();
                     string updateSql = B1App.Instance.IsHana
-                        ? $"UPDATE \"@BTUN_LAYOUT\" SET \"U_Def\" = '{xmlEsc}', \"U_Desc\" = '{desc}', \"U_UpdatedAt\" = CURRENT_TIMESTAMP WHERE \"DocEntry\" = '{docEntry}'"
-                        : $"UPDATE [@BTUN_LAYOUT] SET U_Def = '{xmlEsc}', U_Desc = '{desc}', U_UpdatedAt = GETDATE() WHERE DocEntry = '{docEntry}'";
+                        ? $"UPDATE \"@BTUN_LAYOUT\" SET \"U_Def\" = '{xmlEsc}', \"U_Desc\" = '{desc}', \"U_UpdatedAt\" = CURRENT_TIMESTAMP WHERE \"Code\" = '{codeValue}'"
+                        : $"UPDATE [@BTUN_LAYOUT] SET U_Def = '{xmlEsc}', U_Desc = '{desc}', U_UpdatedAt = GETDATE() WHERE [Code] = '{codeValue}'";
                     rs.DoQuery(updateSql);
                 }
                 else
@@ -256,10 +267,14 @@ namespace B1TuneUp.Modules
                     // include owner and version
                     string owner = "";
                     try { owner = B1App.Instance.Application.Company.UserName; } catch { owner = ""; }
+                    string safeOwner = owner.Replace("'", "''");
                     int ver = 1;
+                    int nextCode = UserTableCodeGenerator.GetNext("@BTUN_LAYOUT");
+                    string codeValue = nextCode.ToString(CultureInfo.InvariantCulture);
+                    string recordName = $"LAYOUT_{safeLayout}";
                     string insertSql = B1App.Instance.IsHana
-                        ? $"INSERT INTO \"@BTUN_LAYOUT\" (\"U_FormType\", \"U_Name\", \"U_Desc\", \"U_Def\", \"U_CreatedAt\", \"U_Owner\", \"U_Version\") VALUES ('{formType.Replace("'", "''")}', '{layoutName.Replace("'", "''")}', '{desc}', '{xmlEsc}', CURRENT_TIMESTAMP, '{owner.Replace("'", "''")}', '{ver}')"
-                        : $"INSERT INTO [@BTUN_LAYOUT] (U_FormType, U_Name, U_Desc, U_Def, U_CreatedAt, U_Owner, U_Version) VALUES ('{formType.Replace("'", "''")}', '{layoutName.Replace("'", "''")}', '{desc}', '{xmlEsc}', GETDATE(), '{owner.Replace("'", "''")}', {ver})";
+                        ? $"INSERT INTO \"@BTUN_LAYOUT\" (\"Code\",\"Name\",\"U_FormType\", \"U_Name\", \"U_Desc\", \"U_Def\", \"U_CreatedAt\", \"U_Owner\", \"U_Version\") VALUES ('{codeValue}','{recordName}','{safeForm}', '{safeLayout}', '{desc}', '{xmlEsc}', CURRENT_TIMESTAMP, '{safeOwner}', '{ver}')"
+                        : $"INSERT INTO [@BTUN_LAYOUT] ([Code],[Name],U_FormType, U_Name, U_Desc, U_Def, U_CreatedAt, U_Owner, U_Version) VALUES ('{codeValue}','{recordName}','{safeForm}', '{safeLayout}', '{desc}', '{xmlEsc}', GETDATE(), '{safeOwner}', {ver})";
                     rs.DoQuery(insertSql);
                 }
 
@@ -320,22 +335,22 @@ namespace B1TuneUp.Modules
                 if (string.IsNullOrEmpty(formType) || formType == "*")
                 {
                     sql = B1App.Instance.IsHana
-                        ? "SELECT \"DocEntry\", \"U_Name\", \"U_FormType\", \"U_Desc\", \"U_FileName\", \"U_Owner\", \"U_CreatedAt\", \"U_UpdatedAt\", \"U_Version\" FROM \"@BTUN_LAYOUT\" ORDER BY \"U_Name\""
-                        : "SELECT DocEntry, U_Name, U_FormType, U_Desc, U_FileName, U_Owner, U_CreatedAt, U_UpdatedAt, U_Version FROM [@BTUN_LAYOUT] ORDER BY U_Name";
+                        ? "SELECT \"Code\", \"U_Name\", \"U_FormType\", \"U_Desc\", \"U_FileName\", \"U_Owner\", \"U_CreatedAt\", \"U_UpdatedAt\", \"U_Version\" FROM \"@BTUN_LAYOUT\" ORDER BY \"U_Name\""
+                        : "SELECT [Code], U_Name, U_FormType, U_Desc, U_FileName, U_Owner, U_CreatedAt, U_UpdatedAt, U_Version FROM [@BTUN_LAYOUT] ORDER BY U_Name";
                 }
                 else
                 {
                     var ft = formType.Replace("'", "''");
                     sql = B1App.Instance.IsHana
-                        ? $"SELECT \"DocEntry\", \"U_Name\", \"U_FormType\", \"U_Desc\", \"U_FileName\", \"U_Owner\", \"U_CreatedAt\", \"U_UpdatedAt\", \"U_Version\" FROM \"@BTUN_LAYOUT\" WHERE \"U_FormType\" = '{ft}' ORDER BY \"U_Name\""
-                        : $"SELECT DocEntry, U_Name, U_FormType, U_Desc, U_FileName, U_Owner, U_CreatedAt, U_UpdatedAt, U_Version FROM [@BTUN_LAYOUT] WHERE [U_FormType] = '{ft}' ORDER BY U_Name";
+                        ? $"SELECT \"Code\", \"U_Name\", \"U_FormType\", \"U_Desc\", \"U_FileName\", \"U_Owner\", \"U_CreatedAt\", \"U_UpdatedAt\", \"U_Version\" FROM \"@BTUN_LAYOUT\" WHERE \"U_FormType\" = '{ft}' ORDER BY \"U_Name\""
+                        : $"SELECT [Code], U_Name, U_FormType, U_Desc, U_FileName, U_Owner, U_CreatedAt, U_UpdatedAt, U_Version FROM [@BTUN_LAYOUT] WHERE [U_FormType] = '{ft}' ORDER BY U_Name";
                 }
 
                 rs.DoQuery(sql);
                 while (!rs.EoF)
                 {
                     var row = dt.NewRow();
-                    row["DocEntry"] = rs.Fields.Item("DocEntry").Value?.ToString();
+                    row["DocEntry"] = rs.Fields.Item("Code").Value?.ToString();
                     row["U_Name"] = rs.Fields.Item("U_Name").Value?.ToString();
                     row["U_FormType"] = rs.Fields.Item("U_FormType").Value?.ToString();
                     row["U_Desc"] = rs.Fields.Item("U_Desc").Value?.ToString();

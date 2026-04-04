@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using B1TuneUp.Core;
 using B1TuneUp.Models;
 using B1TuneUp.Utils;
@@ -18,7 +19,7 @@ namespace B1TuneUp.Modules
                 rs = (Recordset)B1App.Instance.Company.GetBusinessObject(BoObjectTypes.BoRecordset);
                 bool isHana = B1App.Instance.IsHana;
                 string table = isHana ? "\"@BTUN_RPT\"" : "[@BTUN_RPT]";
-                string qDocEntry = isHana ? "\"DocEntry\"" : "[DocEntry]";
+                string qDocEntry = isHana ? "\"Code\"" : "[Code]";
                 string qName = isHana ? "\"U_Name\"" : "[U_Name]";
                 string qDesc = isHana ? "\"U_Desc\"" : "[U_Desc]";
                 string qData = isHana ? "\"U_Data\"" : "[U_Data]";
@@ -80,23 +81,25 @@ namespace B1TuneUp.Modules
                 rs = (Recordset)B1App.Instance.Company.GetBusinessObject(BoObjectTypes.BoRecordset);
                 if (report.DocEntry.HasValue)
                 {
-                    string docEntry = report.DocEntry.Value.ToString();
+                    string docEntry = report.DocEntry.Value.ToString(CultureInfo.InvariantCulture);
                     string updateSql = isHana
-                        ? $"UPDATE {table} SET \"U_Name\"='{name}',\"U_Desc\"='{desc}',\"U_Data\"='{data}',\"U_Params\"='{parameters}',\"U_UpdatedAt\"={now} WHERE \"DocEntry\"={docEntry}"
-                        : $"UPDATE {table} SET [U_Name]='{name}',[U_Desc]='{desc}',[U_Data]='{data}',[U_Params]='{parameters}',[U_UpdatedAt]={now} WHERE [DocEntry]={docEntry}";
+                        ? $"UPDATE {table} SET \"U_Name\"='{name}',\"U_Desc\"='{desc}',\"U_Data\"='{data}',\"U_Params\"='{parameters}',\"U_UpdatedAt\"={now} WHERE \"Code\"='{docEntry}'"
+                        : $"UPDATE {table} SET [U_Name]='{name}',[U_Desc]='{desc}',[U_Data]='{data}',[U_Params]='{parameters}',[U_UpdatedAt]={now} WHERE [Code]='{docEntry}'";
                     rs.DoQuery(updateSql);
                 }
                 else
                 {
+                    int nextCode = UserTableCodeGenerator.GetNext("@BTUN_RPT");
+                    string codeValue = nextCode.ToString(CultureInfo.InvariantCulture);
                     string insertSql = isHana
-                        ? $"INSERT INTO {table} (\"U_Name\",\"U_Desc\",\"U_Data\",\"U_Params\",\"U_CreatedAt\") VALUES ('{name}','{desc}','{data}','{parameters}',{now})"
-                        : $"INSERT INTO {table} ([U_Name],[U_Desc],[U_Data],[U_Params],[U_CreatedAt]) VALUES ('{name}','{desc}','{data}','{parameters}',{now})";
+                        ? $"INSERT INTO {table} (\"Code\",\"Name\",\"U_Name\",\"U_Desc\",\"U_Data\",\"U_Params\",\"U_CreatedAt\") VALUES ('{codeValue}','RPT_{name}','{name}','{desc}','{data}','{parameters}',{now})"
+                        : $"INSERT INTO {table} ([Code],[Name],[U_Name],[U_Desc],[U_Data],[U_Params],[U_CreatedAt]) VALUES ('{codeValue}','RPT_{name}','{name}','{desc}','{data}','{parameters}',{now})";
                     rs.DoQuery(insertSql);
                 }
 
                 string selectSql = isHana
-                    ? $"SELECT \"DocEntry\",\"U_Name\",\"U_Desc\",\"U_Data\",\"U_Params\",\"U_CreatedAt\",\"U_UpdatedAt\" FROM {table} WHERE \"U_Name\"='{name}' ORDER BY \"DocEntry\" DESC"
-                    : $"SELECT [DocEntry],[U_Name],[U_Desc],[U_Data],[U_Params],[U_CreatedAt],[U_UpdatedAt] FROM {table} WHERE [U_Name]='{name}' ORDER BY [DocEntry] DESC";
+                    ? $"SELECT \"Code\",\"U_Name\",\"U_Desc\",\"U_Data\",\"U_Params\",\"U_CreatedAt\",\"U_UpdatedAt\" FROM {table} WHERE \"U_Name\"='{name}' ORDER BY \"Code\" DESC"
+                    : $"SELECT [Code],[U_Name],[U_Desc],[U_Data],[U_Params],[U_CreatedAt],[U_UpdatedAt] FROM {table} WHERE [U_Name]='{name}' ORDER BY [Code] DESC";
                 rs.DoQuery(selectSql);
                 if (!rs.EoF)
                 {
@@ -123,8 +126,8 @@ namespace B1TuneUp.Modules
             bool isHana = B1App.Instance.IsHana;
             string table = isHana ? "\"@BTUN_RPT\"" : "[@BTUN_RPT]";
             string sql = isHana
-                ? $"DELETE FROM {table} WHERE \"DocEntry\"={docEntry.Value}"
-                : $"DELETE FROM {table} WHERE [DocEntry]={docEntry.Value}";
+                ? $"DELETE FROM {table} WHERE \"Code\"='{docEntry.Value}'"
+                : $"DELETE FROM {table} WHERE [Code]='{docEntry.Value}'";
 
             Recordset rs = null;
             try

@@ -432,3 +432,7 @@ FodyWeavers.xsd
 *.msm
 *.msp
 /B1TuneUp/obj
+/B1TuneUp/.dotnet
+/B1TuneUp/.dotnet
+/B1TuneUp/obj
+/B1TuneUp/obj/Debug

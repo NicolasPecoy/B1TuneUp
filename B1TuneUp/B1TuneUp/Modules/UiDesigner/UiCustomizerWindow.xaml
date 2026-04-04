@@ -196,7 +196,7 @@
 
             <StackPanel>
 
-                <TextBlock Text="B1TuneUp Â· UI Customizer" Foreground="White" FontSize="26" FontWeight="Bold" />
+                <TextBlock Text="B1TuneUp UI Customizer" Foreground="White" FontSize="26" FontWeight="Bold" />
 
                 <TextBlock Text="Administra movimientos, ocultamientos y botones personalizados de formularios SAP Business One."
 
@@ -682,7 +682,7 @@
 
                 <StackPanel HorizontalAlignment="Center">
 
-                    <TextBlock Text="â" FontSize="32" HorizontalAlignment="Center" />
+                    <TextBlock Text="..." FontSize="32" HorizontalAlignment="Center" />
 
                     <TextBlock Text="{Binding BusyMessage}" FontSize="14" Margin="0,12,0,0" HorizontalAlignment="Center" />
 

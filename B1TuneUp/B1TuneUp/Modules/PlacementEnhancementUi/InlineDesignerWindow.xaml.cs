@@ -2,12 +2,15 @@ using System;
 using System.Windows;
 using System.Windows.Controls.Primitives;
 using System.Windows.Input;
+using System.Windows.Threading;
 
 namespace B1TuneUp.Modules.PlacementEnhancementUi
 {
     public partial class InlineDesignerWindow : Window
     {
         private readonly InlineDesignerViewModel _viewModel;
+        private DispatcherTimer _syncTimer;
+        private const double PanelWidth = 360;
 
         public InlineDesignerWindow(InlineDesignerSession session)
         {
@@ -15,10 +18,37 @@ namespace B1TuneUp.Modules.PlacementEnhancementUi
             _viewModel = new InlineDesignerViewModel(session);
             DataContext = _viewModel;
 
-            Width = Math.Max(800, session.FormWidth + 360);
-            Height = Math.Max(600, session.FormHeight + 120);
-            Left = Math.Max(0, session.ScreenLeft - 40);
-            Top = Math.Max(0, session.ScreenTop - 40);
+            Width = Math.Max(820, session.FormWidth + PanelWidth + 40);
+            Height = Math.Max(540, session.FormHeight + 60);
+            Left = Math.Max(0, session.ScreenLeft);
+            Top = Math.Max(0, session.ScreenTop);
+        }
+
+        private void OnLoaded(object sender, RoutedEventArgs e)
+        {
+            _syncTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(250) };
+            _syncTimer.Tick += OnSyncTick;
+            _syncTimer.Start();
+            SyncToSurface();
+        }
+
+        private void OnClosed(object sender, EventArgs e)
+        {
+            if (_syncTimer != null)
+            {
+                _syncTimer.Stop();
+                _syncTimer.Tick -= OnSyncTick;
+                _syncTimer = null;
+            }
+        }
+
+        private void OnSyncTick(object sender, EventArgs e)
+        {
+            SyncToSurface();
+            if (!_viewModel.IsUserInteracting)
+            {
+                _viewModel.Session.RefreshFromForm();
+            }
         }
 
         private void OnMoveThumbDragDelta(object sender, DragDeltaEventArgs e)
@@ -41,6 +71,7 @@ namespace B1TuneUp.Modules.PlacementEnhancementUi
 
         private void OnDragStarted(object sender, DragStartedEventArgs e)
         {
+            _viewModel.BeginInteraction();
             if (sender is Thumb thumb && thumb.Tag is InlineDesignerItem item)
             {
                 _viewModel.SelectedItem = item;
@@ -49,7 +80,7 @@ namespace B1TuneUp.Modules.PlacementEnhancementUi
 
         private void OnDragCompleted(object sender, DragCompletedEventArgs e)
         {
-            // placeholder for future snap/undo if needed
+            _viewModel.EndInteraction();
         }
 
         private void OnCloseClick(object sender, RoutedEventArgs e) => Close();
@@ -68,6 +99,18 @@ namespace B1TuneUp.Modules.PlacementEnhancementUi
             {
                 DragMove();
             }
+        }
+
+        private void SyncToSurface()
+        {
+            var snapshot = _viewModel.Session?.TryCaptureSurface();
+            if (snapshot == null) return;
+            var surf = snapshot.Value;
+            Left = surf.Left;
+            Top = surf.Top;
+            Width = Math.Max(820, surf.Width + PanelWidth + 40);
+            Height = Math.Max(540, surf.Height + 40);
+            _viewModel.NotifySurfaceChanged();
         }
     }
 }

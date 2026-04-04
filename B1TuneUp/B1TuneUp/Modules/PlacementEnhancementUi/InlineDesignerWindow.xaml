@@ -6,21 +6,43 @@
         mc:Ignorable="d"
         WindowStyle="None"
         AllowsTransparency="True"
-        Background="#AA000000"
+        Background="#01000000"
         Topmost="True"
         ShowInTaskbar="False"
-        Width="1200"
-        Height="820"
+        Width="408"
+        Height="900"
+        Loaded="OnLoaded"
+        Closed="OnClosed"
         PreviewKeyDown="OnPreviewKeyDown"
         MouseLeftButtonDown="OnWindowDrag">
     <Window.Resources>
+        <Color x:Key="PrimaryColor">#1F4E79</Color>
+        <Color x:Key="PrimaryDarkColor">#0F263D</Color>
+        <Color x:Key="AccentColor">#F39C12</Color>
+        <Color x:Key="AccentAltColor">#2E75B6</Color>
+        <Color x:Key="SurfaceColor">#FFFFFFFF</Color>
+        <Color x:Key="SurfaceAltColor">#F4F6F9</Color>
+        <Color x:Key="BorderColor">#D7DCE3</Color>
+        <Color x:Key="TextPrimaryColor">#10263C</Color>
+        <Color x:Key="TextSecondaryColor">#516173</Color>
+        <SolidColorBrush x:Key="PrimaryBrush" Color="{DynamicResource PrimaryColor}" />
+        <SolidColorBrush x:Key="PrimaryDarkBrush" Color="{DynamicResource PrimaryDarkColor}" />
+        <SolidColorBrush x:Key="AccentBrush" Color="{DynamicResource AccentColor}" />
+        <SolidColorBrush x:Key="AccentAltBrush" Color="{DynamicResource AccentAltColor}" />
+        <SolidColorBrush x:Key="SurfaceBrush" Color="{DynamicResource SurfaceColor}" />
+        <SolidColorBrush x:Key="SurfaceAltBrush" Color="{DynamicResource SurfaceAltColor}" />
+        <SolidColorBrush x:Key="BorderBrush" Color="{DynamicResource BorderColor}" />
+        <SolidColorBrush x:Key="TextPrimaryBrush" Color="{DynamicResource TextPrimaryColor}" />
+        <SolidColorBrush x:Key="TextSecondaryBrush" Color="{DynamicResource TextSecondaryColor}" />
         <Style x:Key="DesignerBorderStyle" TargetType="Border">
-            <Setter Property="BorderBrush" Value="#22000000"/>
+            <Setter Property="BorderBrush" Value="#44FFFFFF"/>
             <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Background" Value="#442E75B6"/>
             <Style.Triggers>
                 <DataTrigger Binding="{Binding IsSelected}" Value="True">
                     <Setter Property="BorderBrush" Value="#FF00D1FF"/>
                     <Setter Property="BorderThickness" Value="2"/>
+                    <Setter Property="Background" Value="#662E75B6"/>
                 </DataTrigger>
             </Style.Triggers>
         </Style>
@@ -28,168 +50,195 @@
             <Border Width="12"
                     Height="12"
                     CornerRadius="2"
-                    BorderBrush="#222222"
+                    BorderBrush="#FFFFFF"
                     BorderThickness="0.5"
-                    Background="{TemplateBinding Background}"/>
+                    Background="{DynamicResource AccentAltBrush}"/>
         </ControlTemplate>
     </Window.Resources>
-    <Border CornerRadius="12" BorderBrush="#44FFFFFF" BorderThickness="1" Padding="16" Background="#EE101820">
-        <Grid>
-            <Grid.RowDefinitions>
-                <RowDefinition Height="Auto" />
-                <RowDefinition Height="*" />
-            </Grid.RowDefinitions>
 
-            <DockPanel LastChildFill="False">
-                <StackPanel Orientation="Horizontal" DockPanel.Dock="Left" VerticalAlignment="Center">
-                    <TextBlock Text="Editar con TuneUp" Foreground="White" FontSize="16" FontWeight="Bold" Margin="0,0,12,0"/>
-                    <TextBlock Text="{Binding FormTitle}" Foreground="#CCFFFFFF" FontSize="13" />
-                </StackPanel>
-                <StackPanel Orientation="Horizontal" DockPanel.Dock="Right" VerticalAlignment="Center">
-                    <ToggleButton Content="Snap Grid"
-                                  IsChecked="{Binding SnapToGrid}"
-                                  Width="90"
-                                  Height="26"
-                                  Margin="0,0,8,0"
-                                  Foreground="White"
-                                  Background="#552E75B6"
-                                  BorderThickness="0"/>
-                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="0,0,8,0">
-                        <TextBlock Text="Grid" Foreground="#CCFFFFFF" Margin="0,0,6,0"/>
-                        <Slider Width="120"
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="Auto"/>
+            <ColumnDefinition Width="360"/>
+        </Grid.ColumnDefinitions>
+
+        <Border Grid.Column="0"
+                Background="#05000000"
+                BorderBrush="#338AA2C2"
+                BorderThickness="1"
+                CornerRadius="8"
+                Padding="0">
+            <Canvas Width="{Binding FormWidth}"
+                    Height="{Binding FormHeight}"
+                    ClipToBounds="True"
+                    Background="#05000000">
+                <Rectangle Fill="#2200A8FF"
+                           StrokeDashArray="6 4"
+                           Stroke="#338AA2C2"
+                           StrokeThickness="1"
+                           Width="{Binding FormWidth}"
+                           Height="{Binding FormHeight}"/>
+                <ItemsControl ItemsSource="{Binding Items}">
+                    <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <Canvas/>
+                        </ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+                    <ItemsControl.ItemContainerStyle>
+                        <Style TargetType="ContentPresenter">
+                            <Setter Property="Canvas.Left" Value="{Binding Left}"/>
+                            <Setter Property="Canvas.Top" Value="{Binding Top}"/>
+                        </Style>
+                    </ItemsControl.ItemContainerStyle>
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <Grid Width="{Binding Width}" Height="{Binding Height}">
+                                <Border Style="{StaticResource DesignerBorderStyle}" CornerRadius="4" Padding="4">
+                                    <StackPanel>
+                                        <TextBlock Text="{Binding ItemId}" Foreground="White" FontSize="10"/>
+                                        <TextBlock Text="{Binding Caption}" Foreground="#FFF9F9F9" FontSize="12" TextTrimming="CharacterEllipsis"/>
+                                    </StackPanel>
+                                </Border>
+                                <Thumb DragDelta="OnMoveThumbDragDelta"
+                                       DragStarted="OnDragStarted"
+                                       DragCompleted="OnDragCompleted"
+                                       Tag="{Binding}"
+                                       Background="#00FFFFFF"/>
+                                <Thumb Width="12"
+                                       Height="12"
+                                       HorizontalAlignment="Right"
+                                       VerticalAlignment="Bottom"
+                                       Margin="0,0,3,3"
+                                       Cursor="SizeNWSE"
+                                       DragDelta="OnResizeThumbDragDelta"
+                                       DragStarted="OnDragStarted"
+                                       DragCompleted="OnDragCompleted"
+                                       Tag="{Binding}"
+                                       Template="{StaticResource ResizeThumbTemplate}"/>
+                            </Grid>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </Canvas>
+        </Border>
+
+        <Border Grid.Column="1"
+                Margin="16,0,-26,0"
+                Background="{DynamicResource SurfaceBrush}"
+                CornerRadius="16"
+                Padding="20"
+                BorderBrush="{DynamicResource BorderBrush}"
+                BorderThickness="1">
+            <StackPanel>
+                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                    <StackPanel>
+                        <TextBlock Text="Editar con TuneUp" Foreground="{DynamicResource TextPrimaryBrush}" FontSize="20" FontWeight="Bold"/>
+                        <TextBlock Text="{Binding FormTitle}" Foreground="{DynamicResource TextSecondaryBrush}" FontSize="12"/>
+                    </StackPanel>
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="20,0,0,0">
+                        <ToggleButton Content="Snap Grid"
+                                      IsChecked="{Binding SnapToGrid}"
+                                      Width="100"
+                                      Height="28"
+                                      Margin="0,0,8,0"
+                                      Background="{DynamicResource AccentAltBrush}"
+                                      Foreground="White"
+                                      BorderThickness="0"/>
+                        <Slider Width="140"
                                 Minimum="1"
                                 Maximum="30"
                                 Value="{Binding GridSize}"
+                                Margin="0,0,8,0"
                                 IsSnapToTickEnabled="True"
                                 TickFrequency="1"/>
+                        <Button Content="Cerrar"
+                                Width="90"
+                                Height="30"
+                                Background="#B33939"
+                                Foreground="White"
+                                BorderThickness="0"
+                                Click="OnCloseClick"/>
                     </StackPanel>
-                    <Button Content="Cerrar"
-                            Width="80"
-                            Height="28"
-                            Background="#B33939"
-                            Foreground="White"
-                            BorderThickness="0"
-                            Click="OnCloseClick"/>
                 </StackPanel>
-            </DockPanel>
 
-            <Grid Grid.Row="1" Margin="0,12,0,0">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*" />
-                    <ColumnDefinition Width="320" />
-                </Grid.ColumnDefinitions>
+                <Separator Margin="0,12,0,12"/>
 
-                <Border Grid.Column="0" Background="#0CFFFFFF" BorderBrush="#33FFFFFF" BorderThickness="1" CornerRadius="8">
-                    <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
-                        <Canvas Width="{Binding FormWidth}"
-                                Height="{Binding FormHeight}"
-                                Background="#11000000">
-                            <ItemsControl ItemsSource="{Binding Items}">
-                                <ItemsControl.ItemsPanel>
-                                    <ItemsPanelTemplate>
-                                        <Canvas/>
-                                    </ItemsPanelTemplate>
-                                </ItemsControl.ItemsPanel>
-                                <ItemsControl.ItemContainerStyle>
-                                    <Style TargetType="ContentPresenter">
-                                        <Setter Property="Canvas.Left" Value="{Binding Left}"/>
-                                        <Setter Property="Canvas.Top" Value="{Binding Top}"/>
-                                    </Style>
-                                </ItemsControl.ItemContainerStyle>
-                                <ItemsControl.ItemTemplate>
-                                    <DataTemplate>
-                                        <Grid Width="{Binding Width}" Height="{Binding Height}">
-                                            <Border Style="{StaticResource DesignerBorderStyle}"
-                                                    Background="#552E75B6"
-                                                    CornerRadius="4">
-                                                <StackPanel>
-                                                    <TextBlock Text="{Binding ItemId}" FontSize="10" Foreground="White" />
-                                                    <TextBlock Text="{Binding Caption}" FontSize="12" Foreground="#FFEBEBEB" TextTrimming="CharacterEllipsis"/>
-                                                </StackPanel>
-                                            </Border>
-                                            <Thumb DragDelta="OnMoveThumbDragDelta"
-                                                   DragStarted="OnDragStarted"
-                                                   DragCompleted="OnDragCompleted"
-                                                   Tag="{Binding}"
-                                                   Background="#00000000"/>
-                                            <Thumb Width="12"
-                                                   Height="12"
-                                                   HorizontalAlignment="Right"
-                                                   VerticalAlignment="Bottom"
-                                                   Margin="0,0,2,2"
-                                                   Cursor="SizeNWSE"
-                                                   DragDelta="OnResizeThumbDragDelta"
-                                                   DragStarted="OnDragStarted"
-                                                   DragCompleted="OnDragCompleted"
-                                                   Tag="{Binding}"
-                                                   Template="{StaticResource ResizeThumbTemplate}"/>
-                                        </Grid>
-                                    </DataTemplate>
-                                </ItemsControl.ItemTemplate>
-                            </ItemsControl>
-                        </Canvas>
-                    </ScrollViewer>
-                </Border>
+                <StackPanel>
+                    <TextBlock Text="Item seleccionado" Foreground="{DynamicResource TextSecondaryBrush}" FontSize="12"/>
+                    <TextBlock Text="{Binding SelectedItem.ItemId}" Foreground="{DynamicResource TextPrimaryBrush}" FontSize="16" FontWeight="Bold"/>
+                    <TextBlock Text="{Binding SelectedItem.Caption}" Foreground="{DynamicResource TextSecondaryBrush}" FontSize="12" Margin="0,0,0,12"/>
+                </StackPanel>
 
-                <Border Grid.Column="1" Margin="16,0,0,0" Background="#16222E" CornerRadius="8" Padding="16">
-                    <StackPanel>
-                        <TextBlock Text="Detalle" Foreground="White" FontSize="15" FontWeight="SemiBold"/>
-                        <TextBlock Text="{Binding FormType}" Foreground="#CCFFFFFF" Margin="0,2,0,12"/>
+                <StackPanel Orientation="Horizontal" Margin="0,0,0,12">
+                    <Border Background="#10263C0F" CornerRadius="6" Padding="10" Margin="0,0,8,0">
                         <StackPanel>
-                            <TextBlock Text="Item seleccionado" Foreground="#CCFFFFFF"/>
-                            <TextBlock Text="{Binding SelectedItem.ItemId}" Foreground="White" FontWeight="Bold"/>
-                            <TextBlock Text="{Binding SelectedItem.Caption}" Foreground="#CCFFFFFF" FontSize="12" Margin="0,0,0,8"/>
+                            <TextBlock Text="Validaciones" Foreground="{DynamicResource TextSecondaryBrush}" FontSize="12"/>
+                            <TextBlock Text="{Binding LinkedValidationCount}" Foreground="{DynamicResource TextPrimaryBrush}" FontSize="18" FontWeight="Bold"/>
                         </StackPanel>
-                        <UniformGrid Columns="2" Rows="2" Margin="0,8,0,8">
-                            <Button Content="Aplicar"
-                                    Command="{Binding ApplyCommand}"
-                                    Margin="0,4,8,0"/>
-                            <Button Content="Guardar Layout"
-                                    Command="{Binding PersistCommand}"
-                                    Margin="0,4,0,0"/>
-                            <Button Content="Validaciones"
-                                    Command="{Binding OpenValidationCommand}"
-                                    Margin="0,4,8,0"/>
-                            <Button Content="Acciones"
-                                    Command="{Binding OpenActionCommand}"
-                                    Margin="0,4,0,0"/>
-                        </UniformGrid>
-                        <StackPanel Orientation="Horizontal" Margin="0,4,0,0">
-                            <Button Content="Exportar"
-                                    Command="{Binding ExportCommand}"
-                                    Background="#2E75B6"
-                                    Foreground="White"
-                                    BorderThickness="0"
-                                    Margin="0,0,8,0"/>
-                            <Button Content="Importar"
-                                    Command="{Binding ImportCommand}"
-                                    Background="#F39C12"
-                                    Foreground="White"
-                                    BorderThickness="0"/>
+                    </Border>
+                    <Border Background="#10263C0F" CornerRadius="6" Padding="10">
+                        <StackPanel>
+                            <TextBlock Text="Funciones" Foreground="{DynamicResource TextSecondaryBrush}" FontSize="12"/>
+                            <TextBlock Text="{Binding LinkedActionCount}" Foreground="{DynamicResource TextPrimaryBrush}" FontSize="18" FontWeight="Bold"/>
                         </StackPanel>
-                        <StackPanel Margin="0,16,0,0">
-                            <TextBlock Text="Alcance / Segmentacion" Foreground="#FFFFFF" FontWeight="SemiBold" />
-                            <TextBlock Text="Usuarios (coma separada)" Foreground="#CCFFFFFF" FontSize="12"/>
-                            <TextBox Text="{Binding ScopeUserCode, UpdateSourceTrigger=PropertyChanged}" />
-                            <TextBlock Text="Grupos" Foreground="#CCFFFFFF" FontSize="12"/>
-                            <TextBox Text="{Binding ScopeUserGroup, UpdateSourceTrigger=PropertyChanged}" />
-                            <TextBlock Text="Localizacion / Variante" Foreground="#CCFFFFFF" FontSize="12"/>
-                            <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
-                                <TextBox Width="140" Margin="0,0,8,0" Text="{Binding ScopeLocalization, UpdateSourceTrigger=PropertyChanged}" />
-                                <TextBox Width="140" Text="{Binding ScopeVariant, UpdateSourceTrigger=PropertyChanged}" />
-                            </StackPanel>
-                            <TextBlock Text="Dependencias" Foreground="#CCFFFFFF" FontSize="12"/>
-                            <TextBox Text="{Binding ScopeDependsOn, UpdateSourceTrigger=PropertyChanged}" />
-                            <TextBlock Text="Hereda de" Foreground="#CCFFFFFF" FontSize="12"/>
-                            <TextBox Text="{Binding ScopeInheritFrom, UpdateSourceTrigger=PropertyChanged}" />
-                            <TextBlock Text="Prioridad" Foreground="#CCFFFFFF" FontSize="12"/>
-                            <TextBox Width="80" Text="{Binding ScopePriority, UpdateSourceTrigger=PropertyChanged}" />
-                        </StackPanel>
-                        <TextBlock Text="{Binding StatusMessage}" Foreground="#CCFFFFFF" Margin="0,20,0,0" TextWrapping="Wrap"/>
-                    </StackPanel>
-                </Border>
-            </Grid>
-        </Grid>
-    </Border>
-</Window>
+                    </Border>
+                </StackPanel>
 
+                <UniformGrid Columns="2" Rows="2" Margin="0,0,0,12">
+                    <Button Content="Aplicar" Command="{Binding ApplyCommand}" Background="{DynamicResource AccentAltBrush}" Foreground="White" BorderThickness="0" Margin="0,4,8,0"/>
+                    <Button Content="Persistir" Command="{Binding PersistCommand}" Background="{DynamicResource PrimaryDarkBrush}" Foreground="White" BorderThickness="0" Margin="0,4,0,0"/>
+                    <Button Content="Validaciones" Command="{Binding OpenValidationCommand}" Background="{DynamicResource AccentBrush}" Foreground="White" BorderThickness="0" Margin="0,4,8,0"/>
+                    <Button Content="Funciones" Command="{Binding OpenActionCommand}" Background="{DynamicResource AccentBrush}" Foreground="White" BorderThickness="0" Margin="0,4,0,0"/>
+                </UniformGrid>
+
+                <StackPanel Orientation="Horizontal" Margin="0,0,0,20">
+                    <Button Content="Exportar" Command="{Binding ExportCommand}" Background="{DynamicResource AccentAltBrush}" Foreground="White" BorderThickness="0" Margin="0,0,8,0"/>
+                    <Button Content="Importar" Command="{Binding ImportCommand}" Background="{DynamicResource AccentBrush}" Foreground="White" BorderThickness="0"/>
+                </StackPanel>
+
+                <StackPanel>
+                    <TextBlock Text="Alcances existentes" Foreground="{DynamicResource TextPrimaryBrush}" FontWeight="SemiBold"/>
+                    <ComboBox ItemsSource="{Binding ScopeOptions}"
+                              SelectedItem="{Binding SelectedScopeOption}"
+                              DisplayMemberPath="Display"
+                              Margin="0,6,0,12"/>
+                </StackPanel>
+
+                <StackPanel Margin="0,0,0,12">
+                    <TextBlock Text="Usuarios permitidos" Foreground="{DynamicResource TextSecondaryBrush}"/>
+                    <TextBox Text="{Binding SelectedItem.ScopeUserCode, UpdateSourceTrigger=PropertyChanged}"/>
+                    <TextBlock Text="Grupos" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,6,0,0"/>
+                    <TextBox Text="{Binding SelectedItem.ScopeUserGroup, UpdateSourceTrigger=PropertyChanged}"/>
+                    <TextBlock Text="Localización" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,6,0,0"/>
+                    <TextBox Text="{Binding SelectedItem.ScopeLocalization, UpdateSourceTrigger=PropertyChanged}"/>
+                    <TextBlock Text="Variante" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,6,0,0"/>
+                    <TextBox Text="{Binding SelectedItem.ScopeVariant, UpdateSourceTrigger=PropertyChanged}"/>
+                </StackPanel>
+
+                <StackPanel Margin="0,0,0,12">
+                    <TextBlock Text="Dependencias" Foreground="{DynamicResource TextSecondaryBrush}"/>
+                    <TextBox Text="{Binding SelectedItem.ScopeDependsOn, UpdateSourceTrigger=PropertyChanged}"/>
+                    <TextBlock Text="Hereda de" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,6,0,0"/>
+                    <TextBox Text="{Binding SelectedItem.ScopeInheritFrom, UpdateSourceTrigger=PropertyChanged}"/>
+                    <TextBlock Text="Prioridad" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,6,0,0"/>
+                    <TextBox Width="80" Text="{Binding SelectedItem.ScopePriority, UpdateSourceTrigger=PropertyChanged}"/>
+                </StackPanel>
+
+                <StackPanel Margin="0,0,0,12">
+                    <TextBlock Text="Condición SQL" Foreground="{DynamicResource TextSecondaryBrush}"/>
+                    <TextBox Text="{Binding SelectedItem.Condition, UpdateSourceTrigger=PropertyChanged}" AcceptsReturn="True" Height="60"/>
+                </StackPanel>
+
+                <StackPanel Margin="0,0,0,12">
+                    <TextBlock Text="Etiqueta personalizada" Foreground="{DynamicResource TextSecondaryBrush}"/>
+                    <TextBox Text="{Binding SelectedItem.CustomLabel, UpdateSourceTrigger=PropertyChanged}"/>
+                </StackPanel>
+
+                <TextBlock Text="{Binding StatusMessage}"
+                           Foreground="{DynamicResource TextSecondaryBrush}"
+                           Margin="0,12,0,0"
+                           TextWrapping="Wrap"/>
+            </StackPanel>
+        </Border>
+    </Grid>
+</Window>

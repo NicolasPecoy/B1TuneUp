@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Windows;
 using B1TuneUp.Core;
 using SAPbouiCOM;

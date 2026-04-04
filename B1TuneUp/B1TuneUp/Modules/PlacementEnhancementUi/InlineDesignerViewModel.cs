@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.IO;
@@ -21,18 +22,19 @@ namespace B1TuneUp.Modules.PlacementEnhancementUi
         private bool _snapToGrid = true;
         private double _gridSize = 5;
         private string _statusMessage;
-        private string _scopeUserCode;
-        private string _scopeUserGroup;
-        private string _scopeLocalization;
-        private string _scopeVariant;
-        private string _scopeDependsOn;
-        private string _scopeInheritFrom;
-        private string _scopePriority = "10";
+        private UiCustomizationScope _defaultScope;
+        private int _interactionDepth;
+        private IList<ValidationRuleEntry> _validationCache;
+        private IList<ItemActionEntry> _actionCache;
+        private int _linkedValidationCount;
+        private int _linkedActionCount;
+        private InlineDesignerScopeOption _selectedScopeOption;
 
         public InlineDesignerViewModel(InlineDesignerSession session)
         {
             _session = session ?? throw new ArgumentNullException(nameof(session));
             Items = session.Items;
+            _defaultScope = LoadScopeDefaults();
             if (!string.IsNullOrWhiteSpace(session.DefaultItemId))
             {
                 SelectedItem = Items.FirstOrDefault(i => i.ItemId == session.DefaultItemId);
@@ -41,8 +43,6 @@ namespace B1TuneUp.Modules.PlacementEnhancementUi
             {
                 SelectedItem = Items[0];
             }
-
-            LoadScopeDefaults();
 
             ApplyCommand = new RelayCommand(_ => Apply(false));
             PersistCommand = new RelayCommand(_ => Apply(true));
@@ -58,6 +58,8 @@ namespace B1TuneUp.Modules.PlacementEnhancementUi
         public double FormHeight => _session.FormHeight;
         public string FormTitle => _session.FormTitle;
         public string FormType => _session.FormType;
+        public InlineDesignerSession Session => _session;
+        public ObservableCollection<InlineDesignerScopeOption> ScopeOptions { get; } = new ObservableCollection<InlineDesignerScopeOption>();
 
         public InlineDesignerItem SelectedItem
         {
@@ -67,10 +69,28 @@ namespace B1TuneUp.Modules.PlacementEnhancementUi
                 if (_selectedItem == value) return;
                 if (_selectedItem != null) _selectedItem.IsSelected = false;
                 _selectedItem = value;
-                if (_selectedItem != null) _selectedItem.IsSelected = true;
+                if (_selectedItem != null)
+                {
+                    _selectedItem.IsSelected = true;
+                    EnsureScopeInitialized(_selectedItem);
+                }
+                UpdateScopeOptions();
+                RefreshLinkedArtifacts();
                 OnPropertyChanged();
                 OpenValidationCommand.RaiseCanExecuteChanged();
                 OpenActionCommand.RaiseCanExecuteChanged();
+            }
+        }
+
+        public InlineDesignerScopeOption SelectedScopeOption
+        {
+            get => _selectedScopeOption;
+            set
+            {
+                if (_selectedScopeOption == value) return;
+                _selectedScopeOption = value;
+                OnPropertyChanged();
+                ApplyScopeOption(value);
             }
         }
 
@@ -107,47 +127,29 @@ namespace B1TuneUp.Modules.PlacementEnhancementUi
             }
         }
 
-        public string ScopeUserCode
+        public int LinkedValidationCount
         {
-            get => _scopeUserCode;
-            set { if (_scopeUserCode == value) return; _scopeUserCode = value; OnPropertyChanged(); }
+            get => _linkedValidationCount;
+            private set
+            {
+                if (_linkedValidationCount == value) return;
+                _linkedValidationCount = value;
+                OnPropertyChanged();
+            }
         }
 
-        public string ScopeUserGroup
+        public int LinkedActionCount
         {
-            get => _scopeUserGroup;
-            set { if (_scopeUserGroup == value) return; _scopeUserGroup = value; OnPropertyChanged(); }
+            get => _linkedActionCount;
+            private set
+            {
+                if (_linkedActionCount == value) return;
+                _linkedActionCount = value;
+                OnPropertyChanged();
+            }
         }
 
-        public string ScopeLocalization
-        {
-            get => _scopeLocalization;
-            set { if (_scopeLocalization == value) return; _scopeLocalization = value; OnPropertyChanged(); }
-        }
-
-        public string ScopeVariant
-        {
-            get => _scopeVariant;
-            set { if (_scopeVariant == value) return; _scopeVariant = value; OnPropertyChanged(); }
-        }
-
-        public string ScopeDependsOn
-        {
-            get => _scopeDependsOn;
-            set { if (_scopeDependsOn == value) return; _scopeDependsOn = value; OnPropertyChanged(); }
-        }
-
-        public string ScopeInheritFrom
-        {
-            get => _scopeInheritFrom;
-            set { if (_scopeInheritFrom == value) return; _scopeInheritFrom = value; OnPropertyChanged(); }
-        }
-
-        public string ScopePriority
-        {
-            get => _scopePriority;
-            set { if (_scopePriority == value) return; _scopePriority = value; OnPropertyChanged(); }
-        }
+        public bool IsUserInteracting => _interactionDepth > 0;
 
         public RelayCommand ApplyCommand { get; }
         public RelayCommand PersistCommand { get; }
@@ -171,6 +173,7 @@ namespace B1TuneUp.Modules.PlacementEnhancementUi
             }
             item.Left = Math.Max(0, nx);
             item.Top = Math.Max(0, ny);
+            _session.PushLiveItem(item);
         }
 
         public void ResizeItem(InlineDesignerItem item, double deltaX, double deltaY)
@@ -185,18 +188,26 @@ namespace B1TuneUp.Modules.PlacementEnhancementUi
             }
             item.Width = nw;
             item.Height = nh;
+            _session.PushLiveItem(item);
+        }
+
+        public void BeginInteraction() => _interactionDepth++;
+
+        public void EndInteraction()
+        {
+            if (_interactionDepth > 0) _interactionDepth--;
         }
 
         private void Apply(bool persist)
         {
             try
             {
-                var scope = BuildScope();
-                _session.ApplyLayout(persist, scope);
-                StatusMessage = persist ? "Diseno guardado en BTUN_UI y aplicado." : "Diseno aplicado temporalmente.";
+                _session.ApplyLayout(persist);
+                StatusMessage = persist ? "Diseño guardado en BTUN_UI y aplicado." : "Diseño aplicado temporalmente.";
                 if (persist)
                 {
-                    PersistScopeDefaults(scope);
+                    PersistScopeDefaults(SelectedItem);
+                    UpdateScopeOptions();
                 }
             }
             catch (Exception ex)
@@ -208,11 +219,13 @@ namespace B1TuneUp.Modules.PlacementEnhancementUi
         private void OpenValidation()
         {
             ValidationDesignerLauncher.Show(FormType, SelectedItem?.ItemId);
+            StatusMessage = "Abriendo diseñador de validaciones...";
         }
 
         private void OpenActions()
         {
             ItemActionsLauncher.Show(FormType, SelectedItem?.ItemId);
+            StatusMessage = "Abriendo acciones vinculadas...";
         }
 
         private void ExportPackage()
@@ -243,48 +256,177 @@ namespace B1TuneUp.Modules.PlacementEnhancementUi
             }
         }
 
-        private void LoadScopeDefaults()
-        {
-            ScopeUserCode = SettingsManager.GetSetting("InlineDesigner.Scope.UserCode", string.Empty);
-            ScopeUserGroup = SettingsManager.GetSetting("InlineDesigner.Scope.UserGroup", string.Empty);
-            ScopeLocalization = SettingsManager.GetSetting("InlineDesigner.Scope.Localization", string.Empty);
-            ScopeVariant = SettingsManager.GetSetting("InlineDesigner.Scope.Variant", string.Empty);
-            ScopeDependsOn = SettingsManager.GetSetting("InlineDesigner.Scope.DependsOn", string.Empty);
-            ScopeInheritFrom = SettingsManager.GetSetting("InlineDesigner.Scope.InheritFrom", string.Empty);
-            ScopePriority = SettingsManager.GetSetting("InlineDesigner.Scope.Priority", "10");
-        }
-
-        private void PersistScopeDefaults(UiCustomizationScope scope)
-        {
-            SettingsManager.SetSetting("InlineDesigner.Scope.UserCode", scope.UserCode ?? string.Empty);
-            SettingsManager.SetSetting("InlineDesigner.Scope.UserGroup", scope.UserGroup ?? string.Empty);
-            SettingsManager.SetSetting("InlineDesigner.Scope.Localization", scope.Localization ?? string.Empty);
-            SettingsManager.SetSetting("InlineDesigner.Scope.Variant", scope.Variant ?? string.Empty);
-            SettingsManager.SetSetting("InlineDesigner.Scope.DependsOn", scope.DependsOn ?? string.Empty);
-            SettingsManager.SetSetting("InlineDesigner.Scope.InheritFrom", scope.InheritFrom ?? string.Empty);
-            SettingsManager.SetSetting("InlineDesigner.Scope.Priority", scope.Priority.ToString());
-        }
-
-        private UiCustomizationScope BuildScope()
+        private UiCustomizationScope LoadScopeDefaults()
         {
             return new UiCustomizationScope
             {
-                UserCode = ScopeUserCode?.Trim(),
-                UserGroup = ScopeUserGroup?.Trim(),
-                Localization = ScopeLocalization?.Trim(),
-                Variant = ScopeVariant?.Trim(),
-                DependsOn = ScopeDependsOn?.Trim(),
-                InheritFrom = ScopeInheritFrom?.Trim(),
-                Priority = ParsePriority()
+                UserCode = SettingsManager.GetSetting("InlineDesigner.Scope.UserCode", string.Empty),
+                UserGroup = SettingsManager.GetSetting("InlineDesigner.Scope.UserGroup", string.Empty),
+                Localization = SettingsManager.GetSetting("InlineDesigner.Scope.Localization", string.Empty),
+                Variant = SettingsManager.GetSetting("InlineDesigner.Scope.Variant", string.Empty),
+                DependsOn = SettingsManager.GetSetting("InlineDesigner.Scope.DependsOn", string.Empty),
+                InheritFrom = SettingsManager.GetSetting("InlineDesigner.Scope.InheritFrom", string.Empty),
+                Priority = ParsePriority(SettingsManager.GetSetting("InlineDesigner.Scope.Priority", "10"))
             };
         }
 
-        private int ParsePriority()
+        private void PersistScopeDefaults(InlineDesignerItem item)
         {
-            return int.TryParse(ScopePriority, out var value) && value > 0 ? value : 10;
+            if (item == null) return;
+            SettingsManager.SetSetting("InlineDesigner.Scope.UserCode", item.ScopeUserCode ?? string.Empty);
+            SettingsManager.SetSetting("InlineDesigner.Scope.UserGroup", item.ScopeUserGroup ?? string.Empty);
+            SettingsManager.SetSetting("InlineDesigner.Scope.Localization", item.ScopeLocalization ?? string.Empty);
+            SettingsManager.SetSetting("InlineDesigner.Scope.Variant", item.ScopeVariant ?? string.Empty);
+            SettingsManager.SetSetting("InlineDesigner.Scope.DependsOn", item.ScopeDependsOn ?? string.Empty);
+            SettingsManager.SetSetting("InlineDesigner.Scope.InheritFrom", item.ScopeInheritFrom ?? string.Empty);
+            SettingsManager.SetSetting("InlineDesigner.Scope.Priority", item.ScopePriority.ToString());
+            _defaultScope = item.ToScope();
+        }
+
+        private static int ParsePriority(string raw)
+            => int.TryParse(raw, out var value) && value > 0 ? value : 10;
+
+        private void EnsureScopeInitialized(InlineDesignerItem item)
+        {
+            if (item == null || item.ScopeInitialized) return;
+            item.ScopeUserCode = _defaultScope.UserCode;
+            item.ScopeUserGroup = _defaultScope.UserGroup;
+            item.ScopeLocalization = _defaultScope.Localization;
+            item.ScopeVariant = _defaultScope.Variant;
+            item.ScopeDependsOn = _defaultScope.DependsOn;
+            item.ScopeInheritFrom = _defaultScope.InheritFrom;
+            item.ScopePriority = _defaultScope.Priority <= 0 ? 10 : _defaultScope.Priority;
+            item.ScopeInitialized = true;
+        }
+
+        private void ApplyScopeOption(InlineDesignerScopeOption option)
+        {
+            if (option == null || SelectedItem == null) return;
+            if (option.IsNew)
+            {
+                SelectedItem.EntryCode = null;
+                SelectedItem.ScopeUserCode = _defaultScope.UserCode;
+                SelectedItem.ScopeUserGroup = _defaultScope.UserGroup;
+                SelectedItem.ScopeLocalization = _defaultScope.Localization;
+                SelectedItem.ScopeVariant = _defaultScope.Variant;
+                SelectedItem.ScopeDependsOn = _defaultScope.DependsOn;
+                SelectedItem.ScopeInheritFrom = _defaultScope.InheritFrom;
+                SelectedItem.ScopePriority = _defaultScope.Priority <= 0 ? 10 : _defaultScope.Priority;
+                SelectedItem.ScopeInitialized = true;
+            }
+            else if (option.Entry != null)
+            {
+                SelectedItem.EntryCode = option.Entry.Code;
+                SelectedItem.ScopeUserCode = option.Entry.UserCode;
+                SelectedItem.ScopeUserGroup = option.Entry.UserGroup;
+                SelectedItem.ScopeLocalization = option.Entry.Localization;
+                SelectedItem.ScopeVariant = option.Entry.Variant;
+                SelectedItem.ScopeDependsOn = option.Entry.DependsOn;
+                SelectedItem.ScopeInheritFrom = option.Entry.InheritFrom;
+                SelectedItem.ScopePriority = option.Entry.Priority <= 0 ? 10 : option.Entry.Priority;
+                SelectedItem.CustomLabel = option.Entry.Label;
+                SelectedItem.ActionType = option.Entry.Action ?? SelectedItem.ActionType;
+                SelectedItem.Condition = option.Entry.Condition;
+                SelectedItem.ScopeInitialized = true;
+            }
+        }
+
+        private void UpdateScopeOptions()
+        {
+            ScopeOptions.Clear();
+            if (SelectedItem == null)
+            {
+                SelectedScopeOption = null;
+                return;
+            }
+
+            ScopeOptions.Add(InlineDesignerScopeOption.CreateNew());
+            var entries = _session.GetEntriesForItem(SelectedItem.ItemId);
+            foreach (var entry in entries)
+            {
+                ScopeOptions.Add(InlineDesignerScopeOption.FromEntry(entry));
+            }
+
+            var match = ScopeOptions.FirstOrDefault(o =>
+                !string.IsNullOrEmpty(o.Code) &&
+                string.Equals(o.Code, SelectedItem.EntryCode, StringComparison.OrdinalIgnoreCase));
+            SelectedScopeOption = match ?? ScopeOptions.FirstOrDefault();
+        }
+
+        private void RefreshLinkedArtifacts()
+        {
+            if (SelectedItem == null)
+            {
+                LinkedValidationCount = 0;
+                LinkedActionCount = 0;
+                return;
+            }
+
+            if (_validationCache == null)
+            {
+                _validationCache = ValidationRuleService.GetAll();
+            }
+
+            if (_actionCache == null)
+            {
+                _actionCache = ItemActionService.GetAll();
+            }
+
+            LinkedValidationCount = _validationCache.Count(v =>
+                string.Equals(v.FormType, FormType, StringComparison.OrdinalIgnoreCase) &&
+                string.Equals(v.ItemName, SelectedItem.ItemId, StringComparison.OrdinalIgnoreCase));
+
+            LinkedActionCount = _actionCache.Count(a =>
+                string.Equals(a.FormType, FormType, StringComparison.OrdinalIgnoreCase) &&
+                string.Equals(a.ItemId, SelectedItem.ItemId, StringComparison.OrdinalIgnoreCase));
+        }
+
+        public void NotifySurfaceChanged()
+        {
+            OnPropertyChanged(nameof(FormWidth));
+            OnPropertyChanged(nameof(FormHeight));
         }
 
         protected void OnPropertyChanged([CallerMemberName] string propertyName = null)
             => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+    }
+
+    public class InlineDesignerScopeOption
+    {
+        private InlineDesignerScopeOption(string display, UiCustomizationEntry entry, bool isNew)
+        {
+            Display = display;
+            Entry = entry;
+            Code = entry?.Code;
+            IsNew = isNew;
+        }
+
+        public string Display { get; }
+        public string Code { get; }
+        public bool IsNew { get; }
+        public UiCustomizationEntry Entry { get; }
+
+        public static InlineDesignerScopeOption CreateNew()
+            => new InlineDesignerScopeOption("Nuevo alcance (hereda defaults)", null, true);
+
+        public static InlineDesignerScopeOption FromEntry(UiCustomizationEntry entry)
+        {
+            string scope = DescribeScope(entry);
+            string label = string.IsNullOrWhiteSpace(entry.Code)
+                ? $"Alcance {scope}"
+                : $"#{entry.Code} · {scope}";
+            return new InlineDesignerScopeOption(label, entry.Clone(), false);
+        }
+
+        private static string DescribeScope(UiCustomizationEntry entry)
+        {
+            string user = string.IsNullOrWhiteSpace(entry.UserCode) ? "*" : entry.UserCode;
+            string group = string.IsNullOrWhiteSpace(entry.UserGroup) ? "*" : entry.UserGroup;
+            string locale = string.IsNullOrWhiteSpace(entry.Localization) ? "*" : entry.Localization;
+            string variant = string.IsNullOrWhiteSpace(entry.Variant) ? "*" : entry.Variant;
+            return $"U:{user} · G:{group} · L:{locale} · V:{variant}";
+        }
+
+        public override string ToString() => Display;
     }
 }

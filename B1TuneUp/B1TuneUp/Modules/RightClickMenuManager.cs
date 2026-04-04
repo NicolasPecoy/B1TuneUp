@@ -106,6 +106,7 @@ namespace B1TuneUp.Modules
 
                 EnsureContextMenu("BTUN_ITEM_PLACEMENT", "Item Placement", "OpenItemPlacement()");
                 EnsureContextMenu("BTUN_TUNEUP_OVERLAY", "Editar con TuneUp", $"OpenInlineDesigner('{clickedItem}')");
+                EnsureContextMenu("BTUN_PAD_DESIGN", "Dise?ar Action Pad", "OpenActionPadDesigner()");
                 EnsureContextMenu("BTUN_MANAGE_ITEM_ACT", "Manage Item Actions", "ManageItemActions()");
                 EnsureContextMenu("BTUN_OPEN_DESIGNER", "Open Visual Designer", "OpenDesigner()");
                 EnsureContextMenu("BTUN_EXPORT_SRF", "Export SRF", "ExportSRF('')");

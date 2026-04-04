@@ -7,6 +7,8 @@ using System.Runtime.InteropServices;
 using System.Windows;
 using B1TuneUp.Core;
 using B1TuneUp.Models;
+using B1TuneUp.Modules;
+using B1TuneUp.Utils;
 using SAPbouiCOM;
 
 namespace B1TuneUp.Modules.PlacementEnhancementUi
@@ -14,21 +16,29 @@ namespace B1TuneUp.Modules.PlacementEnhancementUi
     public class InlineDesignerSession
     {
         private readonly List<UiCustomizationEntry> _existingEntries;
+        private readonly Dictionary<string, List<UiCustomizationEntry>> _entriesByItem;
 
-        public InlineDesignerSession(SAPbouiCOM.Form form, ObservableCollection<InlineDesignerItem> items, string defaultItemId, double screenLeft, double screenTop, IList<UiCustomizationEntry> existingEntries)
+        public InlineDesignerSession(SAPbouiCOM.Form form,
+            ObservableCollection<InlineDesignerItem> items,
+            string defaultItemId,
+            double screenLeft,
+            double screenTop,
+            IList<UiCustomizationEntry> existingEntries)
         {
             Form = form;
-            Items = items;
+            Items = items ?? new ObservableCollection<InlineDesignerItem>();
             DefaultItemId = defaultItemId;
-            FormType = form.TypeEx;
-            FormTitle = form.Title;
-            FormWidth = form.Width;
-            FormHeight = form.Height;
+            FormType = form?.TypeEx;
+            FormTitle = form?.Title ?? "Editar con TuneUp";
+            FormWidth = form?.Width ?? 900;
+            FormHeight = form?.Height ?? 600;
             ScreenLeft = screenLeft;
             ScreenTop = screenTop;
             _existingEntries = existingEntries != null
                 ? new List<UiCustomizationEntry>(existingEntries)
                 : new List<UiCustomizationEntry>();
+            _entriesByItem = BuildEntryMap(_existingEntries);
+            AttachExistingMetadata();
         }
 
         public SAPbouiCOM.Form Form { get; }
@@ -36,10 +46,10 @@ namespace B1TuneUp.Modules.PlacementEnhancementUi
         public string DefaultItemId { get; }
         public string FormType { get; }
         public string FormTitle { get; }
-        public double FormWidth { get; }
-        public double FormHeight { get; }
-        public double ScreenLeft { get; }
-        public double ScreenTop { get; }
+        public double FormWidth { get; private set; }
+        public double FormHeight { get; private set; }
+        public double ScreenLeft { get; private set; }
+        public double ScreenTop { get; private set; }
 
         public static InlineDesignerSession Create(SAPbouiCOM.Form form, string initialItem = null)
         {
@@ -69,71 +79,214 @@ namespace B1TuneUp.Modules.PlacementEnhancementUi
             return new InlineDesignerSession(form, items, initialItem, left, top, existing);
         }
 
-        public void ApplyLayout(bool persistToRepository, UiCustomizationScope scope)
+        public void ApplyLayout(bool persistToRepository)
         {
             foreach (var item in Items)
             {
-                if (!Form.Items.Exists(item.ItemId)) continue;
-                var sapItem = Form.Items.Item(item.ItemId);
-                sapItem.Left = (int)Math.Round(item.Left);
-                sapItem.Top = (int)Math.Round(item.Top);
-                sapItem.Width = (int)Math.Round(item.Width);
-                sapItem.Height = (int)Math.Round(item.Height);
+                PushLiveItem(item);
             }
-            try { Form.Update(); } catch { Form.Refresh(); }
-            if (persistToRepository)
+
+            try { Form?.Update(); }
+            catch { Form?.Refresh(); }
+
+            if (!persistToRepository)
+                return;
+
+            foreach (var item in Items)
             {
-                foreach (var item in Items)
+                if (string.IsNullOrWhiteSpace(item.ItemId))
+                    continue;
+
+                var entry = ResolveEntry(item);
+                entry.FormType = FormType;
+                entry.ItemId = item.ItemId;
+                entry.Action = item.ActionType;
+                entry.Left = Round(item.Left);
+                entry.Top = Round(item.Top);
+                entry.Width = Round(item.Width);
+                entry.Height = Round(item.Height);
+                entry.Label = string.IsNullOrWhiteSpace(item.CustomLabel) ? item.Caption : item.CustomLabel;
+                entry.UserCode = item.ScopeUserCode ?? string.Empty;
+                entry.UserGroup = item.ScopeUserGroup ?? string.Empty;
+                entry.Localization = item.ScopeLocalization ?? string.Empty;
+                entry.Variant = item.ScopeVariant ?? string.Empty;
+                entry.DependsOn = item.ScopeDependsOn ?? string.Empty;
+                entry.InheritFrom = item.ScopeInheritFrom ?? string.Empty;
+                entry.Priority = item.ScopePriority <= 0 ? 10 : item.ScopePriority;
+                entry.Condition = item.Condition ?? string.Empty;
+
+                var saved = UICustomizerService.Save(entry);
+                if (saved != null)
                 {
-                    var entry = FindOrCreateEntry(item.ItemId, scope);
-                    entry.FormType = FormType;
-                    entry.ItemId = item.ItemId;
-                    entry.Action = "Move";
-                    entry.Left = (int)Math.Round(item.Left);
-                    entry.Top = (int)Math.Round(item.Top);
-                    entry.Width = (int)Math.Round(item.Width);
-                    entry.Height = (int)Math.Round(item.Height);
-                    entry.Label = item.Caption;
+                    item.EntryCode = saved.Code;
+                    RegisterEntry(saved);
+                }
 
-                    if (scope != null)
-                    {
-                        entry.UserCode = scope.UserCode ?? string.Empty;
-                        entry.UserGroup = scope.UserGroup ?? string.Empty;
-                        entry.Localization = scope.Localization ?? string.Empty;
-                        entry.Variant = scope.Variant ?? string.Empty;
-                        entry.DependsOn = scope.DependsOn ?? string.Empty;
-                        entry.InheritFrom = scope.InheritFrom ?? string.Empty;
-                        entry.Priority = scope.Priority <= 0 ? entry.Priority : scope.Priority;
-                    }
+                AuditLogManager.LogAction("InlineDesigner",
+                    $"[{FormType}] {item.ItemId} => L:{entry.Left} T:{entry.Top} W:{entry.Width} H:{entry.Height} Scope:{DescribeScope(entry)}");
+            }
+        }
 
-                    var saved = UICustomizerService.Save(entry);
-                    if (!_existingEntries.Contains(entry) && saved != null)
-                    {
-                        _existingEntries.Add(saved);
-                    }
+        public IReadOnlyList<UiCustomizationEntry> GetEntriesForItem(string itemId)
+        {
+            if (string.IsNullOrWhiteSpace(itemId)) return Array.Empty<UiCustomizationEntry>();
+            if (!_entriesByItem.TryGetValue(itemId, out var list) || list.Count == 0)
+                return Array.Empty<UiCustomizationEntry>();
+            return list
+                .OrderBy(e => e.Priority)
+                .Select(e => e.Clone())
+                .ToList();
+        }
+
+        public void RefreshFromForm()
+        {
+            if (Form == null) return;
+            foreach (var item in Items)
+            {
+                try
+                {
+                    if (!Form.Items.Exists(item.ItemId)) continue;
+                    var sapItem = Form.Items.Item(item.ItemId);
+                    item.Left = sapItem.Left;
+                    item.Top = sapItem.Top;
+                    item.Width = Math.Max(10, sapItem.Width);
+                    item.Height = Math.Max(6, sapItem.Height);
+                }
+                catch
+                {
+                    // ignore sync issues for disposed items
                 }
             }
         }
 
-        private UiCustomizationEntry FindOrCreateEntry(string itemId, UiCustomizationScope scope)
+        public void PushLiveItem(InlineDesignerItem item)
         {
-            var existing = _existingEntries.FirstOrDefault(e =>
-                string.Equals(e.ItemId, itemId, StringComparison.OrdinalIgnoreCase) &&
-                MatchesScope(e, scope));
-            if (existing != null) return existing;
-            var entry = new UiCustomizationEntry
+            if (item == null || Form == null) return;
+            try
             {
-                ItemId = itemId,
-                FormType = FormType
-            };
-            _existingEntries.Add(entry);
+                if (!Form.Items.Exists(item.ItemId)) return;
+                var sapItem = Form.Items.Item(item.ItemId);
+                sapItem.Left = Round(item.Left);
+                sapItem.Top = Round(item.Top);
+                sapItem.Width = Round(Math.Max(10, item.Width));
+                sapItem.Height = Round(Math.Max(6, item.Height));
+            }
+            catch
+            {
+                // live push best-effort only
+            }
+        }
+
+        public SurfaceSnapshot? TryCaptureSurface()
+        {
+            try
+            {
+                var rect = GetSapWindowRect();
+                double left = rect.left + (Form?.Left ?? 0);
+                double top = rect.top + (Form?.Top ?? 0);
+                double width = Form?.Width ?? FormWidth;
+                double height = Form?.Height ?? FormHeight;
+
+                ScreenLeft = left;
+                ScreenTop = top;
+                FormWidth = width;
+                FormHeight = height;
+
+                return new SurfaceSnapshot
+                {
+                    Left = left,
+                    Top = top,
+                    Width = width,
+                    Height = height
+                };
+            }
+            catch
+            {
+                return null;
+            }
+        }
+
+        private void AttachExistingMetadata()
+        {
+            foreach (var item in Items)
+            {
+                var entry = GetDefaultEntryFor(item.ItemId);
+                if (entry != null)
+                {
+                    item.ApplyEntry(entry);
+                }
+            }
+        }
+
+        private UiCustomizationEntry ResolveEntry(InlineDesignerItem item)
+        {
+            UiCustomizationEntry entry = null;
+            if (!string.IsNullOrWhiteSpace(item.EntryCode))
+            {
+                entry = _existingEntries.FirstOrDefault(e =>
+                    string.Equals(e.Code, item.EntryCode, StringComparison.OrdinalIgnoreCase));
+            }
+
+            if (entry == null)
+            {
+                entry = _existingEntries.FirstOrDefault(e =>
+                    string.Equals(e.ItemId, item.ItemId, StringComparison.OrdinalIgnoreCase) &&
+                    MatchesScope(e, item.ToScope()));
+            }
+
+            if (entry == null)
+            {
+                entry = new UiCustomizationEntry
+                {
+                    ItemId = item.ItemId,
+                    FormType = FormType,
+                    Action = item.ActionType
+                };
+                _existingEntries.Add(entry);
+                RegisterEntry(entry);
+            }
             return entry;
+        }
+
+        private UiCustomizationEntry GetDefaultEntryFor(string itemId)
+        {
+            if (string.IsNullOrWhiteSpace(itemId)) return null;
+            if (!_entriesByItem.TryGetValue(itemId, out var list) || list.Count == 0) return null;
+            return list.OrderBy(e => e.Priority).FirstOrDefault();
+        }
+
+        private void RegisterEntry(UiCustomizationEntry entry)
+        {
+            if (entry == null || string.IsNullOrWhiteSpace(entry.ItemId)) return;
+
+            if (!_existingEntries.Contains(entry))
+            {
+                _existingEntries.Add(entry);
+            }
+
+            if (!_entriesByItem.TryGetValue(entry.ItemId, out var list))
+            {
+                list = new List<UiCustomizationEntry>();
+                _entriesByItem[entry.ItemId] = list;
+            }
+
+            if (!list.Contains(entry))
+            {
+                list.Add(entry);
+            }
+        }
+
+        private static Dictionary<string, List<UiCustomizationEntry>> BuildEntryMap(IEnumerable<UiCustomizationEntry> entries)
+        {
+            return entries?
+                .Where(e => !string.IsNullOrWhiteSpace(e.ItemId))
+                .GroupBy(e => e.ItemId, StringComparer.OrdinalIgnoreCase)
+                .ToDictionary(g => g.Key, g => g.ToList(), StringComparer.OrdinalIgnoreCase)
+                   ?? new Dictionary<string, List<UiCustomizationEntry>>(StringComparer.OrdinalIgnoreCase);
         }
 
         private static bool MatchesScope(UiCustomizationEntry entry, UiCustomizationScope scope)
         {
-            string Normalize(string value) => string.IsNullOrWhiteSpace(value) ? string.Empty : value.Trim();
-
             if (scope == null)
             {
                 return string.IsNullOrWhiteSpace(entry.UserCode)
@@ -147,6 +300,9 @@ namespace B1TuneUp.Modules.PlacementEnhancementUi
                 && string.Equals(Normalize(entry.Localization), Normalize(scope.Localization), StringComparison.OrdinalIgnoreCase)
                 && string.Equals(Normalize(entry.Variant), Normalize(scope.Variant), StringComparison.OrdinalIgnoreCase);
         }
+
+        private static string Normalize(string value) =>
+            string.IsNullOrWhiteSpace(value) ? string.Empty : value.Trim();
 
         private static IList<UiCustomizationEntry> SafeGetCustomizations(string formType)
         {
@@ -226,9 +382,20 @@ namespace B1TuneUp.Modules.PlacementEnhancementUi
             if (handle == IntPtr.Zero) throw new InvalidOperationException("No se pudo determinar la ventana de SAP.");
             if (!GetWindowRect(handle, out var rect))
             {
-                throw new InvalidOperationException("No se pudo leer el rectangulo de la ventana SAP.");
+                throw new InvalidOperationException("No se pudo leer el rectángulo de la ventana SAP.");
             }
             return rect;
+        }
+
+        private static int Round(double value) => (int)Math.Round(value, MidpointRounding.AwayFromZero);
+
+        private static string DescribeScope(UiCustomizationEntry entry)
+        {
+            string user = string.IsNullOrWhiteSpace(entry.UserCode) ? "*" : entry.UserCode;
+            string group = string.IsNullOrWhiteSpace(entry.UserGroup) ? "*" : entry.UserGroup;
+            string locale = string.IsNullOrWhiteSpace(entry.Localization) ? "*" : entry.Localization;
+            string variant = string.IsNullOrWhiteSpace(entry.Variant) ? "*" : entry.Variant;
+            return $"U:{user} G:{group} L:{locale} V:{variant}";
         }
 
         [DllImport("user32.dll")]
@@ -241,6 +408,14 @@ namespace B1TuneUp.Modules.PlacementEnhancementUi
             public int top;
             public int right;
             public int bottom;
+        }
+
+        public struct SurfaceSnapshot
+        {
+            public double Left;
+            public double Top;
+            public double Width;
+            public double Height;
         }
     }
 }

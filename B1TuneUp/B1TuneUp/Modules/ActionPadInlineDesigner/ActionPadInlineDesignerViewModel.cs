@@ -4,7 +4,9 @@ using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Windows;
 using B1TuneUp.Modules.IntegrationUi;
+using B1TuneUp.Modules.ValidationUi;
 using B1TuneUp.Modules.ItemActionsUi;
+using B1TuneUp.Utils;
 
 namespace B1TuneUp.Modules.ActionPadInlineDesigner
 {
@@ -15,6 +17,7 @@ namespace B1TuneUp.Modules.ActionPadInlineDesigner
         private bool _snapToGrid = true;
         private double _gridSize = 5;
         private string _statusMessage;
+        private int _interactionDepth;
 
         public ActionPadInlineDesignerViewModel(ActionPadInlineDesignerSession session)
         {
@@ -23,12 +26,16 @@ namespace B1TuneUp.Modules.ActionPadInlineDesigner
             ApplyCommand = new RelayCommand(_ => Apply(false));
             SaveCommand = new RelayCommand(_ => Apply(true));
             CloseCommand = new RelayCommand(window => (window as Window)?.Close());
+            OpenValidationCommand = new RelayCommand(_ => OpenValidation(), _ => SelectedItem != null);
+            OpenActionCommand = new RelayCommand(_ => OpenActions(), _ => SelectedItem != null);
         }
 
         public ObservableCollection<ActionPadInlineDesignerItem> Items { get; }
         public string PadTitle => _session.Pad.Title;
         public double CanvasWidth => _session.FormWidth;
         public double CanvasHeight => _session.FormHeight;
+        public string FormType => _session.FormType;
+        public ActionPadInlineDesignerSession Session => _session;
 
         public ActionPadInlineDesignerItem SelectedItem
         {
@@ -40,6 +47,8 @@ namespace B1TuneUp.Modules.ActionPadInlineDesigner
                 _selectedItem = value;
                 if (_selectedItem != null) _selectedItem.IsSelected = true;
                 OnPropertyChanged();
+                OpenValidationCommand.RaiseCanExecuteChanged();
+                OpenActionCommand.RaiseCanExecuteChanged();
             }
         }
 
@@ -79,8 +88,11 @@ namespace B1TuneUp.Modules.ActionPadInlineDesigner
         public RelayCommand ApplyCommand { get; }
         public RelayCommand SaveCommand { get; }
         public RelayCommand CloseCommand { get; }
+        public RelayCommand OpenValidationCommand { get; }
+        public RelayCommand OpenActionCommand { get; }
 
         public event PropertyChangedEventHandler PropertyChanged;
+        public bool IsUserInteracting => _interactionDepth > 0;
 
         public void MoveItem(ActionPadInlineDesignerItem item, double deltaX, double deltaY)
         {
@@ -94,6 +106,7 @@ namespace B1TuneUp.Modules.ActionPadInlineDesigner
             }
             item.Left = Math.Max(0, nx);
             item.Top = Math.Max(0, ny);
+            _session.PushLiveItem(item);
         }
 
         public void ResizeItem(ActionPadInlineDesignerItem item, double deltaX, double deltaY)
@@ -108,6 +121,14 @@ namespace B1TuneUp.Modules.ActionPadInlineDesigner
             }
             item.Width = nw;
             item.Height = nh;
+            _session.PushLiveItem(item);
+        }
+
+        public void BeginInteraction() => _interactionDepth++;
+
+        public void EndInteraction()
+        {
+            if (_interactionDepth > 0) _interactionDepth--;
         }
 
         private void Apply(bool persist)
@@ -123,7 +144,29 @@ namespace B1TuneUp.Modules.ActionPadInlineDesigner
             }
         }
 
+        private void OpenValidation()
+        {
+            var itemId = SelectedItem?.Source?.Label ?? SelectedItem?.Source?.Action;
+            ValidationDesignerLauncher.Show(FormType, itemId);
+            StatusMessage = "Abriendo diseñador de validaciones...";
+        }
+
+        private void OpenActions()
+        {
+            var itemId = SelectedItem?.Source?.Label ?? SelectedItem?.Source?.PadEntry.ToString();
+            ItemActionsLauncher.Show(FormType, itemId);
+            StatusMessage = "Abriendo acciones vinculadas...";
+        }
+
+        public void NotifySurfaceChanged()
+        {
+            OnPropertyChanged(nameof(CanvasWidth));
+            OnPropertyChanged(nameof(CanvasHeight));
+        }
+
         protected void OnPropertyChanged([CallerMemberName] string propertyName = null)
             => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
     }
 }
+
+

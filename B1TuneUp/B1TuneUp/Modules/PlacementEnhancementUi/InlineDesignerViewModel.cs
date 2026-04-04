@@ -6,8 +6,11 @@ using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Windows;
+using System.Windows.Data;
 using Microsoft.Win32;
 using B1TuneUp.Models;
+using B1TuneUp.Modules;
+using B1TuneUp.Modules.ActionPadInlineDesigner;
 using B1TuneUp.Modules.IntegrationUi;
 using B1TuneUp.Modules.ItemActionsUi;
 using B1TuneUp.Modules.ValidationUi;
@@ -22,19 +25,79 @@ namespace B1TuneUp.Modules.PlacementEnhancementUi
         private bool _snapToGrid = true;
         private double _gridSize = 5;
         private string _statusMessage;
+        private string _scopeUserCode;
+        private string _scopeUserGroup;
+        private string _scopeLocalization;
+        private string _scopeVariant;
+        private string _scopeDependsOn;
+        private string _scopeInheritFrom;
+        private string _scopePriority = "10";
         private UiCustomizationScope _defaultScope;
         private int _interactionDepth;
-        private IList<ValidationRuleEntry> _validationCache;
-        private IList<ItemActionEntry> _actionCache;
+        private readonly ObservableCollection<ValidationRuleEntry> _validationRules = new ObservableCollection<ValidationRuleEntry>();
+        private readonly ObservableCollection<ItemActionEntry> _linkedActions = new ObservableCollection<ItemActionEntry>();
         private int _linkedValidationCount;
         private int _linkedActionCount;
         private InlineDesignerScopeOption _selectedScopeOption;
+        private ValidationRuleEntry _selectedValidation;
+        private readonly ObservableCollection<ValidationRuleEntry> _formValidationMatrix = new ObservableCollection<ValidationRuleEntry>();
+        private readonly ListCollectionView _formValidationView;
+        private ValidationRuleEntry _selectedMatrixRule;
+        private string _matrixSearch;
+        private string _matrixEventFilter = "Todos";
+        private string _matrixSeverityFilter = "Todas";
+        private bool _matrixOnlyActive = true;
+        private bool _matrixOnlyBlocking;
+        private bool _matrixOnlyCurrentItem;
+        private string _matrixUserFilter;
+        private string _matrixDependencyFilter;
+        private string _matrixLocalizationFilter;
+        private string _matrixVariantFilter;
+        private string _matrixPackageFilter;
+        private int _linkedPadButtonCount;
 
         public InlineDesignerViewModel(InlineDesignerSession session)
         {
             _session = session ?? throw new ArgumentNullException(nameof(session));
             Items = session.Items;
+
+            _formValidationView = (ListCollectionView)CollectionViewSource.GetDefaultView(_formValidationMatrix);
+            _formValidationView.Filter = FilterMatrixRule;
+            _formValidationView.SortDescriptions.Add(new SortDescription(nameof(ValidationRuleEntry.EventType), ListSortDirection.Ascending));
+            _formValidationView.SortDescriptions.Add(new SortDescription(nameof(ValidationRuleEntry.Sequence), ListSortDirection.Ascending));
+
             _defaultScope = LoadScopeDefaults();
+            ScopeUserCode = _defaultScope.UserCode;
+            ScopeUserGroup = _defaultScope.UserGroup;
+            ScopeLocalization = _defaultScope.Localization;
+            ScopeVariant = _defaultScope.Variant;
+            ScopeDependsOn = _defaultScope.DependsOn;
+            ScopeInheritFrom = _defaultScope.InheritFrom;
+            ScopePriority = _defaultScope.Priority.ToString();
+
+            ApplyCommand = new RelayCommand(() => Apply(false));
+            PersistCommand = new RelayCommand(() => Apply(true));
+            CloseCommand = new RelayCommand(window => (window as Window)?.Close());
+            OpenValidationCommand = new RelayCommand(OpenValidation, () => SelectedItem != null);
+            OpenActionCommand = new RelayCommand(OpenActions, () => SelectedItem != null);
+            ExportCommand = new RelayCommand(ExportPackage);
+            ImportCommand = new RelayCommand(ImportPackage);
+            NewValidationCommand = new RelayCommand(CreateInlineValidation, () => SelectedItem != null);
+            SaveValidationCommand = new RelayCommand(SaveSelectedValidation, () => SelectedValidation != null);
+            PreviewValidationCommand = new RelayCommand(PreviewSelectedValidation, () => SelectedValidation != null);
+            OpenPadDesignerCommand = new RelayCommand(OpenPadDesigner);
+
+            MatrixRefreshCommand = new RelayCommand(ReloadMatrixData);
+            MatrixSaveCommand = new RelayCommand(SaveSelectedMatrixRule, () => SelectedMatrixRule != null);
+            MatrixToggleActiveCommand = new RelayCommand(ToggleMatrixRuleActive, () => SelectedMatrixRule != null);
+            MatrixToggleBlockCommand = new RelayCommand(ToggleMatrixRuleBlocking, () => SelectedMatrixRule != null);
+            MatrixLinkToItemCommand = new RelayCommand(LinkMatrixRuleToSelectedItem, () => SelectedMatrixRule != null && SelectedItem != null);
+            MatrixPreviewCommand = new RelayCommand(() => PreviewValidationRule(SelectedMatrixRule), () => SelectedMatrixRule != null);
+            MatrixOpenDesignerCommand = new RelayCommand(OpenMatrixInFullDesigner, () => SelectedMatrixRule != null);
+
+            ReloadMatrixData();
+            RefreshLinkedPads();
+
             if (!string.IsNullOrWhiteSpace(session.DefaultItemId))
             {
                 SelectedItem = Items.FirstOrDefault(i => i.ItemId == session.DefaultItemId);
@@ -43,14 +106,7 @@ namespace B1TuneUp.Modules.PlacementEnhancementUi
             {
                 SelectedItem = Items[0];
             }
-
-            ApplyCommand = new RelayCommand(_ => Apply(false));
-            PersistCommand = new RelayCommand(_ => Apply(true));
-            CloseCommand = new RelayCommand(window => (window as Window)?.Close());
-            OpenValidationCommand = new RelayCommand(_ => OpenValidation(), _ => SelectedItem != null);
-            OpenActionCommand = new RelayCommand(_ => OpenActions(), _ => SelectedItem != null);
-            ExportCommand = new RelayCommand(_ => ExportPackage());
-            ImportCommand = new RelayCommand(_ => ImportPackage());
+            RefreshMatrixCommandStates();
         }
 
         public ObservableCollection<InlineDesignerItem> Items { get; }
@@ -60,6 +116,16 @@ namespace B1TuneUp.Modules.PlacementEnhancementUi
         public string FormType => _session.FormType;
         public InlineDesignerSession Session => _session;
         public ObservableCollection<InlineDesignerScopeOption> ScopeOptions { get; } = new ObservableCollection<InlineDesignerScopeOption>();
+        public ObservableCollection<ValidationRuleEntry> ValidationRules => _validationRules;
+        public ObservableCollection<ItemActionEntry> LinkedActions => _linkedActions;
+        public ICollectionView FormValidationMatrixView => _formValidationView;
+        public IReadOnlyList<string> MatrixEventOptions { get; } = new[]
+        {
+            "Todos","FORM_LOAD","ITEM_PRESSED","DATA_ADD_BEFORE","DATA_UPDATE_BEFORE","ITEM_CLICK","FORM_DATA_ADD","FORM_DATA_UPDATE","FORM_DATA_DELETION","COMBO_SELECT","EDIT_VALIDATE","MENU_CLICK","VALIDATE"
+        };
+        public IReadOnlyList<string> MatrixSeverityOptions { get; } = new[] { "Todas", "ERROR", "WARNING", "INFO" };
+        public IReadOnlyList<string> SeverityOptions { get; } = new[] { "INFO", "WARNING", "ERROR" };
+        public IReadOnlyList<string> EventOptions { get; } = new[] { "ITEM_PRESSED", "ITEM_CLICK", "FORM_DATA_ADD", "FORM_DATA_UPDATE", "FORM_DATA_DELETION", "MENU_CLICK", "VALIDATE" };
 
         public InlineDesignerItem SelectedItem
         {
@@ -79,6 +145,8 @@ namespace B1TuneUp.Modules.PlacementEnhancementUi
                 OnPropertyChanged();
                 OpenValidationCommand.RaiseCanExecuteChanged();
                 OpenActionCommand.RaiseCanExecuteChanged();
+                RefreshMatrixCommandStates();
+                RefreshMatrixView();
             }
         }
 
@@ -91,6 +159,163 @@ namespace B1TuneUp.Modules.PlacementEnhancementUi
                 _selectedScopeOption = value;
                 OnPropertyChanged();
                 ApplyScopeOption(value);
+            }
+        }
+
+        public ValidationRuleEntry SelectedValidation
+        {
+            get => _selectedValidation;
+            set
+            {
+                if (_selectedValidation == value) return;
+                _selectedValidation = value;
+                OnPropertyChanged();
+                SaveValidationCommand.RaiseCanExecuteChanged();
+                PreviewValidationCommand.RaiseCanExecuteChanged();
+            }
+        }
+
+        public ValidationRuleEntry SelectedMatrixRule
+        {
+            get => _selectedMatrixRule;
+            set
+            {
+                if (_selectedMatrixRule == value) return;
+                _selectedMatrixRule = value;
+                OnPropertyChanged();
+                RefreshMatrixCommandStates();
+            }
+        }
+
+        public string MatrixSearch
+        {
+            get => _matrixSearch;
+            set
+            {
+                if (_matrixSearch == value) return;
+                _matrixSearch = value;
+                OnPropertyChanged();
+                RefreshMatrixView();
+            }
+        }
+
+        public string MatrixEventFilter
+        {
+            get => _matrixEventFilter;
+            set
+            {
+                if (_matrixEventFilter == value || string.IsNullOrEmpty(value)) return;
+                _matrixEventFilter = value;
+                OnPropertyChanged();
+                RefreshMatrixView();
+            }
+        }
+
+        public string MatrixSeverityFilter
+        {
+            get => _matrixSeverityFilter;
+            set
+            {
+                if (_matrixSeverityFilter == value || string.IsNullOrEmpty(value)) return;
+                _matrixSeverityFilter = value;
+                OnPropertyChanged();
+                RefreshMatrixView();
+            }
+        }
+
+        public bool MatrixOnlyActive
+        {
+            get => _matrixOnlyActive;
+            set
+            {
+                if (_matrixOnlyActive == value) return;
+                _matrixOnlyActive = value;
+                OnPropertyChanged();
+                RefreshMatrixView();
+            }
+        }
+
+        public bool MatrixOnlyBlocking
+        {
+            get => _matrixOnlyBlocking;
+            set
+            {
+                if (_matrixOnlyBlocking == value) return;
+                _matrixOnlyBlocking = value;
+                OnPropertyChanged();
+                RefreshMatrixView();
+            }
+        }
+
+        public bool MatrixOnlyCurrentItem
+        {
+            get => _matrixOnlyCurrentItem;
+            set
+            {
+                if (_matrixOnlyCurrentItem == value) return;
+                _matrixOnlyCurrentItem = value;
+                OnPropertyChanged();
+                RefreshMatrixView();
+            }
+        }
+
+        public string MatrixUserFilter
+        {
+            get => _matrixUserFilter;
+            set
+            {
+                if (_matrixUserFilter == value) return;
+                _matrixUserFilter = value;
+                OnPropertyChanged();
+                RefreshMatrixView();
+            }
+        }
+
+        public string MatrixDependencyFilter
+        {
+            get => _matrixDependencyFilter;
+            set
+            {
+                if (_matrixDependencyFilter == value) return;
+                _matrixDependencyFilter = value;
+                OnPropertyChanged();
+                RefreshMatrixView();
+            }
+        }
+
+        public string MatrixLocalizationFilter
+        {
+            get => _matrixLocalizationFilter;
+            set
+            {
+                if (_matrixLocalizationFilter == value) return;
+                _matrixLocalizationFilter = value;
+                OnPropertyChanged();
+                RefreshMatrixView();
+            }
+        }
+
+        public string MatrixVariantFilter
+        {
+            get => _matrixVariantFilter;
+            set
+            {
+                if (_matrixVariantFilter == value) return;
+                _matrixVariantFilter = value;
+                OnPropertyChanged();
+                RefreshMatrixView();
+            }
+        }
+
+        public string MatrixPackageFilter
+        {
+            get => _matrixPackageFilter;
+            set
+            {
+                if (_matrixPackageFilter == value) return;
+                _matrixPackageFilter = value;
+                OnPropertyChanged();
+                RefreshMatrixView();
             }
         }
 
@@ -127,6 +352,48 @@ namespace B1TuneUp.Modules.PlacementEnhancementUi
             }
         }
 
+        public string ScopeUserCode
+        {
+            get => _scopeUserCode;
+            set { if (_scopeUserCode == value) return; _scopeUserCode = value; OnPropertyChanged(); }
+        }
+
+        public string ScopeUserGroup
+        {
+            get => _scopeUserGroup;
+            set { if (_scopeUserGroup == value) return; _scopeUserGroup = value; OnPropertyChanged(); }
+        }
+
+        public string ScopeLocalization
+        {
+            get => _scopeLocalization;
+            set { if (_scopeLocalization == value) return; _scopeLocalization = value; OnPropertyChanged(); }
+        }
+
+        public string ScopeVariant
+        {
+            get => _scopeVariant;
+            set { if (_scopeVariant == value) return; _scopeVariant = value; OnPropertyChanged(); }
+        }
+
+        public string ScopeDependsOn
+        {
+            get => _scopeDependsOn;
+            set { if (_scopeDependsOn == value) return; _scopeDependsOn = value; OnPropertyChanged(); }
+        }
+
+        public string ScopeInheritFrom
+        {
+            get => _scopeInheritFrom;
+            set { if (_scopeInheritFrom == value) return; _scopeInheritFrom = value; OnPropertyChanged(); }
+        }
+
+        public string ScopePriority
+        {
+            get => _scopePriority;
+            set { if (_scopePriority == value) return; _scopePriority = value; OnPropertyChanged(); }
+        }
+
         public int LinkedValidationCount
         {
             get => _linkedValidationCount;
@@ -149,6 +416,17 @@ namespace B1TuneUp.Modules.PlacementEnhancementUi
             }
         }
 
+        public int LinkedPadButtonCount
+        {
+            get => _linkedPadButtonCount;
+            private set
+            {
+                if (_linkedPadButtonCount == value) return;
+                _linkedPadButtonCount = value;
+                OnPropertyChanged();
+            }
+        }
+
         public bool IsUserInteracting => _interactionDepth > 0;
 
         public RelayCommand ApplyCommand { get; }
@@ -158,6 +436,17 @@ namespace B1TuneUp.Modules.PlacementEnhancementUi
         public RelayCommand OpenActionCommand { get; }
         public RelayCommand ExportCommand { get; }
         public RelayCommand ImportCommand { get; }
+        public RelayCommand NewValidationCommand { get; }
+        public RelayCommand SaveValidationCommand { get; }
+        public RelayCommand PreviewValidationCommand { get; }
+        public RelayCommand MatrixRefreshCommand { get; }
+        public RelayCommand MatrixSaveCommand { get; }
+        public RelayCommand MatrixToggleActiveCommand { get; }
+        public RelayCommand MatrixToggleBlockCommand { get; }
+        public RelayCommand MatrixLinkToItemCommand { get; }
+        public RelayCommand MatrixPreviewCommand { get; }
+        public RelayCommand MatrixOpenDesignerCommand { get; }
+        public RelayCommand OpenPadDesignerCommand { get; }
 
         public event PropertyChangedEventHandler PropertyChanged;
 
@@ -203,7 +492,7 @@ namespace B1TuneUp.Modules.PlacementEnhancementUi
             try
             {
                 _session.ApplyLayout(persist);
-                StatusMessage = persist ? "Diseño guardado en BTUN_UI y aplicado." : "Diseño aplicado temporalmente.";
+                StatusMessage = persist ? "DiseÃ±o guardado en BTUN_UI y aplicado." : "DiseÃ±o aplicado temporalmente.";
                 if (persist)
                 {
                     PersistScopeDefaults(SelectedItem);
@@ -219,13 +508,176 @@ namespace B1TuneUp.Modules.PlacementEnhancementUi
         private void OpenValidation()
         {
             ValidationDesignerLauncher.Show(FormType, SelectedItem?.ItemId);
-            StatusMessage = "Abriendo diseñador de validaciones...";
+            StatusMessage = "Abriendo diseÃ±ador de validaciones...";
         }
 
         private void OpenActions()
         {
             ItemActionsLauncher.Show(FormType, SelectedItem?.ItemId);
             StatusMessage = "Abriendo acciones vinculadas...";
+        }
+
+        public void OpenActionEntry(ItemActionEntry entry)
+        {
+            if (entry == null) return;
+            string formType = string.IsNullOrWhiteSpace(entry.FormType) ? FormType : entry.FormType;
+            string itemId = string.IsNullOrWhiteSpace(entry.ItemId) ? SelectedItem?.ItemId : entry.ItemId;
+            ItemActionsLauncher.Show(formType, itemId);
+            StatusMessage = $"Abriendo Function Buttons para {itemId ?? "(sin item)"}...";
+        }
+
+        private void OpenPadDesigner()
+        {
+            try
+            {
+                ActionPadInlineDesignerManager.ShowOverlayForForm(_session.Form);
+                StatusMessage = "Abriendo Action Pad inline...";
+            }
+            catch (Exception ex)
+            {
+                StatusMessage = $"No se pudo abrir Action Pad: {ex.Message}";
+            }
+            finally
+            {
+                RefreshLinkedPads();
+            }
+        }
+
+        private void CreateInlineValidation()
+        {
+            if (SelectedItem == null) return;
+            var entry = new ValidationRuleEntry
+            {
+                Code = Guid.NewGuid().ToString("N").Substring(0, 8).ToUpperInvariant(),
+                Name = $"VAL_{SelectedItem.ItemId}_{DateTime.Now:HHmmss}",
+                FormType = FormType,
+                ItemName = SelectedItem.ItemId,
+                EventType = "ITEM_PRESSED",
+                Severity = "ERROR",
+                Active = true,
+                BlockAlways = true,
+                Message = $"Validación para {SelectedItem.ItemId}",
+                Condition = string.Empty,
+                PromptButtons = "OK"
+            };
+            _validationRules.Add(entry);
+            _formValidationMatrix.Add(entry);
+            _formValidationView.Refresh();
+            SelectedMatrixRule = entry;
+            SelectedValidation = entry;
+            StatusMessage = "Nueva validación creada. Completa condición/mensaje y guarda.";
+        }
+
+        private void SaveSelectedValidation()
+        {
+            if (SelectedValidation == null) return;
+            try
+            {
+                var saved = ValidationRuleService.Save(SelectedValidation);
+                ReplaceValidationEntry(saved);
+                StatusMessage = $"Validación {saved.Code} guardada.";
+            }
+            catch (Exception ex)
+            {
+                StatusMessage = $"Error guardando validación: {ex.Message}";
+            }
+        }
+
+        private void SaveSelectedMatrixRule()
+        {
+            if (SelectedMatrixRule == null) return;
+            try
+            {
+                var saved = ValidationRuleService.Save(SelectedMatrixRule);
+                ReplaceValidationEntry(saved);
+                StatusMessage = $"Regla {saved.Code} guardada desde la matriz.";
+            }
+            catch (Exception ex)
+            {
+                StatusMessage = $"Error guardando la regla: {ex.Message}";
+            }
+        }
+
+        private void ToggleMatrixRuleActive()
+        {
+            if (SelectedMatrixRule == null) return;
+            SelectedMatrixRule.Active = !SelectedMatrixRule.Active;
+            RefreshMatrixView();
+            SaveSelectedMatrixRule();
+        }
+
+        private void ToggleMatrixRuleBlocking()
+        {
+            if (SelectedMatrixRule == null) return;
+            SelectedMatrixRule.BlockAlways = !SelectedMatrixRule.BlockAlways;
+            RefreshMatrixView();
+            SaveSelectedMatrixRule();
+        }
+
+        private void LinkMatrixRuleToSelectedItem()
+        {
+            if (SelectedMatrixRule == null || SelectedItem == null) return;
+            SelectedMatrixRule.ItemName = SelectedItem.ItemId;
+            RefreshMatrixView();
+            SaveSelectedMatrixRule();
+        }
+
+        private void OpenMatrixInFullDesigner()
+        {
+            if (SelectedMatrixRule == null) return;
+            ValidationDesignerLauncher.Show(SelectedMatrixRule.FormType, SelectedMatrixRule.ItemName);
+            StatusMessage = $"Abriendo diseñador para {SelectedMatrixRule.Code}...";
+        }
+
+        private void ReplaceValidationEntry(ValidationRuleEntry updated)
+        {
+            if (updated == null) return;
+            bool existsInMatrix = _formValidationMatrix.Any(v =>
+                string.Equals(v.Code, updated.Code, StringComparison.OrdinalIgnoreCase));
+            if (!existsInMatrix)
+            {
+                _formValidationMatrix.Add(updated);
+            }
+
+            _formValidationView.Refresh();
+            RefreshItemValidationList();
+
+            SelectedMatrixRule = _formValidationMatrix.FirstOrDefault(v =>
+                string.Equals(v.Code, updated.Code, StringComparison.OrdinalIgnoreCase));
+
+            var inlineSelection = _validationRules.FirstOrDefault(v =>
+                string.Equals(v.Code, updated.Code, StringComparison.OrdinalIgnoreCase));
+            if (inlineSelection != null)
+            {
+                SelectedValidation = inlineSelection;
+            }
+        }
+
+        private void PreviewSelectedValidation()
+            => PreviewValidationRule(SelectedValidation);
+
+        private void PreviewValidationRule(ValidationRuleEntry rule)
+        {
+            if (rule == null) return;
+            try
+            {
+                var form = _session.Form;
+                bool result = string.IsNullOrWhiteSpace(rule.Condition)
+                    || MacroEngine.CheckCondition(rule.Condition, form);
+                if (!result)
+                {
+                    StatusMessage = $"La condición de {rule.Code ?? rule.Name} no se cumple; la validación no se activaría.";
+                    return;
+                }
+
+                string severity = rule.Severity ?? "INFO";
+                string behavior = rule.BlockAlways ? "Bloquearía" : "Avisaría";
+                StatusMessage = $"{behavior} ({severity}) · {rule.Message}";
+            }
+            catch (Exception ex)
+            {
+                StatusMessage = $"No se pudo evaluar la condición: {ex.Message}";
+            }
         }
 
         private void ExportPackage()
@@ -355,30 +807,216 @@ namespace B1TuneUp.Modules.PlacementEnhancementUi
 
         private void RefreshLinkedArtifacts()
         {
+            RefreshItemValidationList();
+            RefreshLinkedActions();
+            RefreshLinkedPads();
+        }
+
+        private void RefreshItemValidationList()
+        {
+            _validationRules.Clear();
+
             if (SelectedItem == null)
             {
                 LinkedValidationCount = 0;
+                SelectedValidation = null;
+                return;
+            }
+
+            if (_formValidationMatrix.Count == 0)
+            {
+                ReloadMatrixData();
+                if (_formValidationMatrix.Count == 0)
+                {
+                    LinkedValidationCount = 0;
+                    SelectedValidation = null;
+                    return;
+                }
+            }
+
+            foreach (var rule in _formValidationMatrix
+                         .Where(v => string.Equals(v.FormType, FormType, StringComparison.OrdinalIgnoreCase)
+                             && (string.IsNullOrWhiteSpace(v.ItemName) ||
+                                 string.Equals(v.ItemName, SelectedItem.ItemId, StringComparison.OrdinalIgnoreCase)))
+                         .OrderBy(v => v.Sequence))
+            {
+                _validationRules.Add(rule);
+            }
+
+            LinkedValidationCount = _validationRules.Count;
+            SelectedValidation = _validationRules.FirstOrDefault();
+        }
+
+        private void RefreshLinkedActions()
+        {
+            _linkedActions.Clear();
+
+            if (SelectedItem == null)
+            {
                 LinkedActionCount = 0;
                 return;
             }
 
-            if (_validationCache == null)
+            foreach (var action in ItemActionService.GetAll()
+                         .Where(a => string.Equals(a.FormType, FormType, StringComparison.OrdinalIgnoreCase)
+                             && string.Equals(a.ItemId, SelectedItem.ItemId, StringComparison.OrdinalIgnoreCase)))
             {
-                _validationCache = ValidationRuleService.GetAll();
+                _linkedActions.Add(action.Clone());
+            }
+            LinkedActionCount = _linkedActions.Count;
+        }
+
+        private void RefreshLinkedPads()
+        {
+            try
+            {
+                var pad = ActionPadService.GetAll()
+                    .FirstOrDefault(p => string.Equals(p.FormType, FormType, StringComparison.OrdinalIgnoreCase));
+                LinkedPadButtonCount = pad?.Buttons?.Count ?? 0;
+            }
+            catch
+            {
+                LinkedPadButtonCount = 0;
+            }
+        }
+
+        private void ReloadMatrixData()
+        {
+            try
+            {
+                var rules = ValidationRuleService.GetAll()
+                    .Where(v => string.Equals(v.FormType, FormType, StringComparison.OrdinalIgnoreCase))
+                    .OrderBy(v => v.Sequence)
+                    .ThenBy(v => v.ItemName)
+                    .ToList();
+
+                _formValidationMatrix.Clear();
+                foreach (var rule in rules)
+                {
+                    _formValidationMatrix.Add(rule);
+                }
+
+                _formValidationView.Refresh();
+                SelectedMatrixRule = _formValidationMatrix.FirstOrDefault();
+                RefreshItemValidationList();
+            }
+            catch (Exception ex)
+            {
+                StatusMessage = $"No se pudo cargar la matriz de validaciones: {ex.Message}";
+            }
+        }
+
+        private void RefreshMatrixCommandStates()
+        {
+            MatrixSaveCommand?.RaiseCanExecuteChanged();
+            MatrixToggleActiveCommand?.RaiseCanExecuteChanged();
+            MatrixToggleBlockCommand?.RaiseCanExecuteChanged();
+            MatrixLinkToItemCommand?.RaiseCanExecuteChanged();
+            MatrixPreviewCommand?.RaiseCanExecuteChanged();
+            MatrixOpenDesignerCommand?.RaiseCanExecuteChanged();
+        }
+
+        private void RefreshMatrixView()
+        {
+            _formValidationView?.Refresh();
+        }
+
+        private bool FilterMatrixRule(object obj)
+        {
+            if (!(obj is ValidationRuleEntry entry))
+            {
+                return false;
             }
 
-            if (_actionCache == null)
+            if (!string.Equals(entry.FormType, FormType, StringComparison.OrdinalIgnoreCase))
+                return false;
+
+            if (MatrixOnlyActive && !entry.Active)
+                return false;
+
+            if (MatrixOnlyBlocking && !entry.BlockAlways)
+                return false;
+
+            if (MatrixOnlyCurrentItem && SelectedItem != null)
             {
-                _actionCache = ItemActionService.GetAll();
+                if (!string.Equals(entry.ItemName ?? string.Empty, SelectedItem.ItemId ?? string.Empty, StringComparison.OrdinalIgnoreCase))
+                {
+                    return false;
+                }
             }
 
-            LinkedValidationCount = _validationCache.Count(v =>
-                string.Equals(v.FormType, FormType, StringComparison.OrdinalIgnoreCase) &&
-                string.Equals(v.ItemName, SelectedItem.ItemId, StringComparison.OrdinalIgnoreCase));
+            if (!string.IsNullOrEmpty(MatrixEventFilter) && MatrixEventFilter != "Todos"
+                && !string.Equals(entry.EventType, MatrixEventFilter, StringComparison.OrdinalIgnoreCase))
+            {
+                return false;
+            }
 
-            LinkedActionCount = _actionCache.Count(a =>
-                string.Equals(a.FormType, FormType, StringComparison.OrdinalIgnoreCase) &&
-                string.Equals(a.ItemId, SelectedItem.ItemId, StringComparison.OrdinalIgnoreCase));
+            if (!string.IsNullOrEmpty(MatrixSeverityFilter) && MatrixSeverityFilter != "Todas"
+                && !string.Equals(entry.Severity, MatrixSeverityFilter, StringComparison.OrdinalIgnoreCase))
+            {
+                return false;
+            }
+
+            if (!string.IsNullOrWhiteSpace(MatrixLocalizationFilter)
+                && !ContainsText(entry.ScopeLocalization, MatrixLocalizationFilter.Trim()))
+            {
+                return false;
+            }
+
+            if (!string.IsNullOrWhiteSpace(MatrixVariantFilter)
+                && !ContainsText(entry.ScopeVariant, MatrixVariantFilter.Trim()))
+            {
+                return false;
+            }
+
+            if (!string.IsNullOrWhiteSpace(MatrixSearch))
+            {
+                string term = MatrixSearch.Trim();
+                if (!ContainsText(entry.Name, term) &&
+                    !ContainsText(entry.ItemName, term) &&
+                    !ContainsText(entry.Message, term) &&
+                    !ContainsText(entry.Condition, term))
+                {
+                    return false;
+                }
+            }
+
+            if (!string.IsNullOrWhiteSpace(MatrixUserFilter))
+            {
+                string token = MatrixUserFilter.Trim();
+                if (!ContainsText(entry.AppliesToUser, token) && !ContainsText(entry.AppliesToUserGroup, token))
+                {
+                    return false;
+                }
+            }
+
+            if (!string.IsNullOrWhiteSpace(MatrixDependencyFilter))
+            {
+                string token = MatrixDependencyFilter.Trim();
+                if (!ContainsText(entry.ScopeDependsOn, token) &&
+                    !ContainsText(entry.ScopePackages, token) &&
+                    !ContainsText(entry.Notes, token))
+                {
+                    return false;
+                }
+            }
+
+            if (!string.IsNullOrWhiteSpace(MatrixPackageFilter))
+            {
+                string token = MatrixPackageFilter.Trim();
+                if (!ContainsText(entry.ScopePackages, token))
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+        private static bool ContainsText(string source, string term)
+        {
+            if (string.IsNullOrEmpty(source) || string.IsNullOrEmpty(term)) return false;
+            return source.IndexOf(term, StringComparison.OrdinalIgnoreCase) >= 0;
         }
 
         public void NotifySurfaceChanged()
@@ -414,7 +1052,7 @@ namespace B1TuneUp.Modules.PlacementEnhancementUi
             string scope = DescribeScope(entry);
             string label = string.IsNullOrWhiteSpace(entry.Code)
                 ? $"Alcance {scope}"
-                : $"#{entry.Code} · {scope}";
+                : $"#{entry.Code} Â· {scope}";
             return new InlineDesignerScopeOption(label, entry.Clone(), false);
         }
 
@@ -424,7 +1062,7 @@ namespace B1TuneUp.Modules.PlacementEnhancementUi
             string group = string.IsNullOrWhiteSpace(entry.UserGroup) ? "*" : entry.UserGroup;
             string locale = string.IsNullOrWhiteSpace(entry.Localization) ? "*" : entry.Localization;
             string variant = string.IsNullOrWhiteSpace(entry.Variant) ? "*" : entry.Variant;
-            return $"U:{user} · G:{group} · L:{locale} · V:{variant}";
+            return $"U:{user} Â· G:{group} Â· L:{locale} Â· V:{variant}";
         }
 
         public override string ToString() => Display;

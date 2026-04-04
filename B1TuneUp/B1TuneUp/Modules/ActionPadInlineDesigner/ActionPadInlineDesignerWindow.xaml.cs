@@ -79,10 +79,14 @@ namespace B1TuneUp.Modules.ActionPadInlineDesigner
 
         private void OnDragStarted(object sender, DragStartedEventArgs e)
         {
-            _viewModel.BeginInteraction();
             if (sender is Thumb thumb && thumb.Tag is ActionPadInlineDesignerItem item)
             {
                 _viewModel.SelectedItem = item;
+                _viewModel.BeginInteraction(item);
+            }
+            else
+            {
+                _viewModel.BeginInteraction();
             }
         }
 

@@ -18,6 +18,12 @@ namespace B1TuneUp.Modules.ActionPadInlineDesigner
         private double _gridSize = 5;
         private string _statusMessage;
         private int _interactionDepth;
+        private readonly ObservableCollection<string> _activityLog = new ObservableCollection<string>();
+        private ActionPadInlineDesignerItem _activeItemSnapshot;
+        private double _startLeft;
+        private double _startTop;
+        private double _startWidth;
+        private double _startHeight;
 
         public ActionPadInlineDesignerViewModel(ActionPadInlineDesignerSession session)
         {
@@ -36,6 +42,7 @@ namespace B1TuneUp.Modules.ActionPadInlineDesigner
         public double CanvasHeight => _session.FormHeight;
         public string FormType => _session.FormType;
         public ActionPadInlineDesignerSession Session => _session;
+        public ObservableCollection<string> ActivityLog => _activityLog;
 
         public ActionPadInlineDesignerItem SelectedItem
         {
@@ -124,11 +131,33 @@ namespace B1TuneUp.Modules.ActionPadInlineDesigner
             _session.PushLiveItem(item);
         }
 
-        public void BeginInteraction() => _interactionDepth++;
+        public void BeginInteraction(ActionPadInlineDesignerItem item = null)
+        {
+            _interactionDepth++;
+            if (_interactionDepth == 1)
+            {
+                _activeItemSnapshot = item ?? SelectedItem;
+                if (_activeItemSnapshot != null)
+                {
+                    _startLeft = _activeItemSnapshot.Left;
+                    _startTop = _activeItemSnapshot.Top;
+                    _startWidth = _activeItemSnapshot.Width;
+                    _startHeight = _activeItemSnapshot.Height;
+                }
+            }
+        }
 
         public void EndInteraction()
         {
             if (_interactionDepth > 0) _interactionDepth--;
+            if (_interactionDepth == 0 && _activeItemSnapshot != null)
+            {
+                if (HasItemChanged(_activeItemSnapshot))
+                {
+                    LogSnapshot(_activeItemSnapshot);
+                }
+                _activeItemSnapshot = null;
+            }
         }
 
         private void Apply(bool persist)
@@ -136,7 +165,12 @@ namespace B1TuneUp.Modules.ActionPadInlineDesigner
             try
             {
                 _session.ApplyLayout(persist);
-                StatusMessage = persist ? "Action Pad actualizado y guardado." : "Vista previa aplicada.";
+                string message = persist ? "Action Pad actualizado y guardado." : "Vista previa aplicada.";
+                StatusMessage = message;
+                if (persist)
+                {
+                    PushLog(message);
+                }
             }
             catch (Exception ex)
             {
@@ -156,6 +190,32 @@ namespace B1TuneUp.Modules.ActionPadInlineDesigner
             var itemId = SelectedItem?.Source?.Label ?? SelectedItem?.Source?.PadEntry.ToString();
             ItemActionsLauncher.Show(FormType, itemId);
             StatusMessage = "Abriendo acciones vinculadas...";
+        }
+
+        private bool HasItemChanged(ActionPadInlineDesignerItem item)
+        {
+            if (item == null) return false;
+            return Math.Abs(item.Left - _startLeft) > 0.5 ||
+                   Math.Abs(item.Top - _startTop) > 0.5 ||
+                   Math.Abs(item.Width - _startWidth) > 0.5 ||
+                   Math.Abs(item.Height - _startHeight) > 0.5;
+        }
+
+        private void LogSnapshot(ActionPadInlineDesignerItem item)
+        {
+            string label = item?.Source?.Label ?? item?.Source?.Action ?? "(botón)";
+            string entry = $"Botón '{label}' => L:{item.Left:F0} T:{item.Top:F0} W:{item.Width:F0} H:{item.Height:F0}";
+            PushLog(entry);
+        }
+
+        private void PushLog(string message)
+        {
+            string entry = $"[{DateTime.Now:HH:mm:ss}] {message}";
+            _activityLog.Insert(0, entry);
+            while (_activityLog.Count > 100)
+            {
+                _activityLog.RemoveAt(_activityLog.Count - 1);
+            }
         }
 
         public void NotifySurfaceChanged()

@@ -191,6 +191,25 @@
                     </StackPanel>
                 </StackPanel>
 
+                <Border Background="#F8FAFF"
+                        BorderBrush="{DynamicResource BorderBrush}"
+                        BorderThickness="1"
+                        CornerRadius="10"
+                        Padding="12"
+                        Margin="0,0,0,12">
+                    <StackPanel>
+                        <TextBlock Text="Registro visual"
+                                   Foreground="{DynamicResource TextPrimaryBrush}"
+                                   FontWeight="SemiBold"
+                                   Margin="0,0,0,8"/>
+                        <ListBox ItemsSource="{Binding ActivityLog}"
+                                 Height="140"
+                                 FontFamily="Consolas"
+                                 BorderBrush="{DynamicResource BorderBrush}"
+                                 Background="#FFFFFFFF"/>
+                    </StackPanel>
+                </Border>
+
                 <TextBlock Text="{Binding StatusMessage}" Foreground="{DynamicResource TextSecondaryBrush}" TextWrapping="Wrap"/>
             </StackPanel>
         </Border>

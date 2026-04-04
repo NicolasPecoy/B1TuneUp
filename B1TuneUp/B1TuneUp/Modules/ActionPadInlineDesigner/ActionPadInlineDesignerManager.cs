@@ -20,7 +20,7 @@ namespace B1TuneUp.Modules.ActionPadInlineDesigner
         {
             if (pad == null)
             {
-                B1App.Instance.Application.SetStatusBarMessage("Selecciona un Action Pad antes de abrir el diseñador.", BoMessageTime.bmt_Short, true);
+                B1App.Instance.Application.SetStatusBarMessage("Selecciona un Action Pad antes de abrir el diseÃ±ador.", BoMessageTime.bmt_Short, true);
                 return;
             }
 
@@ -37,9 +37,14 @@ namespace B1TuneUp.Modules.ActionPadInlineDesigner
             SAPbouiCOM.Form form = null;
             try { form = B1App.Instance.Application.Forms.ActiveForm; }
             catch { }
+            ShowOverlayForForm(form);
+        }
+
+        public static void ShowOverlayForForm(SAPbouiCOM.Form form)
+        {
             if (form == null)
             {
-                B1App.Instance.Application.SetStatusBarMessage("No se encontró formulario activo para Action Pad.", BoMessageTime.bmt_Short, true);
+                B1App.Instance.Application.SetStatusBarMessage("No se encontrÃ³ formulario activo para Action Pad.", BoMessageTime.bmt_Short, true);
                 return;
             }
 
@@ -55,8 +60,8 @@ namespace B1TuneUp.Modules.ActionPadInlineDesigner
                 };
                 pad.Buttons.Add(new ActionPadButtonEntry
                 {
-                    Label = "Acción",
-                    Action = "Msg('Nuevo botón');",
+                    Label = "AcciÃ³n",
+                    Action = "Msg('Nuevo botÃ³n');",
                     Order = 10,
                     Width = 140,
                     Height = 26

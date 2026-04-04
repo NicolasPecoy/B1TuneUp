@@ -207,12 +207,22 @@
                                         <TextBox Text="{Binding SelectedValidation.AppliesToUser, UpdateSourceTrigger=PropertyChanged}" />
                                         <TextBlock Text="Grupo de usuarios" Style="{StaticResource LabelStyle}" />
                                         <TextBox Text="{Binding SelectedValidation.AppliesToUserGroup, UpdateSourceTrigger=PropertyChanged}" />
+                                        <TextBlock Text="Localizacion (pais, idioma)" Style="{StaticResource LabelStyle}" />
+                                        <TextBox Text="{Binding SelectedValidation.ScopeLocalization, UpdateSourceTrigger=PropertyChanged}" />
+                                        <TextBlock Text="Variante / rollout" Style="{StaticResource LabelStyle}" />
+                                        <TextBox Text="{Binding SelectedValidation.ScopeVariant, UpdateSourceTrigger=PropertyChanged}" />
                                     </StackPanel>
                                     <StackPanel Grid.Column="1">
-                                        <TextBlock Text="Notas" Style="{StaticResource LabelStyle}" />
+                                        <TextBlock Text="Dependencias (token1; token2)" Style="{StaticResource LabelStyle}" />
+                                        <TextBox Text="{Binding SelectedValidation.ScopeDependsOn, UpdateSourceTrigger=PropertyChanged}" />
+                                        <TextBlock Text="Paquetes (packageA,packageB)" Style="{StaticResource LabelStyle}" />
+                                        <TextBox Text="{Binding SelectedValidation.ScopePackages, UpdateSourceTrigger=PropertyChanged}" />
+                                        <TextBlock Text="Hereda de (codigo)" Style="{StaticResource LabelStyle}" />
+                                        <TextBox Text="{Binding SelectedValidation.ScopeInheritFrom, UpdateSourceTrigger=PropertyChanged}" />
+                                        <TextBlock Text="Notas" Style="{StaticResource LabelStyle}" Margin="0,6,0,0" />
                                         <TextBox Text="{Binding SelectedValidation.Notes, UpdateSourceTrigger=PropertyChanged}"
                                                  AcceptsReturn="True"
-                                                 Height="80"
+                                                 Height="70"
                                                  TextWrapping="Wrap" />
                                     </StackPanel>
                                 </Grid>

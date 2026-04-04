@@ -1,8 +1,10 @@
 using System;
 using System.Windows;
+using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
 using System.Windows.Input;
 using System.Windows.Threading;
+using B1TuneUp.Models;
 
 namespace B1TuneUp.Modules.PlacementEnhancementUi
 {
@@ -98,6 +100,14 @@ namespace B1TuneUp.Modules.PlacementEnhancementUi
             if (e.ButtonState == MouseButtonState.Pressed)
             {
                 DragMove();
+            }
+        }
+
+        private void OnActionListDoubleClick(object sender, MouseButtonEventArgs e)
+        {
+            if (sender is ListView list && list.SelectedItem is ItemActionEntry entry)
+            {
+                _viewModel.OpenActionEntry(entry);
             }
         }
 

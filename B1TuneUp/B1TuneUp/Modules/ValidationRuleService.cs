@@ -23,7 +23,7 @@ namespace B1TuneUp.Modules
                 rs.DoQuery(sql);
                 while (!rs.EoF)
                 {
-                    list.Add(new ValidationRuleEntry
+                    var entry = new ValidationRuleEntry
                     {
                         Code = ReadString(rs, "Code"),
                         Name = ReadString(rs, "Name"),
@@ -40,8 +40,9 @@ namespace B1TuneUp.Modules
                         BlockAlways = !string.Equals(ReadString(rs, "U_Block"), "N", StringComparison.OrdinalIgnoreCase),
                         Sequence = SafeInt(ReadString(rs, "U_Sequence"), 10),
                         PromptButtons = ReadString(rs, "U_PromptButtons"),
-                        Notes = ReadString(rs, "U_Notes")
-                    });
+                    };
+                    entry.LoadMetadata(ReadString(rs, "U_Notes"));
+                    list.Add(entry);
                     rs.MoveNext();
                 }
             }
@@ -88,7 +89,7 @@ namespace B1TuneUp.Modules
                 SetField(table, "U_Block", entry.BlockAlways ? "Y" : "N");
                 SetField(table, "U_Sequence", entry.Sequence.ToString());
                 SetField(table, "U_PromptButtons", entry.PromptButtons);
-                SetField(table, "U_Notes", entry.Notes);
+                SetField(table, "U_Notes", entry.SerializeMetadata());
 
                 int res = exists ? table.Update() : table.Add();
                 if (res != 0)

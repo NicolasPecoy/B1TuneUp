@@ -211,15 +211,16 @@ namespace B1TuneUp.Modules
             };
 
             package.UiEntries = new List<UiCustomizationEntry>(GetAll(normalized));
-            package.Scopes = BuildScopeDescriptors(package.UiEntries);
-            package.Dependencies = BuildDependencies(package.UiEntries);
-            package.InheritanceLinks = BuildInheritanceLinks(package.UiEntries);
 
             var validations = ValidationRuleService.GetAll();
             package.ValidationRules = validations
                 .Where(v => string.Equals(v.FormType, normalized, StringComparison.OrdinalIgnoreCase))
                 .Select(CloneValidationForExport)
                 .ToList();
+
+            package.Scopes = BuildScopeDescriptors(package.UiEntries, package.ValidationRules);
+            package.Dependencies = BuildDependencies(package.UiEntries, package.ValidationRules);
+            package.InheritanceLinks = BuildInheritanceLinks(package.UiEntries, package.ValidationRules);
 
             var mandatory = MandatoryFieldService.GetAll();
             package.MandatoryRules = mandatory
@@ -352,7 +353,12 @@ namespace B1TuneUp.Modules
                 BlockAlways = entry.BlockAlways,
                 Sequence = entry.Sequence,
                 PromptButtons = entry.PromptButtons,
-                Notes = entry.Notes
+                Notes = entry.Notes,
+                ScopeLocalization = entry.ScopeLocalization,
+                ScopeVariant = entry.ScopeVariant,
+                ScopeDependsOn = entry.ScopeDependsOn,
+                ScopeInheritFrom = entry.ScopeInheritFrom,
+                ScopePackages = entry.ScopePackages
             };
         }
 
@@ -376,29 +382,56 @@ namespace B1TuneUp.Modules
             return clone;
         }
 
-        private static IList<UiScopeDescriptor> BuildScopeDescriptors(IEnumerable<UiCustomizationEntry> entries)
+        private static IList<UiScopeDescriptor> BuildScopeDescriptors(IEnumerable<UiCustomizationEntry> entries, IEnumerable<ValidationRuleEntry> validations)
         {
-            return entries
-                .GroupBy(e => new
+            var map = new Dictionary<(string User, string Group, string Locale, string Variant), int>();
+
+            void AddScope(string user, string group, string locale, string variant)
+            {
+                string u = NormalizeScopeToken(user);
+                string g = NormalizeScopeToken(group);
+                string l = NormalizeScopeToken(locale);
+                string v = NormalizeScopeToken(variant);
+                var key = (u, g, l, v);
+                map[key] = map.ContainsKey(key) ? map[key] + 1 : 1;
+            }
+
+            foreach (var entry in entries ?? Array.Empty<UiCustomizationEntry>())
+            {
+                AddScope(entry.UserCode, entry.UserGroup, entry.Localization, entry.Variant);
+            }
+
+            foreach (var rule in validations ?? Array.Empty<ValidationRuleEntry>())
+            {
+                var users = SplitTokens(rule.AppliesToUser).DefaultIfEmpty("*");
+                var groups = SplitTokens(rule.AppliesToUserGroup).DefaultIfEmpty("*");
+                foreach (var user in users)
+                foreach (var group in groups)
                 {
-                    User = (e.UserCode ?? string.Empty).Trim(),
-                    Group = (e.UserGroup ?? string.Empty).Trim(),
-                    Locale = (e.Localization ?? string.Empty).Trim(),
-                    Variant = (e.Variant ?? string.Empty).Trim()
-                })
-                .Select(g => new UiScopeDescriptor
+                    AddScope(user, group, rule.ScopeLocalization, rule.ScopeVariant);
+                }
+            }
+
+            return map
+                .Select(k => new UiScopeDescriptor
                 {
-                    UserCode = string.IsNullOrEmpty(g.Key.User) ? "*" : g.Key.User,
-                    UserGroup = string.IsNullOrEmpty(g.Key.Group) ? "*" : g.Key.Group,
-                    Localization = string.IsNullOrEmpty(g.Key.Locale) ? "*" : g.Key.Locale,
-                    Variant = string.IsNullOrEmpty(g.Key.Variant) ? "*" : g.Key.Variant,
-                    EntryCount = g.Count()
+                    UserCode = k.Key.User,
+                    UserGroup = k.Key.Group,
+                    Localization = k.Key.Locale,
+                    Variant = k.Key.Variant,
+                    EntryCount = k.Value
                 })
                 .OrderByDescending(s => s.EntryCount)
                 .ToList();
+
+            string NormalizeScopeToken(string value)
+            {
+                if (string.IsNullOrWhiteSpace(value)) return "*";
+                return value.Trim().ToUpperInvariant();
+            }
         }
 
-        private static IList<UiPackageDependency> BuildDependencies(IEnumerable<UiCustomizationEntry> entries)
+        private static IList<UiPackageDependency> BuildDependencies(IEnumerable<UiCustomizationEntry> entries, IEnumerable<ValidationRuleEntry> validations)
         {
             var set = new Dictionary<string, UiPackageDependency>(StringComparer.OrdinalIgnoreCase);
             foreach (var token in entries.SelectMany(e => SplitTokens(e.DependsOn)))
@@ -411,12 +444,35 @@ namespace B1TuneUp.Modules
                     Required = true
                 };
             }
+
+            foreach (var token in (validations ?? Array.Empty<ValidationRuleEntry>()).SelectMany(v => SplitTokens(v.ScopeDependsOn)))
+            {
+                if (set.ContainsKey(token)) continue;
+                set[token] = new UiPackageDependency
+                {
+                    Token = token,
+                    Description = $"Validation dependency '{token}'",
+                    Required = true
+                };
+            }
+
+            foreach (var pkg in (validations ?? Array.Empty<ValidationRuleEntry>()).SelectMany(v => v.GetPackageTokens()))
+            {
+                if (set.ContainsKey(pkg)) continue;
+                set[pkg] = new UiPackageDependency
+                {
+                    Token = pkg,
+                    Description = $"Package '{pkg}' requerido por validaciones",
+                    Required = true
+                };
+            }
+
             return set.Values.ToList();
         }
 
-        private static IList<UiInheritanceLink> BuildInheritanceLinks(IEnumerable<UiCustomizationEntry> entries)
+        private static IList<UiInheritanceLink> BuildInheritanceLinks(IEnumerable<UiCustomizationEntry> entries, IEnumerable<ValidationRuleEntry> validations)
         {
-            return entries
+            var links = entries
                 .Where(e => !string.IsNullOrWhiteSpace(e.InheritFrom) && !string.IsNullOrWhiteSpace(e.Code))
                 .Select(e => new UiInheritanceLink
                 {
@@ -424,6 +480,20 @@ namespace B1TuneUp.Modules
                     ChildCode = e.Code
                 })
                 .ToList();
+
+            if (validations != null)
+            {
+                foreach (var rule in validations.Where(v => !string.IsNullOrWhiteSpace(v.ScopeInheritFrom) && !string.IsNullOrWhiteSpace(v.Code)))
+                {
+                    links.Add(new UiInheritanceLink
+                    {
+                        ParentCode = rule.ScopeInheritFrom,
+                        ChildCode = rule.Code
+                    });
+                }
+            }
+
+            return links;
         }
 
         private static IEnumerable<string> SplitTokens(string raw)

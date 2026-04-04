@@ -176,20 +176,63 @@
                             <TextBlock Text="{Binding LinkedValidationCount}" Foreground="{DynamicResource TextPrimaryBrush}" FontSize="18" FontWeight="Bold"/>
                         </StackPanel>
                     </Border>
-                    <Border Background="#10263C0F" CornerRadius="6" Padding="10">
+                    <Border Background="#10263C0F" CornerRadius="6" Padding="10" Margin="0,0,8,0">
                         <StackPanel>
                             <TextBlock Text="Funciones" Foreground="{DynamicResource TextSecondaryBrush}" FontSize="12"/>
                             <TextBlock Text="{Binding LinkedActionCount}" Foreground="{DynamicResource TextPrimaryBrush}" FontSize="18" FontWeight="Bold"/>
                         </StackPanel>
                     </Border>
+                    <Border Background="#10263C0F" CornerRadius="6" Padding="10">
+                        <StackPanel>
+                            <TextBlock Text="Action Pad" Foreground="{DynamicResource TextSecondaryBrush}" FontSize="12"/>
+                            <TextBlock Text="{Binding LinkedPadButtonCount}" Foreground="{DynamicResource TextPrimaryBrush}" FontSize="18" FontWeight="Bold"/>
+                        </StackPanel>
+                    </Border>
                 </StackPanel>
 
-                <UniformGrid Columns="2" Rows="2" Margin="0,0,0,12">
+                <Border Background="#F8FAFF" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1" CornerRadius="10" Padding="12" Margin="0,0,0,12">
+                    <StackPanel>
+                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                            <TextBlock Text="Function Buttons vinculados" Foreground="{DynamicResource TextPrimaryBrush}" FontWeight="SemiBold" FontSize="14"/>
+                            <TextBlock Text="{Binding LinkedActionCount, StringFormat=({0})}" Foreground="{DynamicResource TextSecondaryBrush}" Margin="6,0,0,0"/>
+                            <Button Content="Gestionar"
+                                    Command="{Binding OpenActionCommand}"
+                                    Background="{DynamicResource AccentAltBrush}"
+                                    Foreground="White"
+                                    BorderThickness="0"
+                                    Margin="12,0,0,0"
+                                    Width="110"
+                                    Height="28"/>
+                        </StackPanel>
+                        <ListView ItemsSource="{Binding LinkedActions}"
+                                  Height="140"
+                                  Margin="0,8,0,0"
+                                  BorderBrush="{DynamicResource BorderBrush}"
+                                  MouseDoubleClick="OnActionListDoubleClick">
+                            <ListView.View>
+                                <GridView>
+                                    <GridViewColumn Header="Evento" DisplayMemberBinding="{Binding Event}" Width="110"/>
+                                    <GridViewColumn Header="Item" DisplayMemberBinding="{Binding ItemId}" Width="110"/>
+                                    <GridViewColumn Header="Acción" Width="200">
+                                        <GridViewColumn.CellTemplate>
+                                            <DataTemplate>
+                                                <TextBlock Text="{Binding Action}" TextTrimming="CharacterEllipsis"/>
+                                            </DataTemplate>
+                                        </GridViewColumn.CellTemplate>
+                                    </GridViewColumn>
+                                </GridView>
+                            </ListView.View>
+                        </ListView>
+                    </StackPanel>
+                </Border>
+
+                <WrapPanel Margin="0,0,0,12" ItemHeight="34" ItemWidth="150">
                     <Button Content="Aplicar" Command="{Binding ApplyCommand}" Background="{DynamicResource AccentAltBrush}" Foreground="White" BorderThickness="0" Margin="0,4,8,0"/>
-                    <Button Content="Persistir" Command="{Binding PersistCommand}" Background="{DynamicResource PrimaryDarkBrush}" Foreground="White" BorderThickness="0" Margin="0,4,0,0"/>
+                    <Button Content="Persistir" Command="{Binding PersistCommand}" Background="{DynamicResource PrimaryDarkBrush}" Foreground="White" BorderThickness="0" Margin="0,4,8,0"/>
                     <Button Content="Validaciones" Command="{Binding OpenValidationCommand}" Background="{DynamicResource AccentBrush}" Foreground="White" BorderThickness="0" Margin="0,4,8,0"/>
-                    <Button Content="Funciones" Command="{Binding OpenActionCommand}" Background="{DynamicResource AccentBrush}" Foreground="White" BorderThickness="0" Margin="0,4,0,0"/>
-                </UniformGrid>
+                    <Button Content="Funciones" Command="{Binding OpenActionCommand}" Background="{DynamicResource AccentBrush}" Foreground="White" BorderThickness="0" Margin="0,4,8,0"/>
+                    <Button Content="Action Pad Overlay" Command="{Binding OpenPadDesignerCommand}" Background="{DynamicResource AccentAltBrush}" Foreground="White" BorderThickness="0" Margin="0,4,8,0"/>
+                </WrapPanel>
 
                 <StackPanel Orientation="Horizontal" Margin="0,0,0,20">
                     <Button Content="Exportar" Command="{Binding ExportCommand}" Background="{DynamicResource AccentAltBrush}" Foreground="White" BorderThickness="0" Margin="0,0,8,0"/>
@@ -233,6 +276,168 @@
                     <TextBlock Text="Etiqueta personalizada" Foreground="{DynamicResource TextSecondaryBrush}"/>
                     <TextBox Text="{Binding SelectedItem.CustomLabel, UpdateSourceTrigger=PropertyChanged}"/>
                 </StackPanel>
+
+                <TabControl Background="Transparent"
+                            BorderThickness="0"
+                            Margin="0,0,0,12">
+                    <TabItem Header="Validaciones del ítem">
+                        <Border Background="#F8FAFF" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1" CornerRadius="10" Padding="12" Margin="0">
+                            <StackPanel>
+                                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                    <TextBlock Text="Validaciones vinculadas" Foreground="{DynamicResource TextPrimaryBrush}" FontWeight="SemiBold" FontSize="14"/>
+                                    <TextBlock Text="{Binding LinkedValidationCount, StringFormat=({0})}" Foreground="{DynamicResource TextSecondaryBrush}" Margin="6,0,0,0"/>
+                                </StackPanel>
+                                <StackPanel Orientation="Horizontal" Margin="0,8,0,8">
+                                    <Button Content="Nueva" Command="{Binding NewValidationCommand}" Background="{DynamicResource AccentAltBrush}" Foreground="White" BorderThickness="0" Width="90" Margin="0,0,8,0"/>
+                                    <Button Content="Guardar" Command="{Binding SaveValidationCommand}" Background="{DynamicResource PrimaryBrush}" Foreground="White" BorderThickness="0" Width="90" Margin="0,0,8,0"/>
+                                    <Button Content="Simular" Command="{Binding PreviewValidationCommand}" Background="{DynamicResource AccentBrush}" Foreground="White" BorderThickness="0" Width="90"/>
+                                </StackPanel>
+                                <DataGrid ItemsSource="{Binding ValidationRules}"
+                                          SelectedItem="{Binding SelectedValidation}"
+                                          AutoGenerateColumns="False"
+                                          HeadersVisibility="Column"
+                                          CanUserAddRows="False"
+                                          Margin="0,0,0,8"
+                                          Height="180">
+                                    <DataGrid.Columns>
+                                        <DataGridCheckBoxColumn Header="Activa" Binding="{Binding Active, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Width="60"/>
+                                        <DataGridTemplateColumn Header="Evento" Width="140">
+                                            <DataGridTemplateColumn.CellTemplate>
+                                                <DataTemplate>
+                                                    <ComboBox ItemsSource="{Binding DataContext.EventOptions, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                              SelectedItem="{Binding EventType, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                                                </DataTemplate>
+                                            </DataGridTemplateColumn.CellTemplate>
+                                        </DataGridTemplateColumn>
+                                        <DataGridTemplateColumn Header="Severidad" Width="120">
+                                            <DataGridTemplateColumn.CellTemplate>
+                                                <DataTemplate>
+                                                    <ComboBox ItemsSource="{Binding DataContext.SeverityOptions, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                              SelectedItem="{Binding Severity, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                                                </DataTemplate>
+                                            </DataGridTemplateColumn.CellTemplate>
+                                        </DataGridTemplateColumn>
+                                        <DataGridCheckBoxColumn Header="Bloquea" Binding="{Binding BlockAlways, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Width="70"/>
+                                        <DataGridTextColumn Header="Mensaje" Binding="{Binding Message, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Width="200"/>
+                                        <DataGridTextColumn Header="Condición" Binding="{Binding Condition, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Width="220"/>
+                                    </DataGrid.Columns>
+                                </DataGrid>
+                                <StackPanel>
+                                    <TextBlock Text="Botones Prompt" Foreground="{DynamicResource TextSecondaryBrush}"/>
+                                    <TextBox Text="{Binding SelectedValidation.PromptButtons, UpdateSourceTrigger=PropertyChanged}" />
+                                    <TextBlock Text="Notas" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,6,0,0"/>
+                                    <TextBox Text="{Binding SelectedValidation.Notes, UpdateSourceTrigger=PropertyChanged}" AcceptsReturn="True" Height="60"/>
+                                </StackPanel>
+                            </StackPanel>
+                        </Border>
+                    </TabItem>
+                    <TabItem Header="Matriz del formulario">
+                        <Border Background="#F8FAFF" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1" CornerRadius="10" Padding="12" Margin="0">
+                            <StackPanel>
+                                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                    <TextBlock Text="Matriz unificada" Foreground="{DynamicResource TextPrimaryBrush}" FontWeight="SemiBold" FontSize="14"/>
+                                    <TextBlock Text="{Binding FormValidationMatrixView.Count, StringFormat=({0})}" Foreground="{DynamicResource TextSecondaryBrush}" Margin="6,0,0,0"/>
+                                </StackPanel>
+                                <WrapPanel Margin="0,8,0,8">
+                                    <TextBox Width="170"
+                                             Margin="0,0,8,8"
+                                             ToolTip="Buscar por Item, mensaje o condición"
+                                             Text="{Binding MatrixSearch, UpdateSourceTrigger=PropertyChanged}"/>
+                                    <ComboBox Width="140"
+                                              Margin="0,0,8,8"
+                                              ItemsSource="{Binding MatrixEventOptions}"
+                                              SelectedItem="{Binding MatrixEventFilter}"
+                                             ToolTip="Filtrar por evento"/>
+                                    <ComboBox Width="110"
+                                             Margin="0,0,8,8"
+                                             ItemsSource="{Binding MatrixSeverityOptions}"
+                                             SelectedItem="{Binding MatrixSeverityFilter}"
+                                             ToolTip="Filtrar por severidad"/>
+                                    <TextBox Width="140"
+                                             Margin="0,0,8,8"
+                                             ToolTip="Filtro por usuario/grupo"
+                                             Text="{Binding MatrixUserFilter, UpdateSourceTrigger=PropertyChanged}"/>
+                                    <TextBox Width="140"
+                                             Margin="0,0,8,8"
+                                             ToolTip="Filtro por localización"
+                                             Text="{Binding MatrixLocalizationFilter, UpdateSourceTrigger=PropertyChanged}"/>
+                                    <TextBox Width="130"
+                                             Margin="0,0,8,8"
+                                             ToolTip="Filtro por variante"
+                                             Text="{Binding MatrixVariantFilter, UpdateSourceTrigger=PropertyChanged}"/>
+                                    <TextBox Width="140"
+                                             Margin="0,0,8,8"
+                                             ToolTip="Notas o dependencias"
+                                             Text="{Binding MatrixDependencyFilter, UpdateSourceTrigger=PropertyChanged}"/>
+                                    <TextBox Width="140"
+                                             Margin="0,0,8,8"
+                                             ToolTip="Filtro por paquete"
+                                             Text="{Binding MatrixPackageFilter, UpdateSourceTrigger=PropertyChanged}"/>
+                                    <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
+                                        <CheckBox Content="Solo activas" IsChecked="{Binding MatrixOnlyActive}" Margin="0,0,8,0"/>
+                                        <CheckBox Content="Solo bloqueo" IsChecked="{Binding MatrixOnlyBlocking}" Margin="0,0,8,0"/>
+                                        <CheckBox Content="Solo ítem" IsChecked="{Binding MatrixOnlyCurrentItem}"/>
+                                    </StackPanel>
+                                </WrapPanel>
+                                <WrapPanel Margin="0,0,0,8">
+                                    <Button Content="Recargar" Command="{Binding MatrixRefreshCommand}" Background="{DynamicResource AccentAltBrush}" Foreground="White" BorderThickness="0" Width="90" Margin="0,0,8,8"/>
+                                    <Button Content="Guardar" Command="{Binding MatrixSaveCommand}" Background="{DynamicResource PrimaryBrush}" Foreground="White" BorderThickness="0" Width="90" Margin="0,0,8,8"/>
+                                    <Button Content="Activar" Command="{Binding MatrixToggleActiveCommand}" Background="{DynamicResource AccentBrush}" Foreground="White" BorderThickness="0" Width="90" Margin="0,0,8,8"/>
+                                    <Button Content="Bloqueo" Command="{Binding MatrixToggleBlockCommand}" Background="{DynamicResource AccentBrush}" Foreground="White" BorderThickness="0" Width="90" Margin="0,0,8,8"/>
+                                    <Button Content="Vincular ítem" Command="{Binding MatrixLinkToItemCommand}" Background="{DynamicResource PrimaryDarkBrush}" Foreground="White" BorderThickness="0" Width="120" Margin="0,0,8,8"/>
+                                    <Button Content="Simular" Command="{Binding MatrixPreviewCommand}" Background="{DynamicResource AccentAltBrush}" Foreground="White" BorderThickness="0" Width="90" Margin="0,0,8,8"/>
+                                    <Button Content="Abrir diseñador" Command="{Binding MatrixOpenDesignerCommand}" Background="{DynamicResource AccentBrush}" Foreground="White" BorderThickness="0" Width="130" Margin="0,0,8,8"/>
+                                </WrapPanel>
+                                <DataGrid ItemsSource="{Binding FormValidationMatrixView}"
+                                          SelectedItem="{Binding SelectedMatrixRule}"
+                                          AutoGenerateColumns="False"
+                                          HeadersVisibility="Column"
+                                          CanUserAddRows="False"
+                                          Margin="0,0,0,8"
+                                          Height="200"
+                                          ScrollViewer.HorizontalScrollBarVisibility="Auto">
+                                    <DataGrid.Columns>
+                                        <DataGridCheckBoxColumn Header="Activa" Binding="{Binding Active, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Width="60"/>
+                                        <DataGridTemplateColumn Header="Evento" Width="140">
+                                            <DataGridTemplateColumn.CellTemplate>
+                                                <DataTemplate>
+                                                    <ComboBox ItemsSource="{Binding DataContext.MatrixEventOptions, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                              SelectedItem="{Binding EventType, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+                                                </DataTemplate>
+                                            </DataGridTemplateColumn.CellTemplate>
+                                        </DataGridTemplateColumn>
+                                        <DataGridTextColumn Header="Item" Binding="{Binding ItemName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Width="120"/>
+                                        <DataGridTemplateColumn Header="Severidad" Width="110">
+                                            <DataGridTemplateColumn.CellTemplate>
+                                                <DataTemplate>
+                                                    <ComboBox ItemsSource="{Binding DataContext.SeverityOptions, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                              SelectedItem="{Binding Severity, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+                                                </DataTemplate>
+                                            </DataGridTemplateColumn.CellTemplate>
+                                        </DataGridTemplateColumn>
+                                        <DataGridCheckBoxColumn Header="Bloqueo" Binding="{Binding BlockAlways, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Width="70"/>
+                                        <DataGridTextColumn Header="Prompt" Binding="{Binding PromptButtons, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Width="120"/>
+                                        <DataGridTextColumn Header="Usuarios" Binding="{Binding AppliesToUser, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Width="120"/>
+                                        <DataGridTextColumn Header="Grupos" Binding="{Binding AppliesToUserGroup, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Width="120"/>
+                                        <DataGridTextColumn Header="Localización" Binding="{Binding ScopeLocalization, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Width="130"/>
+                                        <DataGridTextColumn Header="Variante" Binding="{Binding ScopeVariant, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Width="110"/>
+                                        <DataGridTextColumn Header="Mensaje" Binding="{Binding Message, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Width="220"/>
+                                        <DataGridTextColumn Header="Dependencias" Binding="{Binding ScopeDependsOn, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Width="150"/>
+                                        <DataGridTextColumn Header="Paquetes" Binding="{Binding ScopePackages, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Width="140"/>
+                                        <DataGridTextColumn Header="Hereda de" Binding="{Binding ScopeInheritFrom, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Width="130"/>
+                                        <DataGridTextColumn Header="Notas" Binding="{Binding Notes, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Width="140"/>
+                                        <DataGridTextColumn Header="Secuencia" Binding="{Binding Sequence, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Width="90"/>
+                                    </DataGrid.Columns>
+                                </DataGrid>
+                                <StackPanel>
+                                    <TextBlock Text="Regla seleccionada" Foreground="{DynamicResource TextSecondaryBrush}"/>
+                                    <TextBlock Text="{Binding SelectedMatrixRule.Code}" Foreground="{DynamicResource TextPrimaryBrush}" FontWeight="Bold"/>
+                                    <TextBlock Text="{Binding SelectedMatrixRule.Message}" Foreground="{DynamicResource TextSecondaryBrush}" TextWrapping="Wrap"/>
+                                </StackPanel>
+                            </StackPanel>
+                        </Border>
+                    </TabItem>
+                </TabControl>
 
                 <TextBlock Text="{Binding StatusMessage}"
                            Foreground="{DynamicResource TextSecondaryBrush}"

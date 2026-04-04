@@ -53,7 +53,8 @@ namespace B1TuneUp.Modules.BarcodeScannerUi {
                 return;
             }
             _contentLoaded = true;
-            System.Uri resourceLocater = new System.Uri("/B1TuneUp;component/b1tuneup/modules/barcodescannerui/barcodescannerwindow.xaml", System.UriKind.Relative);
+            System.Uri resourceLocater = new System.Uri("/B1TuneUp;V1.0.0.0;component/b1tuneup/modules/barcodescannerui/barcodescannerwind" +
+                    "ow.xaml", System.UriKind.Relative);
             
             #line 1 "..\..\..\..\..\..\B1TuneUp\Modules\BarcodeScannerUi\BarcodeScannerWindow.xaml"
             System.Windows.Application.LoadComponent(this, resourceLocater);

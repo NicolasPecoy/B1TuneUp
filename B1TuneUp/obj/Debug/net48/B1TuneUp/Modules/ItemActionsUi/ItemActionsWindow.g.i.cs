@@ -53,7 +53,8 @@ namespace B1TuneUp.Modules.ItemActionsUi {
                 return;
             }
             _contentLoaded = true;
-            System.Uri resourceLocater = new System.Uri("/B1TuneUp;component/b1tuneup/modules/itemactionsui/itemactionswindow.xaml", System.UriKind.Relative);
+            System.Uri resourceLocater = new System.Uri("/B1TuneUp;V1.0.0.0;component/b1tuneup/modules/itemactionsui/itemactionswindow.xam" +
+                    "l", System.UriKind.Relative);
             
             #line 1 "..\..\..\..\..\..\B1TuneUp\Modules\ItemActionsUi\ItemActionsWindow.xaml"
             System.Windows.Application.LoadComponent(this, resourceLocater);

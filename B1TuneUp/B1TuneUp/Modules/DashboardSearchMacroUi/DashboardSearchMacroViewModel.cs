@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Linq;
@@ -32,6 +33,11 @@ namespace B1TuneUp.Modules.DashboardSearchMacroUi
         private bool _isBusy;
         private string _busyMessage;
         private string _statusMessage;
+        private readonly IReadOnlyList<int> _autoRefreshOptions = new[] { 30, 60, 120, 300 };
+        private bool _autoRefreshEnabled = true;
+        private int _autoRefreshIntervalSeconds = 120;
+        private DateTime? _lastRefreshAt;
+        private DateTime? _nextRefreshAt;
 
         public DashboardSearchMacroViewModel()
         {
@@ -163,6 +169,68 @@ namespace B1TuneUp.Modules.DashboardSearchMacroUi
             private set { if (_statusMessage == value) return; _statusMessage = value; OnPropertyChanged(); }
         }
 
+        public IReadOnlyList<int> AutoRefreshOptions => _autoRefreshOptions;
+
+        public bool AutoRefreshEnabled
+        {
+            get => _autoRefreshEnabled;
+            set
+            {
+                if (_autoRefreshEnabled == value) return;
+                _autoRefreshEnabled = value;
+                OnPropertyChanged();
+                UpdateAutoRefreshSchedule();
+            }
+        }
+
+        public int AutoRefreshIntervalSeconds
+        {
+            get => _autoRefreshIntervalSeconds;
+            set
+            {
+                int normalized = Math.Max(30, value);
+                if (_autoRefreshIntervalSeconds == normalized) return;
+                _autoRefreshIntervalSeconds = normalized;
+                OnPropertyChanged();
+                UpdateAutoRefreshSchedule();
+            }
+        }
+
+        public DateTime? LastRefreshAt
+        {
+            get => _lastRefreshAt;
+            private set
+            {
+                if (_lastRefreshAt == value) return;
+                _lastRefreshAt = value;
+                OnPropertyChanged();
+                OnPropertyChanged(nameof(AutoRefreshStatus));
+            }
+        }
+
+        public DateTime? NextRefreshAt
+        {
+            get => _nextRefreshAt;
+            private set
+            {
+                if (_nextRefreshAt == value) return;
+                _nextRefreshAt = value;
+                OnPropertyChanged();
+                OnPropertyChanged(nameof(AutoRefreshStatus));
+            }
+        }
+
+        public string AutoRefreshStatus
+        {
+            get
+            {
+                if (!AutoRefreshEnabled) return "Auto-refresh desactivado";
+                string next = NextRefreshAt.HasValue ? NextRefreshAt.Value.ToString("HH:mm:ss") : "calculando";
+                string last = LastRefreshAt.HasValue ? LastRefreshAt.Value.ToString("HH:mm:ss") : "n/d";
+                return $"Próximo: {next} · Último: {last}";
+            }
+        }
+
         public RelayCommand RefreshCommand { get; }
         public RelayCommand SaveAllCommand { get; }
 
@@ -183,9 +251,10 @@ namespace B1TuneUp.Modules.DashboardSearchMacroUi
 
         public event PropertyChangedEventHandler PropertyChanged;
 
-        public async Task LoadAsync()
+        public async Task LoadAsync(bool triggeredByAutoRefresh = false)
         {
-            await RunSafeAsync("Cargando Dashboard/Search/Macros...", async () =>
+            string busyText = triggeredByAutoRefresh ? "Actualizando Dashboard/Search/Macros..." : "Cargando Dashboard/Search/Macros...";
+            await RunSafeAsync(busyText, async () =>
             {
                 var widgetTask = Task.Run(() => DashboardWidgetService.GetAll());
                 var searchTask = Task.Run(() => SearchConfigService.GetAll());
@@ -211,8 +280,17 @@ namespace B1TuneUp.Modules.DashboardSearchMacroUi
                     SelectedMacro = _macroScripts.FirstOrDefault();
 
                     StatusMessage = $"{_widgets.Count} widgets · {_searchConfigs.Count} búsquedas · {_macroScripts.Count} macros.";
+                    LastRefreshAt = DateTime.Now;
+                    UpdateAutoRefreshSchedule();
                 });
             });
+        }
+
+        public async Task TryAutoRefreshAsync()
+        {
+            if (!AutoRefreshEnabled || IsBusy) return;
+            if (NextRefreshAt.HasValue && DateTime.Now < NextRefreshAt.Value) return;
+            await LoadAsync(true);
         }
 
         private void NewWidget()
@@ -254,7 +332,7 @@ namespace B1TuneUp.Modules.DashboardSearchMacroUi
         private async Task DeleteWidgetAsync()
         {
             if (SelectedWidget == null) return;
-            if (MessageBox.Show($"¿Eliminar el widget '{SelectedWidget.Title}'?", "B1TuneUp", MessageBoxButton.YesNo, MessageBoxImage.Question) != MessageBoxResult.Yes)
+            if (MessageBox.Show($"Â¿Eliminar el widget '{SelectedWidget.Title}'?", "B1TuneUp", MessageBoxButton.YesNo, MessageBoxImage.Question) != MessageBoxResult.Yes)
             {
                 return;
             }
@@ -276,7 +354,7 @@ namespace B1TuneUp.Modules.DashboardSearchMacroUi
         {
             var entry = new SearchConfigEntry
             {
-                Name = "Nueva búsqueda",
+                Name = "Nueva bÃºsqueda",
                 Query = "SELECT TOP 10 * FROM OCRD WHERE CardName LIKE '%search%'",
                 Action = "Msg('Abrir registro $[CardCode]')"
             };
@@ -299,22 +377,22 @@ namespace B1TuneUp.Modules.DashboardSearchMacroUi
         private async Task SaveSearchAsync()
         {
             if (SelectedSearch == null) return;
-            await RunSafeAsync("Guardando búsqueda...", async () =>
+            await RunSafeAsync("Guardando bÃºsqueda...", async () =>
             {
                 await Task.Run(() => SearchConfigService.Save(SelectedSearch));
-                StatusMessage = $"Búsqueda '{SelectedSearch.Name}' guardada.";
+                StatusMessage = $"BÃºsqueda '{SelectedSearch.Name}' guardada.";
             });
         }
 
         private async Task DeleteSearchAsync()
         {
             if (SelectedSearch == null) return;
-            if (MessageBox.Show($"¿Eliminar la búsqueda '{SelectedSearch.Name}'?", "B1TuneUp", MessageBoxButton.YesNo, MessageBoxImage.Question) != MessageBoxResult.Yes)
+            if (MessageBox.Show($"Â¿Eliminar la bÃºsqueda '{SelectedSearch.Name}'?", "B1TuneUp", MessageBoxButton.YesNo, MessageBoxImage.Question) != MessageBoxResult.Yes)
             {
                 return;
             }
             var toDelete = SelectedSearch;
-            await RunSafeAsync("Eliminando búsqueda...", async () =>
+            await RunSafeAsync("Eliminando bÃºsqueda...", async () =>
             {
                 await Task.Run(() => SearchConfigService.Delete(toDelete.Code));
                 RunOnUi(() =>
@@ -323,7 +401,7 @@ namespace B1TuneUp.Modules.DashboardSearchMacroUi
                     SelectedSearch = _searchConfigs.FirstOrDefault();
                     _searchView.Refresh();
                 });
-                StatusMessage = "Búsqueda eliminada.";
+                StatusMessage = "BÃºsqueda eliminada.";
             });
         }
 
@@ -363,7 +441,7 @@ namespace B1TuneUp.Modules.DashboardSearchMacroUi
         private async Task DeleteMacroAsync()
         {
             if (SelectedMacro == null) return;
-            if (MessageBox.Show($"¿Eliminar la macro '{SelectedMacro.Name}'?", "B1TuneUp", MessageBoxButton.YesNo, MessageBoxImage.Question) != MessageBoxResult.Yes)
+            if (MessageBox.Show($"Â¿Eliminar la macro '{SelectedMacro.Name}'?", "B1TuneUp", MessageBoxButton.YesNo, MessageBoxImage.Question) != MessageBoxResult.Yes)
             {
                 return;
             }
@@ -452,6 +530,18 @@ namespace B1TuneUp.Modules.DashboardSearchMacroUi
             else
             {
                 dispatcher.Invoke(action);
+            }
+        }
+
+        private void UpdateAutoRefreshSchedule()
+        {
+            if (AutoRefreshEnabled)
+            {
+                NextRefreshAt = DateTime.Now.AddSeconds(AutoRefreshIntervalSeconds);
+            }
+            else
+            {
+                NextRefreshAt = null;
             }
         }
 

@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Windows.Forms;
 using SAPbouiCOM;
 using B1TuneUp.Core;
 using B1TuneUp.Utils;
@@ -10,7 +9,7 @@ namespace B1TuneUp.Modules
 {
     public static class DashboardManager
     {
-        private static Dictionary<string, DashboardWidget> _widgets = new Dictionary<string, DashboardWidget>();
+        private static readonly Dictionary<string, DashboardWidget> _widgets = new Dictionary<string, DashboardWidget>();
 
         public static void ShowDashboard()
         {
@@ -23,10 +22,10 @@ namespace B1TuneUp.Modules
 
                 SAPbouiCOM.Form oForm = B1App.Instance.Application.Forms.AddEx(fcp);
                 oForm.Title = "B1TuneUp Dashboard";
-                oForm.Width = 800;
-                oForm.Height = 600;
+                oForm.Width = 900;
+                oForm.Height = 640;
 
-                // Load dashboard widgets from configuration
+                AddToolbar(oForm);
                 LoadWidgets(oForm);
 
                 oForm.Visible = true;
@@ -35,6 +34,20 @@ namespace B1TuneUp.Modules
             {
                 B1App.Instance.Application.SetStatusBarMessage($"Error mostrando Dashboard: {ex.Message}", BoMessageTime.bmt_Short, true);
             }
+        }
+
+        private static void AddToolbar(SAPbouiCOM.Form oForm)
+        {
+            try
+            {
+                Item refreshItem = oForm.Items.Add("btnDashRefresh", BoFormItemTypes.it_BUTTON);
+                refreshItem.Left = 10;
+                refreshItem.Top = 5;
+                refreshItem.Width = 110;
+                refreshItem.Height = 18;
+                ((SAPbouiCOM.Button)refreshItem.Specific).Caption = "Refrescar todo";
+            }
+            catch { }
         }
 
         private static void LoadWidgets(SAPbouiCOM.Form oForm)
@@ -48,35 +61,40 @@ namespace B1TuneUp.Modules
 
                 rs.DoQuery(sql);
 
-                int top = 10;
+                _widgets.Clear();
+                int top = 30;
                 int left = 10;
                 int widgetCount = 0;
 
                 while (!rs.EoF)
                 {
-                    string widgetType = rs.Fields.Item("U_WidgetType").Value.ToString();
-                    string title = rs.Fields.Item("U_Title").Value.ToString();
-                    string query = rs.Fields.Item("U_Query").Value.ToString();
-                    int width = (int)rs.Fields.Item("U_Width").Value;
-                    int height = (int)rs.Fields.Item("U_Height").Value;
+                    var widget = new DashboardWidget
+                    {
+                        InternalId = Guid.NewGuid().ToString("N").Substring(0, 6),
+                        Type = rs.Fields.Item("U_WidgetType").Value.ToString(),
+                        Title = rs.Fields.Item("U_Title").Value.ToString(),
+                        Query = rs.Fields.Item("U_Query").Value.ToString(),
+                        Width = SafeInt(rs.Fields.Item("U_Width")?.Value, 320),
+                        Height = SafeInt(rs.Fields.Item("U_Height")?.Value, 220),
+                        MaxRows = Math.Max(1, SafeInt(rs.Fields.Item("U_MaxRows")?.Value, 6)),
+                        RenderMode = rs.Fields.Item("U_RenderMode")?.Value.ToString()
+                    };
 
-                    // Position widgets in a grid layout
-                    if (widgetCount > 0 && (left + width + 10) > oForm.Width - 50)
+                    if (widgetCount > 0 && (left + widget.Width + 10) > oForm.Width - 40)
                     {
                         left = 10;
-                        top += height + 20;
+                        top += widget.Height + 20;
                     }
 
-                    CreateWidget(oForm, widgetType, title, query, left, top, width, height);
+                    CreateWidget(oForm, widget, left, top);
 
-                    left += width + 10;
+                    left += widget.Width + 10;
                     widgetCount++;
 
                     rs.MoveNext();
                 }
 
-                // Adjust form height based on content
-                oForm.Height = Math.Max(oForm.Height, top + 150);
+                oForm.Height = Math.Max(oForm.Height, top + 160);
             }
             catch (Exception ex)
             {
@@ -88,46 +106,57 @@ namespace B1TuneUp.Modules
             }
         }
 
-        private static void CreateWidget(SAPbouiCOM.Form oForm, string widgetType, string title, string query, int left, int top, int width, int height)
+        private static void CreateWidget(SAPbouiCOM.Form oForm, DashboardWidget widget, int left, int top)
         {
             try
             {
-                string widgetId = $"wdg_{Guid.NewGuid().ToString().Substring(0, 5)}";
+                Item frameItem = oForm.Items.Add($"ctr_{widget.InternalId}", BoFormItemTypes.it_RECTANGLE);
+                frameItem.Left = left;
+                frameItem.Top = top;
+                frameItem.Width = widget.Width;
+                frameItem.Height = widget.Height;
 
-                // Create a container item for the widget
-                Item containerItem = oForm.Items.Add(widgetId, BoFormItemTypes.it_FOLDER);
-                containerItem.Left = left;
-                containerItem.Top = top;
-                containerItem.Width = width;
-                containerItem.Height = height;
+                Item titleItem = oForm.Items.Add($"ttl_{widget.InternalId}", BoFormItemTypes.it_STATIC);
+                titleItem.Left = left + 6;
+                titleItem.Top = top + 6;
+                titleItem.Width = widget.Width - 12;
+                titleItem.Height = 16;
+                ((StaticText)titleItem.Specific).Caption = widget.Title;
 
-                Folder container = (Folder)containerItem.Specific;
-                container.Caption = title;
+                Item refreshItem = oForm.Items.Add($"ref_{widget.InternalId}", BoFormItemTypes.it_BUTTON);
+                refreshItem.Left = left + widget.Width - 38;
+                refreshItem.Top = top + 4;
+                refreshItem.Width = 28;
+                refreshItem.Height = 18;
+                ((SAPbouiCOM.Button)refreshItem.Specific).Caption = "↻";
 
-                // Add refresh button to the widget
-                string refreshBtnId = $"ref_{widgetId}";
-                Item refreshItem = oForm.Items.Add(refreshBtnId, BoFormItemTypes.it_BUTTON);
-                refreshItem.Left = left + width - 40;
-                refreshItem.Top = top + 5;
-                refreshItem.Width = 30;
-                refreshItem.Height = 20;
+                widget.ParentForm = oForm;
+                widget.Container = frameItem;
+                widget.RefreshButtonId = refreshItem.UniqueID;
 
-                SAPbouiCOM.Button refreshBtn = (SAPbouiCOM.Button)refreshItem.Specific;
-                refreshBtn.Caption = "↻";
-
-                // Store widget information
-                DashboardWidget widget = new DashboardWidget
+                if (IsListWidget(widget))
                 {
-                    Id = widgetId,
-                    Type = widgetType,
-                    Query = query,
-                    Container = container,
-                    RefreshButtonId = refreshBtnId
-                };
+                    string gridId = $"grd_{widget.InternalId}";
+                    Item gridItem = oForm.Items.Add(gridId, BoFormItemTypes.it_GRID);
+                    gridItem.Left = left + 6;
+                    gridItem.Top = top + 26;
+                    gridItem.Width = widget.Width - 12;
+                    gridItem.Height = widget.Height - 32;
+                    widget.GridItemId = gridId;
+                }
+                else
+                {
+                    string valueId = $"val_{widget.InternalId}";
+                    Item valueItem = oForm.Items.Add(valueId, BoFormItemTypes.it_STATIC);
+                    valueItem.Left = left + 6;
+                    valueItem.Top = top + 26;
+                    valueItem.Width = widget.Width - 12;
+                    valueItem.Height = widget.Height - 32;
+                    ((StaticText)valueItem.Specific).Caption = "Cargando...";
+                    widget.ValueItemId = valueId;
+                }
 
-                _widgets[widgetId] = widget;
-
-                // Load initial data
+                _widgets[widget.InternalId] = widget;
                 LoadWidgetData(widget);
             }
             catch (Exception ex)
@@ -138,43 +167,18 @@ namespace B1TuneUp.Modules
 
         private static void LoadWidgetData(DashboardWidget widget)
         {
+            if (IsListWidget(widget))
+            {
+                RenderListWidget(widget);
+                return;
+            }
+
             Recordset rs = (Recordset)B1App.Instance.Company.GetBusinessObject(BoObjectTypes.BoRecordset);
             try
             {
                 rs.DoQuery(widget.Query);
 
-                // Clear existing content
-                if (widget.Container != null)
-                {
-                    // Add content based on widget type
-                    if (widget.Type == "Chart" || widget.Type == "Graph")
-                    {
-                        // For now, just show a label with record count
-                        string countText = $"Registros: {rs.RecordCount}";
-                        widget.Container.Caption = $"{widget.Container.Caption} ({countText})";
-                    }
-                    else if (widget.Type == "List" || widget.Type == "Table")
-                    {
-                        // Display first few records as text
-                        string summary = "";
-                        int count = 0;
-                        while (!rs.EoF && count < 5)
-                        {
-                            // Get first column value as example
-                            if (rs.Fields.Count > 0)
-                            {
-                                summary += rs.Fields.Item(0).Value?.ToString() + "; ";
-                            }
-                            rs.MoveNext();
-                            count++;
-                        }
-                        // Add a text box with summary
-                    }
-                    else // Default to statistics
-                    {
-                        widget.Container.Caption = $"{widget.Container.Caption} (Records: {rs.RecordCount})";
-                    }
-                }
+                RenderStatsWidget(widget, rs);
             }
             catch (Exception ex)
             {
@@ -184,6 +188,55 @@ namespace B1TuneUp.Modules
             {
                 ComObjectManager.Release(rs);
             }
+        }
+
+        private static void RenderStatsWidget(DashboardWidget widget, Recordset rs)
+        {
+            try
+            {
+                string summary = rs.RecordCount == 0 ? "Sin datos" : $"{rs.RecordCount} registro(s)";
+                if (rs.RecordCount > 0 && rs.Fields.Count > 0)
+                {
+                    string firstValue = rs.Fields.Item(0).Value?.ToString();
+                    if (!string.IsNullOrEmpty(firstValue))
+                    {
+                        summary = $"{firstValue}\n({rs.RecordCount} registro(s))";
+                    }
+                }
+
+                if (!string.IsNullOrEmpty(widget.ValueItemId))
+                {
+                    StaticText text = (StaticText)widget.ParentForm.Items.Item(widget.ValueItemId).Specific;
+                    text.Caption = summary;
+                }
+            }
+            catch (Exception ex)
+            {
+                B1App.Instance.Application.SetStatusBarMessage($"Error mostrando widget: {ex.Message}", BoMessageTime.bmt_Short, true);
+            }
+        }
+
+        private static void RenderListWidget(DashboardWidget widget)
+        {
+            try
+            {
+                Grid grid = (Grid)widget.ParentForm.Items.Item(widget.GridItemId).Specific;
+                var dt = grid.DataTable;
+                string limitedQuery = ApplyQueryLimit(widget.Query, widget.MaxRows);
+                dt.ExecuteQuery(limitedQuery);
+                try { grid.AutoResizeColumns(); } catch { }
+            }
+            catch (Exception ex)
+            {
+                B1App.Instance.Application.SetStatusBarMessage($"Error renderizando lista: {ex.Message}", BoMessageTime.bmt_Short, true);
+            }
+        }
+
+        private static bool IsListWidget(DashboardWidget widget)
+        {
+            string type = widget.Type?.ToUpperInvariant();
+            string mode = widget.RenderMode?.ToUpperInvariant();
+            return type == "LIST" || type == "TABLE" || mode == "LIST" || mode == "TABLE";
         }
 
         public static void RefreshWidget(string widgetId)
@@ -196,19 +249,51 @@ namespace B1TuneUp.Modules
 
         public static void RefreshAllWidgets()
         {
-            foreach (string widgetId in _widgets.Keys)
+            foreach (var widget in _widgets.Values)
             {
-                LoadWidgetData(_widgets[widgetId]);
+                LoadWidgetData(widget);
             }
+        }
+
+        private static int SafeInt(object value, int fallback)
+        {
+            try
+            {
+                if (value == null) return fallback;
+                if (int.TryParse(value.ToString(), out var parsed)) return parsed;
+                double dbl;
+                if (double.TryParse(value.ToString(), out dbl)) return Convert.ToInt32(dbl);
+                return fallback;
+            }
+            catch { return fallback; }
+        }
+
+        private static string ApplyQueryLimit(string baseQuery, int maxRows)
+        {
+            if (maxRows <= 0 || string.IsNullOrWhiteSpace(baseQuery)) return baseQuery;
+            string trimmed = baseQuery.Trim().TrimEnd(';');
+            if (B1App.Instance.IsHana)
+            {
+                return $"SELECT * FROM ({trimmed}) T LIMIT {maxRows}";
+            }
+            return $"SELECT TOP {maxRows} * FROM ({trimmed}) AS T";
         }
     }
 
     internal class DashboardWidget
     {
-        public string Id { get; set; }
+        public string InternalId { get; set; }
         public string Type { get; set; }
+        public string Title { get; set; }
         public string Query { get; set; }
-        public Folder Container { get; set; }
+        public int Width { get; set; }
+        public int Height { get; set; }
+        public int MaxRows { get; set; }
+        public string RenderMode { get; set; }
+        public SAPbouiCOM.Form ParentForm { get; set; }
+        public Item Container { get; set; }
         public string RefreshButtonId { get; set; }
+        public string ValueItemId { get; set; }
+        public string GridItemId { get; set; }
     }
 }

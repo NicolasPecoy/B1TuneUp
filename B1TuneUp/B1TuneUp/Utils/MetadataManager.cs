@@ -135,6 +135,10 @@ namespace B1TuneUp.Utils
             CreateUDF("@BTUN_UI", "Label", "Label/Value", BoFieldTypes.db_Alpha, 100);
             CreateUDF("@BTUN_UI", "FromPane", "From Pane", BoFieldTypes.db_Numeric, 5);
             CreateUDF("@BTUN_UI", "ToPane", "To Pane", BoFieldTypes.db_Numeric, 5);
+            CreateUDF("@BTUN_UI", "UserCode", "User Code Filter", BoFieldTypes.db_Alpha, 50);
+            CreateUDF("@BTUN_UI", "UserGroup", "User Group Filter", BoFieldTypes.db_Alpha, 50);
+            CreateUDF("@BTUN_UI", "Condition", "SQL Condition (optional)", BoFieldTypes.db_Memo);
+            CreateUDF("@BTUN_UI", "Priority", "Execution Priority", BoFieldTypes.db_Numeric, 5, "10");
 
             // Tabla para Layouts guardados por Item Placement
             CreateUDT("BTUN_LAYOUT", "B1TuneUp Layouts", BoUTBTableType.bott_NoObject);
@@ -188,6 +192,11 @@ namespace B1TuneUp.Utils
             CreateUDF("@BTUN_PAD", "FormType", "Form Type", BoFieldTypes.db_Alpha, 20);
             CreateUDF("@BTUN_PAD", "Title", "Pad Title", BoFieldTypes.db_Alpha, 50);
             CreateUDF("@BTUN_PAD", "Position", "Position (Left/Right)", BoFieldTypes.db_Alpha, 10, "Right", "Left:Left;Right:Right");
+            CreateUDF("@BTUN_PAD", "Columns", "Button Columns", BoFieldTypes.db_Numeric, 3, "1");
+            CreateUDF("@BTUN_PAD", "BtnWidth", "Default Button Width", BoFieldTypes.db_Numeric, 5, "120");
+            CreateUDF("@BTUN_PAD", "BtnHeight", "Default Button Height", BoFieldTypes.db_Numeric, 5, "22");
+            CreateUDF("@BTUN_PAD", "DockMode", "Dock Mode", BoFieldTypes.db_Alpha, 15, "Floating", "Floating:Floating;StickToForm:Stick To Form;Modal:Modal");
+            CreateUDF("@BTUN_PAD", "FollowForm", "Move with Form", BoFieldTypes.db_Alpha, 1, "Y", "Y:Yes;N:No");
 
             // Tabla para Botones del Action Pad
             CreateUDT("BTUN_PADB", "B1TuneUp Action Pad Buttons", BoUTBTableType.bott_NoObject);
@@ -195,6 +204,14 @@ namespace B1TuneUp.Utils
             CreateUDF("@BTUN_PADB", "Label", "Button Label", BoFieldTypes.db_Alpha, 100);
             CreateUDF("@BTUN_PADB", "Action", "Action Macro", BoFieldTypes.db_Memo);
             CreateUDF("@BTUN_PADB", "Order", "Sort Order", BoFieldTypes.db_Numeric, 5);
+            CreateUDF("@BTUN_PADB", "Tooltip", "Tooltip / Description", BoFieldTypes.db_Alpha, 254);
+            CreateUDF("@BTUN_PADB", "Icon", "Icon Path or Key", BoFieldTypes.db_Alpha, 200);
+            CreateUDF("@BTUN_PADB", "Color", "Accent Color (#RRGGBB)", BoFieldTypes.db_Alpha, 20);
+            CreateUDF("@BTUN_PADB", "HotKey", "Hot Key (e.g. ALT+1)", BoFieldTypes.db_Alpha, 20);
+            CreateUDF("@BTUN_PADB", "GridRow", "Row Index", BoFieldTypes.db_Numeric, 5);
+            CreateUDF("@BTUN_PADB", "GridCol", "Column Index", BoFieldTypes.db_Numeric, 5);
+            CreateUDF("@BTUN_PADB", "ColSpan", "Column Span", BoFieldTypes.db_Numeric, 5, "1");
+            CreateUDF("@BTUN_PADB", "RowSpan", "Row Span", BoFieldTypes.db_Numeric, 5, "1");
 
             // Tabla para Código C# Dinámico (Universal Functions - Code)
             CreateUDT("BTUN_CODE", "B1TuneUp Dynamic Code", BoUTBTableType.bott_NoObject);
@@ -257,6 +274,10 @@ namespace B1TuneUp.Utils
             CreateUDF("@BTUN_DASH", "Height", "Height (pixels)", BoFieldTypes.db_Numeric, 5, "200");
             CreateUDF("@BTUN_DASH", "Position", "Position Order", BoFieldTypes.db_Numeric, 5, "0");
             CreateUDF("@BTUN_DASH", "Color", "Background Color", BoFieldTypes.db_Alpha, 20, "#FFFFFF");
+            CreateUDF("@BTUN_DASH", "MaxRows", "Max Rows/Items", BoFieldTypes.db_Numeric, 5, "5");
+            CreateUDF("@BTUN_DASH", "AutoRefresh", "Auto Refresh", BoFieldTypes.db_Alpha, 1, "N", "Y:Yes;N:No");
+            CreateUDF("@BTUN_DASH", "RefreshSecs", "Refresh Interval (s)", BoFieldTypes.db_Numeric, 5, "60");
+            CreateUDF("@BTUN_DASH", "RenderMode", "Render Mode", BoFieldTypes.db_Alpha, 20, "Auto", "Auto:Auto;KpiCard:KPI Card;List:List;Table:Table");
 
             // Tabla para Templates
             CreateUDT("BTUN_TMPL", "B1TuneUp Templates", BoUTBTableType.bott_NoObject);
@@ -338,6 +359,11 @@ namespace B1TuneUp.Utils
             CreateUDF("@BTUN_VAL", "Active", "Active", BoFieldTypes.db_Alpha, 1, "Y", "Y:Yes;N:No");
             CreateUDF("@BTUN_VAL", "User", "Apply to User", BoFieldTypes.db_Alpha, 50);
             CreateUDF("@BTUN_VAL", "UserGroup", "Apply to User Group", BoFieldTypes.db_Alpha, 50);
+            CreateUDF("@BTUN_VAL", "Message", "Custom Message", BoFieldTypes.db_Alpha, 254);
+            CreateUDF("@BTUN_VAL", "Block", "Block Behavior", BoFieldTypes.db_Alpha, 1, "Y", "Y:Always Block;N:Allow Skip");
+            CreateUDF("@BTUN_VAL", "Sequence", "Execution Order", BoFieldTypes.db_Numeric, 5, "10");
+            CreateUDF("@BTUN_VAL", "PromptButtons", "Prompt Buttons (Yes|No)", BoFieldTypes.db_Alpha, 60);
+            CreateUDF("@BTUN_VAL", "Notes", "Notes / Description", BoFieldTypes.db_Memo);
             CreateUDF("@BTUN_VAL", "CreatedBy", "Created By", BoFieldTypes.db_Alpha, 50);
             CreateUDF("@BTUN_VAL", "CreatedAt", "Created At", BoFieldTypes.db_Date);
             CreateUDF("@BTUN_VAL", "UpdatedAt", "Updated At", BoFieldTypes.db_Date);

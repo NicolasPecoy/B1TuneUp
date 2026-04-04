@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Windows.Forms;
 using SAPbouiCOM;
 using B1TuneUp.Core;
@@ -15,8 +17,8 @@ namespace B1TuneUp.Modules
             try
             {
                 string sql = B1App.Instance.IsHana
-                    ? $"SELECT * FROM \"@BTUN_UI\" WHERE \"U_FormType\" = '{oForm.TypeEx}'"
-                    : $"SELECT * FROM [@BTUN_UI] WHERE [U_FormType] = '{oForm.TypeEx}'";
+                    ? $"SELECT * FROM \"@BTUN_UI\" WHERE \"U_FormType\" = '{oForm.TypeEx}' ORDER BY \"U_Priority\" ASC"
+                    : $"SELECT * FROM [@BTUN_UI] WHERE [U_FormType] = '{oForm.TypeEx}' ORDER BY U_Priority ASC";
 
                 rs.DoQuery(sql);
 
@@ -24,6 +26,21 @@ namespace B1TuneUp.Modules
                 {
                     string action = rs.Fields.Item("U_Action").Value.ToString();
                     string itemId = rs.Fields.Item("U_ItemID").Value.ToString();
+                    string userFilter = SafeString(rs.Fields.Item("U_UserCode")?.Value);
+                    string groupFilter = SafeString(rs.Fields.Item("U_UserGroup")?.Value);
+                    string conditionSql = SafeString(rs.Fields.Item("U_Condition")?.Value);
+
+                    if (!MatchesCurrentUser(userFilter, groupFilter))
+                    {
+                        rs.MoveNext();
+                        continue;
+                    }
+
+                    if (!string.IsNullOrWhiteSpace(conditionSql) && !MacroEngine.CheckCondition(conditionSql, oForm))
+                    {
+                        rs.MoveNext();
+                        continue;
+                    }
 
                     try
                     {
@@ -114,6 +131,93 @@ namespace B1TuneUp.Modules
             {
                 ComObjectManager.Release(rs);
             }
+        }
+
+        private static readonly object _contextLock = new object();
+        private static UserContext _userContext;
+
+        private static bool MatchesCurrentUser(string userFilter, string groupFilter)
+        {
+            if (string.IsNullOrWhiteSpace(userFilter) && string.IsNullOrWhiteSpace(groupFilter))
+                return true;
+
+            var context = GetUserContext();
+            if (!AllowListContains(userFilter, context.UserCode, context.UserName))
+                return false;
+            if (!AllowListContains(groupFilter, context.GroupCodes.ToArray()))
+                return false;
+            return true;
+        }
+
+        private static UserContext GetUserContext()
+        {
+            if (_userContext != null) return _userContext;
+            lock (_contextLock)
+            {
+                if (_userContext != null) return _userContext;
+                var ctx = new UserContext
+                {
+                    UserCode = SafeString(() => B1App.Instance.Company.UserName),
+                    UserName = SafeString(() => B1App.Instance.Company.UserName)
+                };
+
+                try
+                {
+                    Recordset rs = (Recordset)B1App.Instance.Company.GetBusinessObject(BoObjectTypes.BoRecordset);
+                    string sql = B1App.Instance.IsHana
+                        ? $"SELECT G.\"GroupCode\" FROM OUSR U INNER JOIN USR6 UG ON U.\"USERID\" = UG.\"USERID\" INNER JOIN OUGR G ON UG.\"GroupCode\" = G.\"GroupCode\" WHERE U.\"USER_CODE\" = '{ctx.UserCode}'"
+                        : $"SELECT G.GroupCode FROM OUSR U WITH (NOLOCK) INNER JOIN USR6 UG ON U.USERID = UG.USERID INNER JOIN OUGR G ON UG.GroupCode = G.GroupCode WHERE U.USER_CODE = '{ctx.UserCode}'";
+                    rs.DoQuery(sql);
+                    while (!rs.EoF)
+                    {
+                        string code = rs.Fields.Item(0).Value?.ToString();
+                        if (!string.IsNullOrEmpty(code)) ctx.GroupCodes.Add(code);
+                        rs.MoveNext();
+                    }
+                    ComObjectManager.Release(rs);
+                }
+                catch { }
+
+                _userContext = ctx;
+                return ctx;
+            }
+        }
+
+        private static bool AllowListContains(string filter, params string[] candidates)
+        {
+            if (string.IsNullOrWhiteSpace(filter)) return true;
+            if (candidates == null) candidates = Array.Empty<string>();
+
+            var tokens = filter.Split(new[] { ',', ';', '|', ' ' }, StringSplitOptions.RemoveEmptyEntries);
+            foreach (var token in tokens)
+            {
+                string value = token.Trim();
+                if (value == "*") return true;
+                foreach (var candidate in candidates)
+                {
+                    if (!string.IsNullOrEmpty(candidate) && value.Equals(candidate, StringComparison.OrdinalIgnoreCase))
+                        return true;
+                }
+            }
+            return false;
+        }
+
+        private static string SafeString(object value)
+        {
+            return value?.ToString() ?? string.Empty;
+        }
+
+        private static string SafeString(Func<string> getter)
+        {
+            try { return getter() ?? string.Empty; }
+            catch { return string.Empty; }
+        }
+
+        private class UserContext
+        {
+            public string UserCode { get; set; }
+            public string UserName { get; set; }
+            public List<string> GroupCodes { get; } = new List<string>();
         }
 
         public static void AddButton(SAPbouiCOM.Form oForm, string itemId, string caption, int left, int top, int width, int height, string fromItemId = "")

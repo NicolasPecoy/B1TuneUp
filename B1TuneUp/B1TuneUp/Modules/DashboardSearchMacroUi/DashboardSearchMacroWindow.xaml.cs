@@ -1,6 +1,8 @@
+using System;
 using System.Windows;
 using System.Windows.Forms.Integration;
 using System.Windows.Media;
+using System.Windows.Threading;
 using B1TuneUp.Core;
 using B1TuneUp.Modules.IntegrationUi;
 
@@ -9,6 +11,7 @@ namespace B1TuneUp.Modules.DashboardSearchMacroUi
     public partial class DashboardSearchMacroWindow : Window
     {
         private readonly DashboardSearchMacroViewModel _viewModel;
+        private readonly DispatcherTimer _autoRefreshTimer;
 
         public DashboardSearchMacroWindow()
         {
@@ -18,15 +21,19 @@ namespace B1TuneUp.Modules.DashboardSearchMacroUi
 
             ElementHost.EnableModelessKeyboardInterop(this);
             Loaded += OnLoaded;
+            _autoRefreshTimer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(10) };
+            _autoRefreshTimer.Tick += OnAutoRefreshTick;
         }
 
         private async void OnLoaded(object sender, RoutedEventArgs e)
         {
+            Loaded -= OnLoaded;
             ApplyTheme();
             Title = B1App.Instance?.IsHana == true
                 ? "B1TuneUp Dashboard/Search/Macro Studio - SAP Business One HANA"
                 : "B1TuneUp Dashboard/Search/Macro Studio - SAP Business One SQL";
             await _viewModel.LoadAsync();
+            _autoRefreshTimer.Start();
         }
 
         private void ApplyTheme()
@@ -55,5 +62,17 @@ namespace B1TuneUp.Modules.DashboardSearchMacroUi
         }
 
         private void OnCloseClick(object sender, RoutedEventArgs e) => Close();
+
+        private async void OnAutoRefreshTick(object sender, EventArgs e)
+        {
+            await _viewModel.TryAutoRefreshAsync();
+        }
+
+        protected override void OnClosed(EventArgs e)
+        {
+            base.OnClosed(e);
+            _autoRefreshTimer.Tick -= OnAutoRefreshTick;
+            _autoRefreshTimer.Stop();
+        }
     }
 }

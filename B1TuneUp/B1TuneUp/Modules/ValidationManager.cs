@@ -56,6 +56,8 @@ namespace B1TuneUp.B1TuneUp.Modules
             matrix.DataTable.Columns.Add("Condition", SAPbouiCOM.BoFieldsType.ft_AlphaNumeric);
             matrix.DataTable.Columns.Add("Action", SAPbouiCOM.BoFieldsType.ft_AlphaNumeric);
             matrix.DataTable.Columns.Add("Active", SAPbouiCOM.BoFieldsType.ft_AlphaNumeric);
+            matrix.DataTable.Columns.Add("Severity", SAPbouiCOM.BoFieldsType.ft_AlphaNumeric);
+            matrix.DataTable.Columns.Add("Message", SAPbouiCOM.BoFieldsType.ft_AlphaNumeric);
 
             // Set column titles
             try
@@ -66,6 +68,8 @@ namespace B1TuneUp.B1TuneUp.Modules
                 ((SAPbouiCOM.EditTextColumn)matrix.Columns.Item("Condition")).TitleObject.Caption = "Condition";
                 ((SAPbouiCOM.EditTextColumn)matrix.Columns.Item("Action")).TitleObject.Caption = "Action";
                 ((SAPbouiCOM.EditTextColumn)matrix.Columns.Item("Active")).TitleObject.Caption = "Active";
+                ((SAPbouiCOM.EditTextColumn)matrix.Columns.Item("Severity")).TitleObject.Caption = "Severity";
+                ((SAPbouiCOM.EditTextColumn)matrix.Columns.Item("Message")).TitleObject.Caption = "Message";
             }
             catch { }
 
@@ -216,8 +220,8 @@ namespace B1TuneUp.B1TuneUp.Modules
             {
                 Recordset rs = (Recordset)B1App.Instance.Company.GetBusinessObject(BoObjectTypes.BoRecordset);
                 string sql = B1App.Instance.IsHana ?
-                    "SELECT \"U_FormType\", \"U_ItemName\", \"U_Event\", \"U_Condition\", \"U_Action\", \"U_Active\" FROM \"@BTUN_VAL\" ORDER BY \"U_FormType\", \"U_ItemName\"" :
-                    "SELECT U_FormType, U_ItemName, U_Event, U_Condition, U_Action, U_Active FROM [@BTUN_VAL] ORDER BY U_FormType, U_ItemName";
+                    "SELECT \"U_FormType\", \"U_ItemName\", \"U_Event\", \"U_Condition\", \"U_Action\", \"U_Active\", \"U_Severity\", \"U_Message\", \"U_Block\", \"U_Sequence\" FROM \"@BTUN_VAL\" ORDER BY \"U_FormType\", \"U_Sequence\", \"U_ItemName\"" :
+                    "SELECT U_FormType, U_ItemName, U_Event, U_Condition, U_Action, U_Active, U_Severity, U_Message, U_Block, U_Sequence FROM [@BTUN_VAL] ORDER BY U_FormType, U_Sequence, U_ItemName";
 
                 rs.DoQuery(sql);
 
@@ -234,6 +238,8 @@ namespace B1TuneUp.B1TuneUp.Modules
                     matrix.DataTable.SetValue("Condition", rowIndex, rs.Fields.Item("U_Condition").Value);
                     matrix.DataTable.SetValue("Action", rowIndex, rs.Fields.Item("U_Action").Value);
                     matrix.DataTable.SetValue("Active", rowIndex, rs.Fields.Item("U_Active").Value);
+                    try { matrix.DataTable.SetValue("Severity", rowIndex, rs.Fields.Item("U_Severity").Value); } catch { }
+                    try { matrix.DataTable.SetValue("Message", rowIndex, rs.Fields.Item("U_Message").Value); } catch { }
 
                     rs.MoveNext();
                 }
@@ -950,8 +956,8 @@ namespace B1TuneUp.B1TuneUp.Modules
             {
                 Recordset rs = (Recordset)B1App.Instance.Company.GetBusinessObject(BoObjectTypes.BoRecordset);
                 string sql = B1App.Instance.IsHana ?
-                    $"SELECT * FROM \"@BTUN_VAL\" WHERE \"U_FormType\" = '{form.TypeEx}' AND \"U_Event\" = '{eventType}' AND \"U_Active\" = 'Y' ORDER BY \"U_CreatedAt\"" :
-                    $"SELECT * FROM [@BTUN_VAL] WHERE U_FormType = '{form.TypeEx}' AND U_Event = '{eventType}' AND U_Active = 'Y' ORDER BY U_CreatedAt";
+                    $"SELECT \"Code\",\"Name\",\"U_FormType\",\"U_ItemName\",\"U_Event\",\"U_Condition\",\"U_Action\",\"U_Severity\",\"U_Message\",\"U_Block\",\"U_User\",\"U_UserGroup\",\"U_PromptButtons\" FROM \"@BTUN_VAL\" WHERE \"U_FormType\" = '{form.TypeEx}' AND \"U_Event\" = '{eventType}' AND \"U_Active\" = 'Y' ORDER BY \"U_Sequence\",\"U_CreatedAt\"" :
+                    $"SELECT Code,Name,U_FormType,U_ItemName,U_Event,U_Condition,U_Action,U_Severity,U_Message,U_Block,U_User,U_UserGroup,U_PromptButtons FROM [@BTUN_VAL] WHERE U_FormType = '{form.TypeEx}' AND U_Event = '{eventType}' AND U_Active = 'Y' ORDER BY U_Sequence,U_CreatedAt";
 
                 rs.DoQuery(sql);
 
@@ -959,61 +965,57 @@ namespace B1TuneUp.B1TuneUp.Modules
 
                 while (!rs.EoF)
                 {
-                    string condition = rs.Fields.Item("U_Condition").Value.ToString();
-                    string action = rs.Fields.Item("U_Action").Value.ToString();
-                    string severity = rs.Fields.Item("U_Severity").Value.ToString();
+                    string severity = string.IsNullOrWhiteSpace(ReadField(rs, "U_Severity")) ? "ERROR" : ReadField(rs, "U_Severity");
+                    if (!string.IsNullOrEmpty(targetSeverity) && !severity.Equals(targetSeverity, StringComparison.OrdinalIgnoreCase))
+                    {
+                        rs.MoveNext();
+                        continue;
+                    }
 
-                    // Check if the condition is met
+                    string userFilter = ReadField(rs, "U_User");
+                    string groupFilter = ReadField(rs, "U_UserGroup");
+                    if (!MatchesCurrentUser(userFilter, groupFilter))
+                    {
+                        rs.MoveNext();
+                        continue;
+                    }
+
+                    string condition = ReadField(rs, "U_Condition");
                     bool conditionResult = EvaluateCondition(condition, form);
 
                     if (conditionResult)
                     {
-                        // If targetSeverity is specified, only process matching severity
-                        if (!string.IsNullOrEmpty(targetSeverity) && severity != targetSeverity)
+                        string action = ReadField(rs, "U_Action");
+                        string message = ReadField(rs, "U_Message");
+                        bool blockAlways = !string.Equals(ReadField(rs, "U_Block"), "N", StringComparison.OrdinalIgnoreCase);
+                        string promptButtons = ReadField(rs, "U_PromptButtons");
+                        string processedMessage = BuildValidationMessage(form, message, condition);
+                        string ruleName = ReadField(rs, "Name");
+
+                        if (!string.IsNullOrEmpty(action))
                         {
-                            rs.MoveNext();
-                            continue;
+                            MacroEngine.ExecuteMacro(action, form);
                         }
 
-                        // Execute the action based on severity
-                        switch (severity)
+                        AuditLogManager.LogAction("ValidationRule", $"Rule {ruleName} ({severity}) triggered on {form.TypeEx}");
+
+                        switch (severity.ToUpperInvariant())
                         {
                             case "ERROR":
-                                // Show error message and prevent continuation
-                                if (!string.IsNullOrEmpty(action))
-                                {
-                                    MacroEngine.ExecuteMacro(action, form);
-                                }
-                                else
-                                {
-                                    B1App.Instance.Application.MessageBox($"Validation failed: {condition}");
-                                }
+                                ShowMessage(processedMessage, "Validación");
                                 allValid = false;
                                 break;
-
                             case "WARNING":
-                                // Show warning but allow continuation
-                                if (!string.IsNullOrEmpty(action))
+                                bool userContinue = HandlePrompt(processedMessage, promptButtons);
+                                if (!userContinue || blockAlways)
                                 {
-                                    MacroEngine.ExecuteMacro(action, form);
-                                }
-                                else
-                                {
-                                    int msgResult = B1App.Instance.Application.MessageBox($"Validation warning: {condition}\nContinue anyway?", 2, "Yes", "No");
-                                    if (msgResult == 2) // User chose "No"
-                                        allValid = false;
+                                    allValid = false;
                                 }
                                 break;
-
-                            case "INFO":
-                                // Just show information
-                                if (!string.IsNullOrEmpty(action))
+                            default: // INFO
+                                if (!string.IsNullOrEmpty(processedMessage))
                                 {
-                                    MacroEngine.ExecuteMacro(action, form);
-                                }
-                                else
-                                {
-                                    B1App.Instance.Application.MessageBox($"Validation info: {condition}");
+                                    ShowMessage(processedMessage, "Información");
                                 }
                                 break;
                         }
@@ -1111,6 +1113,132 @@ namespace B1TuneUp.B1TuneUp.Modules
             {
                 return input; // Return original on error
             }
+        }
+
+        private static string ReadField(Recordset rs, string fieldName)
+        {
+            try { return rs.Fields.Item(fieldName).Value?.ToString() ?? string.Empty; }
+            catch { return string.Empty; }
+        }
+
+        private static string BuildValidationMessage(SAPbouiCOM.Form form, string template, string condition)
+        {
+            if (string.IsNullOrWhiteSpace(template))
+                return $"Validation failed: {condition}";
+            return ProcessVariables(template, form);
+        }
+
+        private static void ShowMessage(string message, string title)
+        {
+            if (string.IsNullOrWhiteSpace(message)) return;
+            B1App.Instance.Application.MessageBox(message, 1, "OK");
+        }
+
+        private static bool HandlePrompt(string message, string promptButtons)
+        {
+            if (string.IsNullOrWhiteSpace(message))
+                message = "Validation warning. Continue?";
+
+            if (string.IsNullOrWhiteSpace(promptButtons))
+            {
+                int resp = B1App.Instance.Application.MessageBox(message, 2, "Continue", "Cancel");
+                return resp == 1;
+            }
+
+            var tokens = promptButtons.Split(new[] { '|', ';' }, StringSplitOptions.RemoveEmptyEntries);
+            string btn1 = tokens.Length > 0 ? tokens[0].Trim() : "Yes";
+            string btn2 = tokens.Length > 1 ? tokens[1].Trim() : "No";
+            string btn3 = tokens.Length > 2 ? tokens[2].Trim() : string.Empty;
+
+            int result = string.IsNullOrWhiteSpace(btn3)
+                ? B1App.Instance.Application.MessageBox(message, 2, btn1, btn2)
+                : B1App.Instance.Application.MessageBox(message, 3, btn1, btn2, btn3);
+
+            return result == 1;
+        }
+
+        private static bool MatchesCurrentUser(string userFilter, string groupFilter)
+        {
+            if (string.IsNullOrWhiteSpace(userFilter) && string.IsNullOrWhiteSpace(groupFilter))
+                return true;
+
+            var context = GetUserContext();
+            if (!AllowListContains(userFilter, new[] { context.UserCode, context.UserName }))
+                return false;
+
+            if (!AllowListContains(groupFilter, context.GroupCodes))
+                return false;
+
+            return true;
+        }
+
+        private static bool AllowListContains(string filter, IEnumerable<string> candidates)
+        {
+            if (string.IsNullOrWhiteSpace(filter)) return true;
+            if (candidates == null) candidates = Array.Empty<string>();
+
+            var tokens = filter.Split(new[] { ',', ';', '|', ' ' }, StringSplitOptions.RemoveEmptyEntries);
+            foreach (var token in tokens)
+            {
+                string value = token.Trim();
+                if (value == "*") return true;
+                foreach (var candidate in candidates)
+                {
+                    if (!string.IsNullOrEmpty(candidate) && value.Equals(candidate, StringComparison.OrdinalIgnoreCase))
+                        return true;
+                }
+            }
+            return false;
+        }
+
+        private static readonly object _userContextLock = new object();
+        private static UserContext _userContext;
+
+        private static UserContext GetUserContext()
+        {
+            if (_userContext != null) return _userContext;
+            lock (_userContextLock)
+            {
+                if (_userContext != null) return _userContext;
+                var ctx = new UserContext
+                {
+                    UserCode = SafeString(() => B1App.Instance.Company.UserName),
+                    UserName = SafeString(() => B1App.Instance.Company.UserName)
+                };
+
+                try
+                {
+                    Recordset rs = (Recordset)B1App.Instance.Company.GetBusinessObject(BoObjectTypes.BoRecordset);
+                    string sql = B1App.Instance.IsHana
+                        ? $"SELECT G.\"GroupCode\" FROM OUSR U INNER JOIN USR6 UG ON U.\"USERID\" = UG.\"USERID\" INNER JOIN OUGR G ON UG.\"GroupCode\" = G.\"GroupCode\" WHERE U.\"USER_CODE\" = '{ctx.UserCode}'"
+                        : $"SELECT G.GroupCode FROM OUSR U WITH (NOLOCK) INNER JOIN USR6 UG ON U.USERID = UG.USERID INNER JOIN OUGR G ON UG.GroupCode = G.GroupCode WHERE U.USER_CODE = '{ctx.UserCode}'";
+                    rs.DoQuery(sql);
+                    while (!rs.EoF)
+                    {
+                        string code = rs.Fields.Item(0).Value?.ToString();
+                        if (!string.IsNullOrEmpty(code)) ctx.GroupCodes.Add(code);
+                        rs.MoveNext();
+                    }
+                    ComObjectManager.Release(rs);
+                }
+                catch { }
+
+                _userContext = ctx;
+                return ctx;
+            }
+        }
+
+        private static string SafeString(Func<string> getter)
+        {
+            try { return getter() ?? string.Empty; }
+            catch { return string.Empty; }
+        }
+
+        private class UserContext
+        {
+            public string UserCode { get; set; }
+            public string UserName { get; set; }
+            public HashSet<string> GroupCodes { get; } = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         }
 
         private static string GetFieldValueFromForm(SAPbouiCOM.Form form, string fieldName)

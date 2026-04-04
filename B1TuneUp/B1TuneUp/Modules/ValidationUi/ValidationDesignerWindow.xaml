@@ -163,6 +163,11 @@
                                         <TextBlock Text="Severidad" Style="{StaticResource LabelStyle}" />
                                         <ComboBox ItemsSource="{Binding SeverityOptions}"
                                                   SelectedItem="{Binding SelectedValidation.Severity, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                                        <TextBlock Text="Orden de ejecución" Style="{StaticResource LabelStyle}" />
+                                        <TextBox Text="{Binding SelectedValidation.Sequence, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                                        <CheckBox Content="Siempre bloquear (aunque sea advertencia)" IsChecked="{Binding SelectedValidation.BlockAlways}" Margin="8,8,0,0" />
+                                        <TextBlock Text="Botones personalizados (Sí|No|Cancelar)" Style="{StaticResource LabelStyle}" Margin="0,8,0,0" />
+                                        <TextBox Text="{Binding SelectedValidation.PromptButtons, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
                                         <CheckBox Content="Activo" IsChecked="{Binding SelectedValidation.Active}" Margin="0,8,0,0" />
                                     </StackPanel>
                                 </Grid>
@@ -176,7 +181,13 @@
                                              Height="120"
                                              TextWrapping="Wrap"
                                              VerticalScrollBarVisibility="Auto" />
-                                    <TextBlock Text="Acción / Macro" Style="{StaticResource LabelStyle}" />
+                                    <TextBlock Text="Mensaje personalizado (usa $[Campo])" Style="{StaticResource LabelStyle}" Margin="0,12,0,0" />
+                                    <TextBox Text="{Binding SelectedValidation.Message, UpdateSourceTrigger=PropertyChanged}"
+                                             AcceptsReturn="True"
+                                             Height="90"
+                                             TextWrapping="Wrap"
+                                             VerticalScrollBarVisibility="Auto" />
+                                    <TextBlock Text="Acción / Macro" Style="{StaticResource LabelStyle}" Margin="0,12,0,0" />
                                     <TextBox Text="{Binding SelectedValidation.Action, UpdateSourceTrigger=PropertyChanged}"
                                              AcceptsReturn="True"
                                              Height="120"

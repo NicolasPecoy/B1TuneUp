@@ -1,6 +1,8 @@
+using System;
 using System.Windows;
 using System.Windows.Forms.Integration;
 using System.Windows.Media;
+using System.Windows.Threading;
 using B1TuneUp.Core;
 using B1TuneUp.Modules.IntegrationUi;
 
@@ -9,6 +11,7 @@ namespace B1TuneUp.Modules.AutomationDashboardUi
     public partial class AutomationDashboardWindow : Window
     {
         private readonly AutomationDashboardViewModel _viewModel;
+        private readonly DispatcherTimer _autoRefreshTimer;
 
         public AutomationDashboardWindow()
         {
@@ -18,15 +21,19 @@ namespace B1TuneUp.Modules.AutomationDashboardUi
 
             ElementHost.EnableModelessKeyboardInterop(this);
             Loaded += OnLoaded;
+            _autoRefreshTimer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(5) };
+            _autoRefreshTimer.Tick += OnAutoRefreshTick;
         }
 
         private async void OnLoaded(object sender, RoutedEventArgs e)
         {
+            Loaded -= OnLoaded;
             ApplyTheme();
             Title = B1App.Instance?.IsHana == true
                 ? "B1TuneUp Automation Dashboard - SAP Business One HANA"
                 : "B1TuneUp Automation Dashboard - SAP Business One SQL";
             await _viewModel.LoadAsync();
+            _autoRefreshTimer.Start();
         }
 
         private void ApplyTheme()
@@ -55,5 +62,17 @@ namespace B1TuneUp.Modules.AutomationDashboardUi
         }
 
         private void OnCloseClick(object sender, RoutedEventArgs e) => Close();
+
+        private async void OnAutoRefreshTick(object sender, EventArgs e)
+        {
+            await _viewModel.TryAutoRefreshAsync();
+        }
+
+        protected override void OnClosed(EventArgs e)
+        {
+            base.OnClosed(e);
+            _autoRefreshTimer.Tick -= OnAutoRefreshTick;
+            _autoRefreshTimer.Stop();
+        }
     }
 }

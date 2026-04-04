@@ -17,8 +17,8 @@ namespace B1TuneUp.Modules
             {
                 bool isHana = B1App.Instance.IsHana;
                 string sql = isHana
-                    ? "SELECT \"Code\",\"Name\",\"U_FormType\",\"U_ItemName\",\"U_Event\",\"U_Condition\",\"U_Action\",\"U_Severity\",\"U_Active\",\"U_User\",\"U_UserGroup\" FROM \"@BTUN_VAL\" ORDER BY \"Code\""
-                    : "SELECT [Code],[Name],[U_FormType],[U_ItemName],[U_Event],[U_Condition],[U_Action],[U_Severity],[U_Active],[U_User],[U_UserGroup] FROM [@BTUN_VAL] ORDER BY [Code]";
+                    ? "SELECT \"Code\",\"Name\",\"U_FormType\",\"U_ItemName\",\"U_Event\",\"U_Condition\",\"U_Action\",\"U_Severity\",\"U_Active\",\"U_User\",\"U_UserGroup\",\"U_Message\",\"U_Block\",\"U_Sequence\",\"U_PromptButtons\",\"U_Notes\" FROM \"@BTUN_VAL\" ORDER BY \"Code\""
+                    : "SELECT [Code],[Name],[U_FormType],[U_ItemName],[U_Event],[U_Condition],[U_Action],[U_Severity],[U_Active],[U_User],[U_UserGroup],[U_Message],[U_Block],[U_Sequence],[U_PromptButtons],[U_Notes] FROM [@BTUN_VAL] ORDER BY [Code]";
                 rs = (Recordset)B1App.Instance.Company.GetBusinessObject(BoObjectTypes.BoRecordset);
                 rs.DoQuery(sql);
                 while (!rs.EoF)
@@ -35,7 +35,12 @@ namespace B1TuneUp.Modules
                         Severity = string.IsNullOrWhiteSpace(ReadString(rs, "U_Severity")) ? "ERROR" : ReadString(rs, "U_Severity"),
                         Active = !string.Equals(ReadString(rs, "U_Active"), "N", StringComparison.OrdinalIgnoreCase),
                         AppliesToUser = ReadString(rs, "U_User"),
-                        AppliesToUserGroup = ReadString(rs, "U_UserGroup")
+                        AppliesToUserGroup = ReadString(rs, "U_UserGroup"),
+                        Message = ReadString(rs, "U_Message"),
+                        BlockAlways = !string.Equals(ReadString(rs, "U_Block"), "N", StringComparison.OrdinalIgnoreCase),
+                        Sequence = SafeInt(ReadString(rs, "U_Sequence"), 10),
+                        PromptButtons = ReadString(rs, "U_PromptButtons"),
+                        Notes = ReadString(rs, "U_Notes")
                     });
                     rs.MoveNext();
                 }
@@ -79,6 +84,11 @@ namespace B1TuneUp.Modules
                 SetField(table, "U_Active", entry.Active ? "Y" : "N");
                 SetField(table, "U_User", entry.AppliesToUser);
                 SetField(table, "U_UserGroup", entry.AppliesToUserGroup);
+                SetField(table, "U_Message", entry.Message);
+                SetField(table, "U_Block", entry.BlockAlways ? "Y" : "N");
+                SetField(table, "U_Sequence", entry.Sequence.ToString());
+                SetField(table, "U_PromptButtons", entry.PromptButtons);
+                SetField(table, "U_Notes", entry.Notes);
 
                 int res = exists ? table.Update() : table.Add();
                 if (res != 0)
@@ -128,6 +138,11 @@ namespace B1TuneUp.Modules
         {
             try { return rs.Fields.Item(field).Value?.ToString() ?? string.Empty; }
             catch { return string.Empty; }
+        }
+
+        private static int SafeInt(string input, int fallback)
+        {
+            return int.TryParse(input, out var value) ? value : fallback;
         }
     }
 }

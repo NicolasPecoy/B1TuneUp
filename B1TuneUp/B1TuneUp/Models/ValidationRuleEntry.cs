@@ -15,6 +15,10 @@ namespace B1TuneUp.Models
         public bool Active { get; set; } = true;
         public string AppliesToUser { get; set; }
         public string AppliesToUserGroup { get; set; }
+        public string Message { get; set; }
+        public bool BlockAlways { get; set; } = true;
+        public int Sequence { get; set; } = 10;
+        public string PromptButtons { get; set; }
         public string Notes { get; set; }
         public DateTime? CreatedAt { get; set; }
         public DateTime? UpdatedAt { get; set; }

@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Data;
 using B1TuneUp.Models;
+using B1TuneUp.Modules.ActionPadInlineDesigner;
 using B1TuneUp.Modules.IntegrationUi;
 
 namespace B1TuneUp.Modules.ActionQuickUi
@@ -53,6 +54,7 @@ namespace B1TuneUp.Modules.ActionQuickUi
             DeletePadCommand = new RelayCommand(async () => await DeletePadAsync(), () => SelectedPad != null);
             AddPadButtonCommand = new RelayCommand(AddPadButton, () => SelectedPad != null);
             DeletePadButtonCommand = new RelayCommand(DeletePadButton, () => SelectedPadButton != null && SelectedPad != null);
+            OpenPadDesignerCommand = new RelayCommand(OpenPadDesigner, () => SelectedPad != null);
 
             NewQuickCopyCommand = new RelayCommand(NewQuick);
             DuplicateQuickCopyCommand = new RelayCommand(DuplicateQuick, () => SelectedQuickCopy != null);
@@ -83,6 +85,7 @@ namespace B1TuneUp.Modules.ActionQuickUi
                 DeletePadCommand.RaiseCanExecuteChanged();
                 AddPadButtonCommand.RaiseCanExecuteChanged();
                 DeletePadButtonCommand.RaiseCanExecuteChanged();
+                OpenPadDesignerCommand.RaiseCanExecuteChanged();
             }
         }
 
@@ -188,6 +191,7 @@ namespace B1TuneUp.Modules.ActionQuickUi
         public RelayCommand DeletePadCommand { get; }
         public RelayCommand AddPadButtonCommand { get; }
         public RelayCommand DeletePadButtonCommand { get; }
+        public RelayCommand OpenPadDesignerCommand { get; }
 
         public RelayCommand NewQuickCopyCommand { get; }
         public RelayCommand DuplicateQuickCopyCommand { get; }
@@ -300,6 +304,12 @@ namespace B1TuneUp.Modules.ActionQuickUi
             if (SelectedPad == null || SelectedPadButton == null) return;
             SelectedPad.Buttons.Remove(SelectedPadButton);
             SelectedPadButton = SelectedPad.Buttons.FirstOrDefault();
+        }
+
+        private void OpenPadDesigner()
+        {
+            if (SelectedPad == null) return;
+            ActionPadInlineDesignerManager.ShowOverlay(SelectedPad);
         }
 
         private void NewQuick()
@@ -466,6 +476,7 @@ namespace B1TuneUp.Modules.ActionQuickUi
             DeletePadCommand.RaiseCanExecuteChanged();
             AddPadButtonCommand.RaiseCanExecuteChanged();
             DeletePadButtonCommand.RaiseCanExecuteChanged();
+            OpenPadDesignerCommand.RaiseCanExecuteChanged();
             DuplicateQuickCopyCommand.RaiseCanExecuteChanged();
             SaveQuickCopyCommand.RaiseCanExecuteChanged();
             DeleteQuickCopyCommand.RaiseCanExecuteChanged();

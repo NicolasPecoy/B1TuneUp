@@ -23,8 +23,8 @@ namespace B1TuneUp.Modules
                 rs = (Recordset)B1App.Instance.Company.GetBusinessObject(BoObjectTypes.BoRecordset);
                 string filter = string.IsNullOrWhiteSpace(formType) ? "" : (B1App.Instance.IsHana ? $" WHERE \"U_FormType\" = '{formType.Replace("'", "''")}'" : $" WHERE [U_FormType] = '{formType.Replace("'", "''")}'");
                 string sql = B1App.Instance.IsHana
-                    ? $"SELECT \"Code\",\"Name\",\"U_FormType\",\"U_ItemID\",\"U_Action\",\"U_Top\",\"U_Left\",\"U_Width\",\"U_Height\",\"U_Label\",\"U_FromPane\",\"U_ToPane\" FROM \"{TableName}\"{filter} ORDER BY \"U_FormType\",\"Code\""
-                    : $"SELECT [Code],[Name],[U_FormType],[U_ItemID],[U_Action],[U_Top],[U_Left],[U_Width],[U_Height],[U_Label],[U_FromPane],[U_ToPane] FROM [{TableName}]{filter} ORDER BY [U_FormType],[Code]";
+                    ? $"SELECT \"Code\",\"Name\",\"U_FormType\",\"U_ItemID\",\"U_Action\",\"U_Top\",\"U_Left\",\"U_Width\",\"U_Height\",\"U_Label\",\"U_FromPane\",\"U_ToPane\",\"U_UserCode\",\"U_UserGroup\",\"U_Condition\",\"U_Priority\",\"U_Localization\",\"U_Variant\",\"U_DependsOn\",\"U_Inherit\" FROM \"{TableName}\"{filter} ORDER BY \"U_FormType\",\"U_Priority\",\"Code\""
+                    : $"SELECT [Code],[Name],[U_FormType],[U_ItemID],[U_Action],[U_Top],[U_Left],[U_Width],[U_Height],[U_Label],[U_FromPane],[U_ToPane],[U_UserCode],[U_UserGroup],[U_Condition],[U_Priority],[U_Localization],[U_Variant],[U_DependsOn],[U_Inherit] FROM [{TableName}]{filter} ORDER BY [U_FormType],[U_Priority],[Code]";
                 rs.DoQuery(sql);
                 while (!rs.EoF)
                 {
@@ -55,7 +55,15 @@ namespace B1TuneUp.Modules
                 Label = Convert.ToString(rs.Fields.Item(9).Value),
                 FromPane = ToNullableInt(rs.Fields.Item(10).Value),
                 ToPane = ToNullableInt(rs.Fields.Item(11).Value),
-                UpdatedAt = null
+                UpdatedAt = null,
+                UserCode = Convert.ToString(rs.Fields.Item(12).Value),
+                UserGroup = Convert.ToString(rs.Fields.Item(13).Value),
+                Condition = Convert.ToString(rs.Fields.Item(14).Value),
+                Priority = ToNullableInt(rs.Fields.Item(15).Value) ?? 10,
+                Localization = Convert.ToString(rs.Fields.Item(16).Value),
+                Variant = Convert.ToString(rs.Fields.Item(17).Value),
+                DependsOn = Convert.ToString(rs.Fields.Item(18).Value),
+                InheritFrom = Convert.ToString(rs.Fields.Item(19).Value)
             };
         }
 
@@ -88,6 +96,14 @@ namespace B1TuneUp.Modules
                 table.UserFields.Fields.Item("U_Label").Value = entry.Label ?? string.Empty;
                 table.UserFields.Fields.Item("U_FromPane").Value = entry.FromPane ?? 0;
                 table.UserFields.Fields.Item("U_ToPane").Value = entry.ToPane ?? 0;
+                table.UserFields.Fields.Item("U_UserCode").Value = entry.UserCode ?? string.Empty;
+                table.UserFields.Fields.Item("U_UserGroup").Value = entry.UserGroup ?? string.Empty;
+                table.UserFields.Fields.Item("U_Condition").Value = entry.Condition ?? string.Empty;
+                table.UserFields.Fields.Item("U_Priority").Value = entry.Priority;
+                table.UserFields.Fields.Item("U_Localization").Value = entry.Localization ?? string.Empty;
+                table.UserFields.Fields.Item("U_Variant").Value = entry.Variant ?? string.Empty;
+                table.UserFields.Fields.Item("U_DependsOn").Value = entry.DependsOn ?? string.Empty;
+                table.UserFields.Fields.Item("U_Inherit").Value = entry.InheritFrom ?? string.Empty;
 
                 int res = exists ? table.Update() : table.Add();
                 if (res != 0)
@@ -195,6 +211,9 @@ namespace B1TuneUp.Modules
             };
 
             package.UiEntries = new List<UiCustomizationEntry>(GetAll(normalized));
+            package.Scopes = BuildScopeDescriptors(package.UiEntries);
+            package.Dependencies = BuildDependencies(package.UiEntries);
+            package.InheritanceLinks = BuildInheritanceLinks(package.UiEntries);
 
             var validations = ValidationRuleService.GetAll();
             package.ValidationRules = validations
@@ -248,12 +267,22 @@ namespace B1TuneUp.Modules
 
             if (includeLayout)
             {
+                var codeMap = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
                 foreach (var entry in package.UiEntries ?? Array.Empty<UiCustomizationEntry>())
                 {
                     var copy = entry.Clone();
+                    var originalCode = copy.Code;
                     copy.Code = null;
+                    if (!string.IsNullOrWhiteSpace(copy.InheritFrom) && codeMap.TryGetValue(copy.InheritFrom, out var mapped))
+                    {
+                        copy.InheritFrom = mapped;
+                    }
                     copy.FormType = formType;
-                    UICustomizerService.Save(copy);
+                    var saved = UICustomizerService.Save(copy);
+                    if (!string.IsNullOrWhiteSpace(originalCode) && !string.IsNullOrWhiteSpace(saved.Code))
+                    {
+                        codeMap[originalCode] = saved.Code;
+                    }
                 }
             }
 
@@ -345,6 +374,68 @@ namespace B1TuneUp.Modules
         {
             var clone = pad.Clone();
             return clone;
+        }
+
+        private static IList<UiScopeDescriptor> BuildScopeDescriptors(IEnumerable<UiCustomizationEntry> entries)
+        {
+            return entries
+                .GroupBy(e => new
+                {
+                    User = (e.UserCode ?? string.Empty).Trim(),
+                    Group = (e.UserGroup ?? string.Empty).Trim(),
+                    Locale = (e.Localization ?? string.Empty).Trim(),
+                    Variant = (e.Variant ?? string.Empty).Trim()
+                })
+                .Select(g => new UiScopeDescriptor
+                {
+                    UserCode = string.IsNullOrEmpty(g.Key.User) ? "*" : g.Key.User,
+                    UserGroup = string.IsNullOrEmpty(g.Key.Group) ? "*" : g.Key.Group,
+                    Localization = string.IsNullOrEmpty(g.Key.Locale) ? "*" : g.Key.Locale,
+                    Variant = string.IsNullOrEmpty(g.Key.Variant) ? "*" : g.Key.Variant,
+                    EntryCount = g.Count()
+                })
+                .OrderByDescending(s => s.EntryCount)
+                .ToList();
+        }
+
+        private static IList<UiPackageDependency> BuildDependencies(IEnumerable<UiCustomizationEntry> entries)
+        {
+            var set = new Dictionary<string, UiPackageDependency>(StringComparer.OrdinalIgnoreCase);
+            foreach (var token in entries.SelectMany(e => SplitTokens(e.DependsOn)))
+            {
+                if (set.ContainsKey(token)) continue;
+                set[token] = new UiPackageDependency
+                {
+                    Token = token,
+                    Description = token.Contains(":") ? token : $"Requires customization '{token}'",
+                    Required = true
+                };
+            }
+            return set.Values.ToList();
+        }
+
+        private static IList<UiInheritanceLink> BuildInheritanceLinks(IEnumerable<UiCustomizationEntry> entries)
+        {
+            return entries
+                .Where(e => !string.IsNullOrWhiteSpace(e.InheritFrom) && !string.IsNullOrWhiteSpace(e.Code))
+                .Select(e => new UiInheritanceLink
+                {
+                    ParentCode = e.InheritFrom,
+                    ChildCode = e.Code
+                })
+                .ToList();
+        }
+
+        private static IEnumerable<string> SplitTokens(string raw)
+        {
+            if (string.IsNullOrWhiteSpace(raw)) yield break;
+            var pieces = raw.Split(new[] { ',', ';', '|', ' ' }, StringSplitOptions.RemoveEmptyEntries);
+            foreach (var piece in pieces)
+            {
+                var token = piece.Trim();
+                if (!string.IsNullOrEmpty(token))
+                    yield return token;
+            }
         }
 
         private static int? ToNullableInt(object value)

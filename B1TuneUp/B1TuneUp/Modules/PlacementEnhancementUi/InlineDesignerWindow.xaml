@@ -167,6 +167,24 @@
                                     Foreground="White"
                                     BorderThickness="0"/>
                         </StackPanel>
+                        <StackPanel Margin="0,16,0,0">
+                            <TextBlock Text="Alcance / Segmentacion" Foreground="#FFFFFF" FontWeight="SemiBold" />
+                            <TextBlock Text="Usuarios (coma separada)" Foreground="#CCFFFFFF" FontSize="12"/>
+                            <TextBox Text="{Binding ScopeUserCode, UpdateSourceTrigger=PropertyChanged}" />
+                            <TextBlock Text="Grupos" Foreground="#CCFFFFFF" FontSize="12"/>
+                            <TextBox Text="{Binding ScopeUserGroup, UpdateSourceTrigger=PropertyChanged}" />
+                            <TextBlock Text="Localizacion / Variante" Foreground="#CCFFFFFF" FontSize="12"/>
+                            <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
+                                <TextBox Width="140" Margin="0,0,8,0" Text="{Binding ScopeLocalization, UpdateSourceTrigger=PropertyChanged}" />
+                                <TextBox Width="140" Text="{Binding ScopeVariant, UpdateSourceTrigger=PropertyChanged}" />
+                            </StackPanel>
+                            <TextBlock Text="Dependencias" Foreground="#CCFFFFFF" FontSize="12"/>
+                            <TextBox Text="{Binding ScopeDependsOn, UpdateSourceTrigger=PropertyChanged}" />
+                            <TextBlock Text="Hereda de" Foreground="#CCFFFFFF" FontSize="12"/>
+                            <TextBox Text="{Binding ScopeInheritFrom, UpdateSourceTrigger=PropertyChanged}" />
+                            <TextBlock Text="Prioridad" Foreground="#CCFFFFFF" FontSize="12"/>
+                            <TextBox Width="80" Text="{Binding ScopePriority, UpdateSourceTrigger=PropertyChanged}" />
+                        </StackPanel>
                         <TextBlock Text="{Binding StatusMessage}" Foreground="#CCFFFFFF" Margin="0,20,0,0" TextWrapping="Wrap"/>
                     </StackPanel>
                 </Border>
@@ -174,3 +192,4 @@
         </Grid>
     </Border>
 </Window>
+

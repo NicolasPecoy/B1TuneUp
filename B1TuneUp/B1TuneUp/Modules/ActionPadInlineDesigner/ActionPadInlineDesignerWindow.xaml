@@ -1,0 +1,111 @@
+<Window x:Class="B1TuneUp.Modules.ActionPadInlineDesigner.ActionPadInlineDesignerWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        WindowStyle="None"
+        AllowsTransparency="True"
+        Background="#AA000000"
+        Topmost="True"
+        ShowInTaskbar="False"
+        Width="1000"
+        Height="720"
+        PreviewKeyDown="OnPreviewKeyDown"
+        MouseLeftButtonDown="OnWindowDrag">
+    <Border CornerRadius="12" BorderBrush="#44FFFFFF" BorderThickness="1" Padding="16" Background="#EE101820">
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
+            <DockPanel>
+                <StackPanel Orientation="Horizontal" DockPanel.Dock="Left">
+                    <TextBlock Text="Action Pad Overlay" FontSize="16" FontWeight="Bold" Foreground="White" Margin="0,0,12,0"/>
+                    <TextBlock Text="{Binding PadTitle}" Foreground="#CCFFFFFF" FontSize="13"/>
+                </StackPanel>
+                <StackPanel Orientation="Horizontal" DockPanel.Dock="Right">
+                    <ToggleButton Content="Snap" IsChecked="{Binding SnapToGrid}" Width="80" Margin="0,0,8,0"/>
+                    <Slider Width="100" Minimum="1" Maximum="30" Value="{Binding GridSize}" />
+                    <Button Content="Cerrar" Margin="8,0,0,0" Click="OnCloseClick"/>
+                </StackPanel>
+            </DockPanel>
+            <Grid Grid.Row="1" Margin="0,12,0,0">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="260"/>
+                </Grid.ColumnDefinitions>
+                <Border Grid.Column="0" Background="#0CFFFFFF" BorderBrush="#33FFFFFF" BorderThickness="1" CornerRadius="8">
+                    <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
+                        <Canvas Width="{Binding CanvasWidth}" Height="{Binding CanvasHeight}">
+                            <ItemsControl ItemsSource="{Binding Items}">
+                                <ItemsControl.ItemsPanel>
+                                    <ItemsPanelTemplate>
+                                        <Canvas/>
+                                    </ItemsPanelTemplate>
+                                </ItemsControl.ItemsPanel>
+                                <ItemsControl.ItemContainerStyle>
+                                    <Style TargetType="ContentPresenter">
+                                        <Setter Property="Canvas.Left" Value="{Binding Left}"/>
+                                        <Setter Property="Canvas.Top" Value="{Binding Top}"/>
+                                    </Style>
+                                </ItemsControl.ItemContainerStyle>
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <Grid Width="{Binding Width}" Height="{Binding Height}">
+                                            <Border Background="#552E75B6" CornerRadius="4">
+                                                <Border.Style>
+                                                    <Style TargetType="Border">
+                                                        <Setter Property="BorderBrush" Value="#22FFFFFF"/>
+                                                        <Setter Property="BorderThickness" Value="1"/>
+                                                        <Style.Triggers>
+                                                            <DataTrigger Binding="{Binding IsSelected}" Value="True">
+                                                                <Setter Property="BorderBrush" Value="#FF00D1FF"/>
+                                                                <Setter Property="BorderThickness" Value="2"/>
+                                                            </DataTrigger>
+                                                        </Style.Triggers>
+                                                    </Style>
+                                                </Border.Style>
+                                                <StackPanel>
+                                                    <TextBlock Text="{Binding Label}" Foreground="White" FontWeight="SemiBold"/>
+                                                    <TextBlock Text="{Binding Tooltip}" Foreground="#EEFFFFFF" FontSize="11" TextTrimming="CharacterEllipsis"/>
+                                                </StackPanel>
+                                            </Border>
+                                            <Thumb DragDelta="OnMoveThumbDragDelta"
+                                                   DragStarted="OnDragStarted"
+                                                   DragCompleted="OnDragCompleted"
+                                                   Tag="{Binding}"
+                                                   Background="#00000000"/>
+                                            <Thumb Width="12"
+                                                   Height="12"
+                                                   HorizontalAlignment="Right"
+                                                   VerticalAlignment="Bottom"
+                                                   Cursor="SizeNWSE"
+                                                   DragDelta="OnResizeThumbDragDelta"
+                                                   DragStarted="OnDragStarted"
+                                                   DragCompleted="OnDragCompleted"
+                                                   Tag="{Binding}">
+                                                <Thumb.Template>
+                                                    <ControlTemplate TargetType="Thumb">
+                                                        <Border Width="12" Height="12" CornerRadius="2" Background="#FF00D1FF" BorderBrush="#FFFFFF" BorderThickness="0.5"/>
+                                                    </ControlTemplate>
+                                                </Thumb.Template>
+                                            </Thumb>
+                                        </Grid>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </Canvas>
+                    </ScrollViewer>
+                </Border>
+                <StackPanel Grid.Column="1" Margin="16,0,0,0">
+                    <TextBlock Text="Botón seleccionado" Foreground="White" FontSize="15" FontWeight="SemiBold"/>
+                    <TextBlock Text="{Binding SelectedItem.Label}" Foreground="#CCFFFFFF"/>
+                    <UniformGrid Rows="2" Columns="2" Margin="0,12,0,0">
+                        <Button Content="Aplicar" Command="{Binding ApplyCommand}"/>
+                        <Button Content="Guardar" Command="{Binding SaveCommand}"/>
+                        <Button Content="Cerrar" Command="{Binding CloseCommand}"/>
+                    </UniformGrid>
+                    <TextBlock Text="{Binding StatusMessage}" Foreground="#CCFFFFFF" Margin="0,20,0,0" TextWrapping="Wrap"/>
+                </StackPanel>
+            </Grid>
+        </Grid>
+    </Border>
+</Window>

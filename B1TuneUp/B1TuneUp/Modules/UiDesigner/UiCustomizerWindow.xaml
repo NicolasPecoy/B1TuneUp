@@ -342,7 +342,42 @@
 
                     </Border>
 
+                    <Border Style="{StaticResource CardStyle}">
+                        <StackPanel>
+                            <TextBlock Text="Condición SQL (se evalúa antes de aplicar)" Style="{StaticResource LabelStyle}" />
+                            <TextBox Text="{Binding SelectedEntry.Condition, UpdateSourceTrigger=PropertyChanged}"
+                                     AcceptsReturn="True"
+                                     Height="80"
+                                     TextWrapping="Wrap" />
+                        </StackPanel>
+                    </Border>
 
+                    <Border Style="{StaticResource CardStyle}">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <StackPanel Grid.Column="0" Margin="0,0,16,0">
+                                <TextBlock Text="Usuario (lista separada por comas)" Style="{StaticResource LabelStyle}" />
+                                <TextBox Text="{Binding SelectedEntry.UserCode, UpdateSourceTrigger=PropertyChanged}" />
+                                <TextBlock Text="Grupo de usuario" Style="{StaticResource LabelStyle}" />
+                                <TextBox Text="{Binding SelectedEntry.UserGroup, UpdateSourceTrigger=PropertyChanged}" />
+                                <TextBlock Text="Dependencias (códigos o feature:*)" Style="{StaticResource LabelStyle}" />
+                                <TextBox Text="{Binding SelectedEntry.DependsOn, UpdateSourceTrigger=PropertyChanged}" />
+                            </StackPanel>
+                            <StackPanel Grid.Column="1">
+                                <TextBlock Text="Localización (es-AR, CL, etc.)" Style="{StaticResource LabelStyle}" />
+                                <TextBox Text="{Binding SelectedEntry.Localization, UpdateSourceTrigger=PropertyChanged}" />
+                                <TextBlock Text="Variante / Bundle" Style="{StaticResource LabelStyle}" />
+                                <TextBox Text="{Binding SelectedEntry.Variant, UpdateSourceTrigger=PropertyChanged}" />
+                                <TextBlock Text="Hereda de código" Style="{StaticResource LabelStyle}" />
+                                <TextBox Text="{Binding SelectedEntry.InheritFrom, UpdateSourceTrigger=PropertyChanged}" />
+                                <TextBlock Text="Prioridad" Style="{StaticResource LabelStyle}" />
+                                <TextBox Text="{Binding SelectedEntry.Priority, UpdateSourceTrigger=PropertyChanged}" />
+                            </StackPanel>
+                        </Grid>
+                    </Border>
 
                     <Border Style="{StaticResource CardStyle}">
 

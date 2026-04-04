@@ -139,6 +139,10 @@ namespace B1TuneUp.Utils
             CreateUDF("@BTUN_UI", "UserGroup", "User Group Filter", BoFieldTypes.db_Alpha, 50);
             CreateUDF("@BTUN_UI", "Condition", "SQL Condition (optional)", BoFieldTypes.db_Memo);
             CreateUDF("@BTUN_UI", "Priority", "Execution Priority", BoFieldTypes.db_Numeric, 5, "10");
+            CreateUDF("@BTUN_UI", "Localization", "Localization Tag (es-AR)", BoFieldTypes.db_Alpha, 20);
+            CreateUDF("@BTUN_UI", "Variant", "Variant Bundle", BoFieldTypes.db_Alpha, 30);
+            CreateUDF("@BTUN_UI", "DependsOn", "Dependencies (codes/features)", BoFieldTypes.db_Memo);
+            CreateUDF("@BTUN_UI", "Inherit", "Inherit From Code", BoFieldTypes.db_Alpha, 30);
 
             // Tabla para Layouts guardados por Item Placement
             CreateUDT("BTUN_LAYOUT", "B1TuneUp Layouts", BoUTBTableType.bott_NoObject);
@@ -212,6 +216,10 @@ namespace B1TuneUp.Utils
             CreateUDF("@BTUN_PADB", "GridCol", "Column Index", BoFieldTypes.db_Numeric, 5);
             CreateUDF("@BTUN_PADB", "ColSpan", "Column Span", BoFieldTypes.db_Numeric, 5, "1");
             CreateUDF("@BTUN_PADB", "RowSpan", "Row Span", BoFieldTypes.db_Numeric, 5, "1");
+            CreateUDF("@BTUN_PADB", "Left", "Canvas Left", BoFieldTypes.db_Numeric, 6);
+            CreateUDF("@BTUN_PADB", "Top", "Canvas Top", BoFieldTypes.db_Numeric, 6);
+            CreateUDF("@BTUN_PADB", "Width", "Canvas Width", BoFieldTypes.db_Numeric, 6);
+            CreateUDF("@BTUN_PADB", "Height", "Canvas Height", BoFieldTypes.db_Numeric, 6);
 
             // Tabla para Código C# Dinámico (Universal Functions - Code)
             CreateUDT("BTUN_CODE", "B1TuneUp Dynamic Code", BoUTBTableType.bott_NoObject);

@@ -19,6 +19,14 @@ namespace B1TuneUp.Models
         private int? _fromPane;
         private int? _toPane;
         private DateTime? _updatedAt;
+        private string _userCode;
+        private string _userGroup;
+        private string _condition;
+        private int _priority = 10;
+        private string _localization;
+        private string _variant;
+        private string _dependsOn;
+        private string _inheritFrom;
 
         public string Code
         {
@@ -98,7 +106,64 @@ namespace B1TuneUp.Models
             set => Set(ref _updatedAt, value);
         }
 
-        public string DisplayName => $"{FormType ?? "?"} · {ItemId ?? "(nuevo)"}";
+        public string UserCode
+        {
+            get => _userCode;
+            set => Set(ref _userCode, value);
+        }
+
+        public string UserGroup
+        {
+            get => _userGroup;
+            set => Set(ref _userGroup, value);
+        }
+
+        public string Condition
+        {
+            get => _condition;
+            set => Set(ref _condition, value);
+        }
+
+        public int Priority
+        {
+            get => _priority;
+            set => Set(ref _priority, value);
+        }
+
+        public string Localization
+        {
+            get => _localization;
+            set => Set(ref _localization, value);
+        }
+
+        public string Variant
+        {
+            get => _variant;
+            set => Set(ref _variant, value);
+        }
+
+        public string DependsOn
+        {
+            get => _dependsOn;
+            set => Set(ref _dependsOn, value);
+        }
+
+        public string InheritFrom
+        {
+            get => _inheritFrom;
+            set => Set(ref _inheritFrom, value);
+        }
+
+        public string DisplayName
+        {
+            get
+            {
+                string scope = string.IsNullOrWhiteSpace(UserCode) && string.IsNullOrWhiteSpace(UserGroup)
+                    ? "Global"
+                    : $"{(string.IsNullOrWhiteSpace(UserCode) ? string.Empty : $"User:{UserCode}")}{(string.IsNullOrWhiteSpace(UserGroup) ? string.Empty : $" Group:{UserGroup}")}".Trim();
+                return $"{FormType ?? "?"} · {ItemId ?? "(nuevo)"} · {scope}";
+            }
+        }
 
         public UiCustomizationEntry Clone()
         {
@@ -116,7 +181,15 @@ namespace B1TuneUp.Models
                 Label = Label,
                 FromPane = FromPane,
                 ToPane = ToPane,
-                UpdatedAt = UpdatedAt
+                UpdatedAt = UpdatedAt,
+                UserCode = UserCode,
+                UserGroup = UserGroup,
+                Condition = Condition,
+                Priority = Priority,
+                Localization = Localization,
+                Variant = Variant,
+                DependsOn = DependsOn,
+                InheritFrom = InheritFrom
             };
         }
 
@@ -138,6 +211,14 @@ namespace B1TuneUp.Models
             FromPane = other.FromPane;
             ToPane = other.ToPane;
             UpdatedAt = other.UpdatedAt;
+            UserCode = other.UserCode;
+            UserGroup = other.UserGroup;
+            Condition = other.Condition;
+            Priority = other.Priority;
+            Localization = other.Localization;
+            Variant = other.Variant;
+            DependsOn = other.DependsOn;
+            InheritFrom = other.InheritFrom;
         }
 
         protected void Set<T>(ref T storage, T value, [CallerMemberName] string propertyName = null)

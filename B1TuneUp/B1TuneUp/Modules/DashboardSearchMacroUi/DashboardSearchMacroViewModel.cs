@@ -14,6 +14,7 @@ namespace B1TuneUp.Modules.DashboardSearchMacroUi
 {
     public class DashboardSearchMacroViewModel : INotifyPropertyChanged
     {
+        private const string AutoRefreshPreferenceKey = "dashboard-search";
         private readonly ObservableCollection<DashboardWidgetEntry> _widgets = new ObservableCollection<DashboardWidgetEntry>();
         private readonly ObservableCollection<SearchConfigEntry> _searchConfigs = new ObservableCollection<SearchConfigEntry>();
         private readonly ObservableCollection<MacroScriptEntry> _macroScripts = new ObservableCollection<MacroScriptEntry>();

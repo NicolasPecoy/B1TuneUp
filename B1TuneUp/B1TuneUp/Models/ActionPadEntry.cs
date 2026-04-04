@@ -42,6 +42,10 @@ namespace B1TuneUp.Models
         public int GridCol { get; set; } = -1;
         public int ColSpan { get; set; } = 1;
         public int RowSpan { get; set; } = 1;
+        public double Left { get; set; }
+        public double Top { get; set; }
+        public double Width { get; set; }
+        public double Height { get; set; }
 
         public ActionPadButtonEntry Clone() => (ActionPadButtonEntry)MemberwiseClone();
     }

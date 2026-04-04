@@ -185,6 +185,7 @@
                                     <Button Content="Add Button" Command="{Binding AddPadButtonCommand}" />
                                     <Button Content="Remove Button" Command="{Binding DeletePadButtonCommand}" Background="#FFB33939" />
                                     <Button Content="Save Pad" Command="{Binding SavePadCommand}" />
+                                    <Button Content="Visual Designer" Command="{Binding OpenPadDesignerCommand}" Background="{DynamicResource AccentAltBrush}" />
                                 </WrapPanel>
                             </StackPanel>
                         </Border>

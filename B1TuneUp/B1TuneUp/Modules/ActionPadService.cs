@@ -97,8 +97,8 @@ namespace B1TuneUp.Modules
                 string color = Escape(button.Color);
                 string hotkey = Escape(button.HotKey);
                 string insertButton = isHana
-                    ? $"INSERT INTO \"@BTUN_PADB\" (\"Code\",\"Name\",\"U_PadEntry\",\"U_Label\",\"U_Action\",\"U_Order\",\"U_Tooltip\",\"U_Icon\",\"U_Color\",\"U_HotKey\",\"U_GridRow\",\"U_GridCol\",\"U_ColSpan\",\"U_RowSpan\") VALUES ('{buttonCodeValue}','{buttonName}','{padCode}','{Escape(button.Label)}','{Escape(button.Action)}',{order},'{tooltip}','{icon}','{color}','{hotkey}',{gridRow},{gridCol},{colSpan},{rowSpan})"
-                    : $"INSERT INTO [@BTUN_PADB] ([Code],[Name],U_PadEntry,U_Label,U_Action,U_Order,U_Tooltip,U_Icon,U_Color,U_HotKey,U_GridRow,U_GridCol,U_ColSpan,U_RowSpan) VALUES ('{buttonCodeValue}','{buttonName}','{padCode}','{Escape(button.Label)}','{Escape(button.Action)}',{order},'{tooltip}','{icon}','{color}','{hotkey}',{gridRow},{gridCol},{colSpan},{rowSpan})";
+                    ? $"INSERT INTO \"@BTUN_PADB\" (\"Code\",\"Name\",\"U_PadEntry\",\"U_Label\",\"U_Action\",\"U_Order\",\"U_Tooltip\",\"U_Icon\",\"U_Color\",\"U_HotKey\",\"U_GridRow\",\"U_GridCol\",\"U_ColSpan\",\"U_RowSpan\",\"U_Left\",\"U_Top\",\"U_Width\",\"U_Height\") VALUES ('{buttonCodeValue}','{buttonName}','{padCode}','{Escape(button.Label)}','{Escape(button.Action)}',{order},'{tooltip}','{icon}','{color}','{hotkey}',{gridRow},{gridCol},{colSpan},{rowSpan},{SafeDouble(button.Left)},{SafeDouble(button.Top)},{SafeDouble(button.Width, entry.ButtonWidth)},{SafeDouble(button.Height, entry.ButtonHeight)})"
+                    : $"INSERT INTO [@BTUN_PADB] ([Code],[Name],U_PadEntry,U_Label,U_Action,U_Order,U_Tooltip,U_Icon,U_Color,U_HotKey,U_GridRow,U_GridCol,U_ColSpan,U_RowSpan,U_Left,U_Top,U_Width,U_Height) VALUES ('{buttonCodeValue}','{buttonName}','{padCode}','{Escape(button.Label)}','{Escape(button.Action)}',{order},'{tooltip}','{icon}','{color}','{hotkey}',{gridRow},{gridCol},{colSpan},{rowSpan},{SafeDouble(button.Left)},{SafeDouble(button.Top)},{SafeDouble(button.Width, entry.ButtonWidth)},{SafeDouble(button.Height, entry.ButtonHeight)})";
                 ExecuteNonQuery(insertButton);
             }
 
@@ -130,8 +130,8 @@ namespace B1TuneUp.Modules
                 bool isHana = B1App.Instance.IsHana;
                 string codeValue = docEntry.ToString(CultureInfo.InvariantCulture);
                 string sql = isHana
-                    ? $"SELECT \"Code\",\"U_Label\",\"U_Action\",\"U_Order\",\"U_Tooltip\",\"U_Icon\",\"U_Color\",\"U_HotKey\",\"U_GridRow\",\"U_GridCol\",\"U_ColSpan\",\"U_RowSpan\" FROM \"@BTUN_PADB\" WHERE \"U_PadEntry\"='{codeValue}' ORDER BY \"U_Order\""
-                    : $"SELECT [Code],U_Label,U_Action,U_Order,U_Tooltip,U_Icon,U_Color,U_HotKey,U_GridRow,U_GridCol,U_ColSpan,U_RowSpan FROM [@BTUN_PADB] WHERE U_PadEntry='{codeValue}' ORDER BY U_Order";
+                    ? $"SELECT \"Code\",\"U_Label\",\"U_Action\",\"U_Order\",\"U_Tooltip\",\"U_Icon\",\"U_Color\",\"U_HotKey\",\"U_GridRow\",\"U_GridCol\",\"U_ColSpan\",\"U_RowSpan\",\"U_Left\",\"U_Top\",\"U_Width\",\"U_Height\" FROM \"@BTUN_PADB\" WHERE \"U_PadEntry\"='{codeValue}' ORDER BY \"U_Order\""
+                    : $"SELECT [Code],U_Label,U_Action,U_Order,U_Tooltip,U_Icon,U_Color,U_HotKey,U_GridRow,U_GridCol,U_ColSpan,U_RowSpan,U_Left,U_Top,U_Width,U_Height FROM [@BTUN_PADB] WHERE U_PadEntry='{codeValue}' ORDER BY U_Order";
                 rs = (Recordset)B1App.Instance.Company.GetBusinessObject(BoObjectTypes.BoRecordset);
                 rs.DoQuery(sql);
                 while (!rs.EoF)
@@ -150,7 +150,11 @@ namespace B1TuneUp.Modules
                         GridRow = SafeInt(rs.Fields.Item("U_GridRow")?.Value, -1),
                         GridCol = SafeInt(rs.Fields.Item("U_GridCol")?.Value, -1),
                         ColSpan = Math.Max(1, SafeInt(rs.Fields.Item("U_ColSpan")?.Value, 1)),
-                        RowSpan = Math.Max(1, SafeInt(rs.Fields.Item("U_RowSpan")?.Value, 1))
+                        RowSpan = Math.Max(1, SafeInt(rs.Fields.Item("U_RowSpan")?.Value, 1)),
+                        Left = SafeDouble(rs.Fields.Item("U_Left")?.Value, 0),
+                        Top = SafeDouble(rs.Fields.Item("U_Top")?.Value, 0),
+                        Width = SafeDouble(rs.Fields.Item("U_Width")?.Value, 120),
+                        Height = SafeDouble(rs.Fields.Item("U_Height")?.Value, 22)
                     });
                     rs.MoveNext();
                 }
@@ -187,6 +191,19 @@ namespace B1TuneUp.Modules
             catch
             {
                 // ignored
+            }
+            return fallback;
+        }
+
+        private static double SafeDouble(object value, double fallback = 0)
+        {
+            try
+            {
+                if (value == null || value == DBNull.Value) return fallback;
+                if (double.TryParse(value.ToString(), out var parsed)) return parsed;
+            }
+            catch
+            {
             }
             return fallback;
         }

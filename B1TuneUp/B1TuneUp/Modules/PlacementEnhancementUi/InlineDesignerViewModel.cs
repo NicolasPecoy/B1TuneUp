@@ -10,6 +10,7 @@ using B1TuneUp.Models;
 using B1TuneUp.Modules.IntegrationUi;
 using B1TuneUp.Modules.ItemActionsUi;
 using B1TuneUp.Modules.ValidationUi;
+using B1TuneUp.Utils;
 
 namespace B1TuneUp.Modules.PlacementEnhancementUi
 {
@@ -20,6 +21,13 @@ namespace B1TuneUp.Modules.PlacementEnhancementUi
         private bool _snapToGrid = true;
         private double _gridSize = 5;
         private string _statusMessage;
+        private string _scopeUserCode;
+        private string _scopeUserGroup;
+        private string _scopeLocalization;
+        private string _scopeVariant;
+        private string _scopeDependsOn;
+        private string _scopeInheritFrom;
+        private string _scopePriority = "10";
 
         public InlineDesignerViewModel(InlineDesignerSession session)
         {
@@ -33,6 +41,8 @@ namespace B1TuneUp.Modules.PlacementEnhancementUi
             {
                 SelectedItem = Items[0];
             }
+
+            LoadScopeDefaults();
 
             ApplyCommand = new RelayCommand(_ => Apply(false));
             PersistCommand = new RelayCommand(_ => Apply(true));
@@ -97,6 +107,48 @@ namespace B1TuneUp.Modules.PlacementEnhancementUi
             }
         }
 
+        public string ScopeUserCode
+        {
+            get => _scopeUserCode;
+            set { if (_scopeUserCode == value) return; _scopeUserCode = value; OnPropertyChanged(); }
+        }
+
+        public string ScopeUserGroup
+        {
+            get => _scopeUserGroup;
+            set { if (_scopeUserGroup == value) return; _scopeUserGroup = value; OnPropertyChanged(); }
+        }
+
+        public string ScopeLocalization
+        {
+            get => _scopeLocalization;
+            set { if (_scopeLocalization == value) return; _scopeLocalization = value; OnPropertyChanged(); }
+        }
+
+        public string ScopeVariant
+        {
+            get => _scopeVariant;
+            set { if (_scopeVariant == value) return; _scopeVariant = value; OnPropertyChanged(); }
+        }
+
+        public string ScopeDependsOn
+        {
+            get => _scopeDependsOn;
+            set { if (_scopeDependsOn == value) return; _scopeDependsOn = value; OnPropertyChanged(); }
+        }
+
+        public string ScopeInheritFrom
+        {
+            get => _scopeInheritFrom;
+            set { if (_scopeInheritFrom == value) return; _scopeInheritFrom = value; OnPropertyChanged(); }
+        }
+
+        public string ScopePriority
+        {
+            get => _scopePriority;
+            set { if (_scopePriority == value) return; _scopePriority = value; OnPropertyChanged(); }
+        }
+
         public RelayCommand ApplyCommand { get; }
         public RelayCommand PersistCommand { get; }
         public RelayCommand CloseCommand { get; }
@@ -139,8 +191,13 @@ namespace B1TuneUp.Modules.PlacementEnhancementUi
         {
             try
             {
-                _session.ApplyLayout(persist);
-                StatusMessage = persist ? "Diseño guardado en BTUN_UI y aplicado." : "Diseño aplicado temporalmente.";
+                var scope = BuildScope();
+                _session.ApplyLayout(persist, scope);
+                StatusMessage = persist ? "Diseno guardado en BTUN_UI y aplicado." : "Diseno aplicado temporalmente.";
+                if (persist)
+                {
+                    PersistScopeDefaults(scope);
+                }
             }
             catch (Exception ex)
             {
@@ -184,6 +241,47 @@ namespace B1TuneUp.Modules.PlacementEnhancementUi
                 UICustomizerService.ImportPackage(dialog.FileName);
                 StatusMessage = $"Paquete importado desde {Path.GetFileName(dialog.FileName)}";
             }
+        }
+
+        private void LoadScopeDefaults()
+        {
+            ScopeUserCode = SettingsManager.GetSetting("InlineDesigner.Scope.UserCode", string.Empty);
+            ScopeUserGroup = SettingsManager.GetSetting("InlineDesigner.Scope.UserGroup", string.Empty);
+            ScopeLocalization = SettingsManager.GetSetting("InlineDesigner.Scope.Localization", string.Empty);
+            ScopeVariant = SettingsManager.GetSetting("InlineDesigner.Scope.Variant", string.Empty);
+            ScopeDependsOn = SettingsManager.GetSetting("InlineDesigner.Scope.DependsOn", string.Empty);
+            ScopeInheritFrom = SettingsManager.GetSetting("InlineDesigner.Scope.InheritFrom", string.Empty);
+            ScopePriority = SettingsManager.GetSetting("InlineDesigner.Scope.Priority", "10");
+        }
+
+        private void PersistScopeDefaults(UiCustomizationScope scope)
+        {
+            SettingsManager.SetSetting("InlineDesigner.Scope.UserCode", scope.UserCode ?? string.Empty);
+            SettingsManager.SetSetting("InlineDesigner.Scope.UserGroup", scope.UserGroup ?? string.Empty);
+            SettingsManager.SetSetting("InlineDesigner.Scope.Localization", scope.Localization ?? string.Empty);
+            SettingsManager.SetSetting("InlineDesigner.Scope.Variant", scope.Variant ?? string.Empty);
+            SettingsManager.SetSetting("InlineDesigner.Scope.DependsOn", scope.DependsOn ?? string.Empty);
+            SettingsManager.SetSetting("InlineDesigner.Scope.InheritFrom", scope.InheritFrom ?? string.Empty);
+            SettingsManager.SetSetting("InlineDesigner.Scope.Priority", scope.Priority.ToString());
+        }
+
+        private UiCustomizationScope BuildScope()
+        {
+            return new UiCustomizationScope
+            {
+                UserCode = ScopeUserCode?.Trim(),
+                UserGroup = ScopeUserGroup?.Trim(),
+                Localization = ScopeLocalization?.Trim(),
+                Variant = ScopeVariant?.Trim(),
+                DependsOn = ScopeDependsOn?.Trim(),
+                InheritFrom = ScopeInheritFrom?.Trim(),
+                Priority = ParsePriority()
+            };
+        }
+
+        private int ParsePriority()
+        {
+            return int.TryParse(ScopePriority, out var value) && value > 0 ? value : 10;
         }
 
         protected void OnPropertyChanged([CallerMemberName] string propertyName = null)

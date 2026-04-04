@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Linq;
@@ -12,7 +13,9 @@ namespace B1TuneUp.Modules.PlacementEnhancementUi
 {
     public class InlineDesignerSession
     {
-        public InlineDesignerSession(SAPbouiCOM.Form form, ObservableCollection<InlineDesignerItem> items, string defaultItemId, double screenLeft, double screenTop)
+        private readonly List<UiCustomizationEntry> _existingEntries;
+
+        public InlineDesignerSession(SAPbouiCOM.Form form, ObservableCollection<InlineDesignerItem> items, string defaultItemId, double screenLeft, double screenTop, IList<UiCustomizationEntry> existingEntries)
         {
             Form = form;
             Items = items;
@@ -23,6 +26,9 @@ namespace B1TuneUp.Modules.PlacementEnhancementUi
             FormHeight = form.Height;
             ScreenLeft = screenLeft;
             ScreenTop = screenTop;
+            _existingEntries = existingEntries != null
+                ? new List<UiCustomizationEntry>(existingEntries)
+                : new List<UiCustomizationEntry>();
         }
 
         public SAPbouiCOM.Form Form { get; }
@@ -58,11 +64,12 @@ namespace B1TuneUp.Modules.PlacementEnhancementUi
 
             double left = TryGetScreenLeft(form);
             double top = TryGetScreenTop(form);
+            var existing = SafeGetCustomizations(form.TypeEx);
 
-            return new InlineDesignerSession(form, items, initialItem, left, top);
+            return new InlineDesignerSession(form, items, initialItem, left, top, existing);
         }
 
-        public void ApplyLayout(bool persistToRepository)
+        public void ApplyLayout(bool persistToRepository, UiCustomizationScope scope)
         {
             foreach (var item in Items)
             {
@@ -78,19 +85,78 @@ namespace B1TuneUp.Modules.PlacementEnhancementUi
             {
                 foreach (var item in Items)
                 {
-                    var entry = new UiCustomizationEntry
+                    var entry = FindOrCreateEntry(item.ItemId, scope);
+                    entry.FormType = FormType;
+                    entry.ItemId = item.ItemId;
+                    entry.Action = "Move";
+                    entry.Left = (int)Math.Round(item.Left);
+                    entry.Top = (int)Math.Round(item.Top);
+                    entry.Width = (int)Math.Round(item.Width);
+                    entry.Height = (int)Math.Round(item.Height);
+                    entry.Label = item.Caption;
+
+                    if (scope != null)
                     {
-                        Code = null,
-                        FormType = FormType,
-                        ItemId = item.ItemId,
-                        Left = (int)Math.Round(item.Left),
-                        Top = (int)Math.Round(item.Top),
-                        Width = (int)Math.Round(item.Width),
-                        Height = (int)Math.Round(item.Height),
-                        Label = item.Caption
-                    };
-                    UICustomizerService.Save(entry);
+                        entry.UserCode = scope.UserCode ?? string.Empty;
+                        entry.UserGroup = scope.UserGroup ?? string.Empty;
+                        entry.Localization = scope.Localization ?? string.Empty;
+                        entry.Variant = scope.Variant ?? string.Empty;
+                        entry.DependsOn = scope.DependsOn ?? string.Empty;
+                        entry.InheritFrom = scope.InheritFrom ?? string.Empty;
+                        entry.Priority = scope.Priority <= 0 ? entry.Priority : scope.Priority;
+                    }
+
+                    var saved = UICustomizerService.Save(entry);
+                    if (!_existingEntries.Contains(entry) && saved != null)
+                    {
+                        _existingEntries.Add(saved);
+                    }
                 }
+            }
+        }
+
+        private UiCustomizationEntry FindOrCreateEntry(string itemId, UiCustomizationScope scope)
+        {
+            var existing = _existingEntries.FirstOrDefault(e =>
+                string.Equals(e.ItemId, itemId, StringComparison.OrdinalIgnoreCase) &&
+                MatchesScope(e, scope));
+            if (existing != null) return existing;
+            var entry = new UiCustomizationEntry
+            {
+                ItemId = itemId,
+                FormType = FormType
+            };
+            _existingEntries.Add(entry);
+            return entry;
+        }
+
+        private static bool MatchesScope(UiCustomizationEntry entry, UiCustomizationScope scope)
+        {
+            string Normalize(string value) => string.IsNullOrWhiteSpace(value) ? string.Empty : value.Trim();
+
+            if (scope == null)
+            {
+                return string.IsNullOrWhiteSpace(entry.UserCode)
+                    && string.IsNullOrWhiteSpace(entry.UserGroup)
+                    && string.IsNullOrWhiteSpace(entry.Localization)
+                    && string.IsNullOrWhiteSpace(entry.Variant);
+            }
+
+            return string.Equals(Normalize(entry.UserCode), Normalize(scope.UserCode), StringComparison.OrdinalIgnoreCase)
+                && string.Equals(Normalize(entry.UserGroup), Normalize(scope.UserGroup), StringComparison.OrdinalIgnoreCase)
+                && string.Equals(Normalize(entry.Localization), Normalize(scope.Localization), StringComparison.OrdinalIgnoreCase)
+                && string.Equals(Normalize(entry.Variant), Normalize(scope.Variant), StringComparison.OrdinalIgnoreCase);
+        }
+
+        private static IList<UiCustomizationEntry> SafeGetCustomizations(string formType)
+        {
+            try
+            {
+                return UICustomizerService.GetAll(formType);
+            }
+            catch
+            {
+                return new List<UiCustomizationEntry>();
             }
         }
 
@@ -160,7 +226,7 @@ namespace B1TuneUp.Modules.PlacementEnhancementUi
             if (handle == IntPtr.Zero) throw new InvalidOperationException("No se pudo determinar la ventana de SAP.");
             if (!GetWindowRect(handle, out var rect))
             {
-                throw new InvalidOperationException("No se pudo leer el rectángulo de la ventana SAP.");
+                throw new InvalidOperationException("No se pudo leer el rectangulo de la ventana SAP.");
             }
             return rect;
         }

@@ -8,6 +8,7 @@ using System.Runtime.CompilerServices;
 using System.Windows;
 using System.Windows.Data;
 using Microsoft.Win32;
+using B1TuneUp.Core;
 using B1TuneUp.Models;
 using B1TuneUp.Modules;
 using B1TuneUp.Modules.ActionPadInlineDesigner;
@@ -498,10 +499,14 @@ namespace B1TuneUp.Modules.PlacementEnhancementUi
                     PersistScopeDefaults(SelectedItem);
                     UpdateScopeOptions();
                 }
+                LogInlineAudit(persist
+                    ? $"Layout persistido para {FormType} · Item {SelectedItem?.ItemId ?? "(form)"}"
+                    : $"Layout aplicado temporalmente en {FormType} · Item {SelectedItem?.ItemId ?? "(form)"}");
             }
             catch (Exception ex)
             {
                 StatusMessage = ex.Message;
+                LogInlineAudit($"Error aplicando layout: {ex.Message}", "Error");
             }
         }
 
@@ -566,6 +571,7 @@ namespace B1TuneUp.Modules.PlacementEnhancementUi
             SelectedMatrixRule = entry;
             SelectedValidation = entry;
             StatusMessage = "Nueva validación creada. Completa condición/mensaje y guarda.";
+            LogInlineAudit($"Se creó borrador de validación {entry.Code} para {entry.ItemName}", "ValidationDraft");
         }
 
         private void SaveSelectedValidation()
@@ -576,10 +582,12 @@ namespace B1TuneUp.Modules.PlacementEnhancementUi
                 var saved = ValidationRuleService.Save(SelectedValidation);
                 ReplaceValidationEntry(saved);
                 StatusMessage = $"Validación {saved.Code} guardada.";
+                LogInlineAudit($"Validación {saved.Code} guardada desde overlay.", "Validation");
             }
             catch (Exception ex)
             {
                 StatusMessage = $"Error guardando validación: {ex.Message}";
+                LogInlineAudit($"Error guardando validación: {ex.Message}", "Error");
             }
         }
 
@@ -591,10 +599,12 @@ namespace B1TuneUp.Modules.PlacementEnhancementUi
                 var saved = ValidationRuleService.Save(SelectedMatrixRule);
                 ReplaceValidationEntry(saved);
                 StatusMessage = $"Regla {saved.Code} guardada desde la matriz.";
+                LogInlineAudit($"Regla {saved.Code} guardada desde la matriz inline.", "Validation");
             }
             catch (Exception ex)
             {
                 StatusMessage = $"Error guardando la regla: {ex.Message}";
+                LogInlineAudit($"Error guardando regla: {ex.Message}", "Error");
             }
         }
 
@@ -1027,6 +1037,20 @@ namespace B1TuneUp.Modules.PlacementEnhancementUi
 
         protected void OnPropertyChanged([CallerMemberName] string propertyName = null)
             => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+
+        private void LogInlineAudit(string message, string status = "Info")
+        {
+            try
+            {
+                string user = B1App.Instance?.Company?.UserName ?? Environment.UserName;
+                string additional = SelectedItem?.ItemId ?? "(form)";
+                AuditLogManager.LogDetailedAction("InlineDesigner", message, status, user, FormType ?? "UNKNOWN", $"Item:{additional}");
+            }
+            catch
+            {
+                // ignore logging failures
+            }
+        }
     }
 
     public class InlineDesignerScopeOption

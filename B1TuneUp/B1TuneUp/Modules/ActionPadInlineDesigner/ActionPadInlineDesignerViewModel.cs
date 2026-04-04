@@ -3,6 +3,7 @@ using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Windows;
+using B1TuneUp.Core;
 using B1TuneUp.Modules.IntegrationUi;
 using B1TuneUp.Modules.ValidationUi;
 using B1TuneUp.Modules.ItemActionsUi;
@@ -215,6 +216,16 @@ namespace B1TuneUp.Modules.ActionPadInlineDesigner
             while (_activityLog.Count > 100)
             {
                 _activityLog.RemoveAt(_activityLog.Count - 1);
+            }
+
+            try
+            {
+                string user = B1App.Instance?.Company?.UserName ?? Environment.UserName;
+                B1TuneUp.Modules.AuditLogManager.LogDetailedAction("ActionPadDesigner", message, "Info", user, FormType ?? "N/A", PadTitle ?? "ActionPad");
+            }
+            catch
+            {
+                // logging to SAP should not break overlay logging
             }
         }
 

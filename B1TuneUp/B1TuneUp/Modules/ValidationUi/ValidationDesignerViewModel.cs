@@ -6,7 +6,9 @@ using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Data;
+using B1TuneUp.Core;
 using B1TuneUp.Models;
+using B1TuneUp.Modules;
 using B1TuneUp.Modules.IntegrationUi;
 
 namespace B1TuneUp.Modules.ValidationUi
@@ -23,6 +25,11 @@ namespace B1TuneUp.Modules.ValidationUi
 
         private string _validationSearch;
         private string _validationFormFilter;
+        private string _validationUserFilter;
+        private string _validationLocalizationFilter;
+        private string _validationVariantFilter;
+        private string _validationDependencyFilter;
+        private string _validationPackageFilter;
         private string _mandatorySearch;
         private string _mandatoryFormFilter;
 
@@ -125,6 +132,66 @@ namespace B1TuneUp.Modules.ValidationUi
             {
                 if (_validationFormFilter == value) return;
                 _validationFormFilter = value;
+                OnPropertyChanged();
+                _validationView.Refresh();
+            }
+        }
+
+        public string ValidationUserFilter
+        {
+            get => _validationUserFilter;
+            set
+            {
+                if (_validationUserFilter == value) return;
+                _validationUserFilter = value;
+                OnPropertyChanged();
+                _validationView.Refresh();
+            }
+        }
+
+        public string ValidationLocalizationFilter
+        {
+            get => _validationLocalizationFilter;
+            set
+            {
+                if (_validationLocalizationFilter == value) return;
+                _validationLocalizationFilter = value;
+                OnPropertyChanged();
+                _validationView.Refresh();
+            }
+        }
+
+        public string ValidationVariantFilter
+        {
+            get => _validationVariantFilter;
+            set
+            {
+                if (_validationVariantFilter == value) return;
+                _validationVariantFilter = value;
+                OnPropertyChanged();
+                _validationView.Refresh();
+            }
+        }
+
+        public string ValidationDependencyFilter
+        {
+            get => _validationDependencyFilter;
+            set
+            {
+                if (_validationDependencyFilter == value) return;
+                _validationDependencyFilter = value;
+                OnPropertyChanged();
+                _validationView.Refresh();
+            }
+        }
+
+        public string ValidationPackageFilter
+        {
+            get => _validationPackageFilter;
+            set
+            {
+                if (_validationPackageFilter == value) return;
+                _validationPackageFilter = value;
                 OnPropertyChanged();
                 _validationView.Refresh();
             }
@@ -247,6 +314,7 @@ namespace B1TuneUp.Modules.ValidationUi
             {
                 await Task.Run(() => ValidationRuleService.Save(SelectedValidation));
                 StatusMessage = $"Validación '{SelectedValidation.Name ?? SelectedValidation.Code}' guardada.";
+                LogValidationAudit($"Validación '{SelectedValidation.Name ?? SelectedValidation.Code}' guardada.", "Validation", SelectedValidation);
             });
         }
 
@@ -268,6 +336,7 @@ namespace B1TuneUp.Modules.ValidationUi
                     _validationView.Refresh();
                 });
                 StatusMessage = "Validación eliminada.";
+                LogValidationAudit($"Validación '{toDelete.Name ?? toDelete.Code}' eliminada.", "Deleted", toDelete);
             });
         }
 
@@ -301,6 +370,7 @@ namespace B1TuneUp.Modules.ValidationUi
             {
                 await Task.Run(() => MandatoryFieldService.Save(SelectedMandatory));
                 StatusMessage = $"Campo obligatorio '{SelectedMandatory.Name ?? SelectedMandatory.Code}' guardado.";
+                LogValidationAudit($"Campo obligatorio '{SelectedMandatory.Name ?? SelectedMandatory.Code}' guardado.", "Mandatory", null, SelectedMandatory);
             });
         }
 
@@ -322,6 +392,7 @@ namespace B1TuneUp.Modules.ValidationUi
                     _mandatoryView.Refresh();
                 });
                 StatusMessage = "Campo obligatorio eliminado.";
+                LogValidationAudit($"Campo obligatorio '{toDelete.Name ?? toDelete.Code}' eliminado.", "Deleted", null, toDelete);
             });
         }
 
@@ -341,6 +412,7 @@ namespace B1TuneUp.Modules.ValidationUi
                     }
                 });
                 StatusMessage = "Todos los cambios fueron guardados.";
+                LogValidationAudit("Guardado masivo de validaciones y campos obligatorios.", "Bulk");
             });
         }
 
@@ -362,6 +434,48 @@ namespace B1TuneUp.Modules.ValidationUi
             if (!string.IsNullOrWhiteSpace(ValidationFormFilter))
             {
                 if (!Contains(entry.FormType, ValidationFormFilter))
+                {
+                    return false;
+                }
+            }
+            if (!string.IsNullOrWhiteSpace(ValidationUserFilter))
+            {
+                string token = ValidationUserFilter.Trim();
+                if (!Contains(entry.AppliesToUser, token) && !Contains(entry.AppliesToUserGroup, token))
+                {
+                    return false;
+                }
+            }
+            if (!string.IsNullOrWhiteSpace(ValidationLocalizationFilter))
+            {
+                string token = ValidationLocalizationFilter.Trim();
+                if (!Contains(entry.ScopeLocalization, token))
+                {
+                    return false;
+                }
+            }
+            if (!string.IsNullOrWhiteSpace(ValidationVariantFilter))
+            {
+                string token = ValidationVariantFilter.Trim();
+                if (!Contains(entry.ScopeVariant, token))
+                {
+                    return false;
+                }
+            }
+            if (!string.IsNullOrWhiteSpace(ValidationDependencyFilter))
+            {
+                string token = ValidationDependencyFilter.Trim();
+                if (!Contains(entry.ScopeDependsOn, token) &&
+                    !Contains(entry.ScopeInheritFrom, token) &&
+                    !Contains(entry.Notes, token))
+                {
+                    return false;
+                }
+            }
+            if (!string.IsNullOrWhiteSpace(ValidationPackageFilter))
+            {
+                string token = ValidationPackageFilter.Trim();
+                if (!Contains(entry.ScopePackages, token))
                 {
                     return false;
                 }
@@ -397,6 +511,21 @@ namespace B1TuneUp.Modules.ValidationUi
         {
             if (string.IsNullOrEmpty(source) || string.IsNullOrEmpty(term)) return false;
             return source.IndexOf(term, StringComparison.OrdinalIgnoreCase) >= 0;
+        }
+
+        private void LogValidationAudit(string message, string status = "Info", ValidationRuleEntry validation = null, MandatoryFieldEntry mandatory = null)
+        {
+            try
+            {
+                string user = B1App.Instance?.Company?.UserName ?? Environment.UserName;
+                string form = validation?.FormType ?? mandatory?.FormType ?? SelectedValidation?.FormType ?? SelectedMandatory?.FormType ?? string.Empty;
+                string item = validation?.ItemName ?? mandatory?.ItemId ?? SelectedValidation?.ItemName ?? SelectedMandatory?.ItemId ?? string.Empty;
+                AuditLogManager.LogDetailedAction("ValidationDesigner", message, status, user, string.IsNullOrWhiteSpace(form) ? "GENERAL" : form, string.IsNullOrWhiteSpace(item) ? "Item:*" : $"Item:{item}");
+            }
+            catch
+            {
+                // ignore logging errors
+            }
         }
 
         private async Task RunSafeAsync(string message, Func<Task> work)

@@ -8,11 +8,12 @@ using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Data;
 using B1TuneUp.Models;
+using B1TuneUp.Modules;
 using B1TuneUp.Modules.IntegrationUi;
 
 namespace B1TuneUp.Modules.DashboardSearchMacroUi
 {
-    public class DashboardSearchMacroViewModel : INotifyPropertyChanged
+    public class DashboardSearchMacroViewModel : INotifyPropertyChanged, IDisposable
     {
         private const string AutoRefreshPreferenceKey = "dashboard-search";
         private readonly ObservableCollection<DashboardWidgetEntry> _widgets = new ObservableCollection<DashboardWidgetEntry>();
@@ -39,6 +40,7 @@ namespace B1TuneUp.Modules.DashboardSearchMacroUi
         private int _autoRefreshIntervalSeconds = 120;
         private DateTime? _lastRefreshAt;
         private DateTime? _nextRefreshAt;
+        private readonly IAutoRefreshRegistration _autoRefreshRegistration;
 
         public DashboardSearchMacroViewModel()
         {
@@ -68,6 +70,13 @@ namespace B1TuneUp.Modules.DashboardSearchMacroUi
             DuplicateMacroCommand = new RelayCommand(DuplicateMacro, () => SelectedMacro != null);
             SaveMacroCommand = new RelayCommand(async () => await SaveMacroAsync(), () => SelectedMacro != null);
             DeleteMacroCommand = new RelayCommand(async () => await DeleteMacroAsync(), () => SelectedMacro != null);
+
+            var pref = AutoRefreshPreferenceService.Load(AutoRefreshPreferenceKey);
+            _autoRefreshEnabled = pref.Enabled;
+            _autoRefreshIntervalSeconds = pref.IntervalSeconds;
+            UpdateAutoRefreshSchedule();
+            _autoRefreshRegistration = AutoRefreshCoordinator.Register(AutoRefreshPreferenceKey, TryAutoRefreshAsync);
+            _autoRefreshRegistration.Update(_autoRefreshEnabled, _autoRefreshIntervalSeconds);
         }
 
         public ICollectionView WidgetsView => _widgetsView;
@@ -181,6 +190,7 @@ namespace B1TuneUp.Modules.DashboardSearchMacroUi
                 _autoRefreshEnabled = value;
                 OnPropertyChanged();
                 UpdateAutoRefreshSchedule();
+                PersistAutoRefresh();
             }
         }
 
@@ -194,6 +204,7 @@ namespace B1TuneUp.Modules.DashboardSearchMacroUi
                 _autoRefreshIntervalSeconds = normalized;
                 OnPropertyChanged();
                 UpdateAutoRefreshSchedule();
+                PersistAutoRefresh();
             }
         }
 
@@ -292,6 +303,11 @@ namespace B1TuneUp.Modules.DashboardSearchMacroUi
             if (!AutoRefreshEnabled || IsBusy) return;
             if (NextRefreshAt.HasValue && DateTime.Now < NextRefreshAt.Value) return;
             await LoadAsync(true);
+        }
+
+        public void Dispose()
+        {
+            _autoRefreshRegistration?.Dispose();
         }
 
         private void NewWidget()
@@ -543,6 +559,24 @@ namespace B1TuneUp.Modules.DashboardSearchMacroUi
             else
             {
                 NextRefreshAt = null;
+            }
+        }
+
+        private void PersistAutoRefresh()
+        {
+            try
+            {
+                if (_autoRefreshRegistration != null)
+                {
+                    _autoRefreshRegistration.Update(_autoRefreshEnabled, _autoRefreshIntervalSeconds);
+                }
+                else
+                {
+                    AutoRefreshPreferenceService.Save(AutoRefreshPreferenceKey, _autoRefreshEnabled, _autoRefreshIntervalSeconds);
+                }
+            }
+            catch
+            {
             }
         }
 

@@ -121,15 +121,35 @@
                             <TextBox Text="{Binding ValidationFormFilter, UpdateSourceTrigger=PropertyChanged}" />
                             <TextBlock Text="Buscar (Form, Item, condición...)" Style="{StaticResource LabelStyle}" />
                             <TextBox Text="{Binding ValidationSearch, UpdateSourceTrigger=PropertyChanged}" />
+                            <TextBlock Text="Usuario / Grupo" Style="{StaticResource LabelStyle}" />
+                            <TextBox Text="{Binding ValidationUserFilter, UpdateSourceTrigger=PropertyChanged}" />
+                            <TextBlock Text="Localización" Style="{StaticResource LabelStyle}" />
+                            <TextBox Text="{Binding ValidationLocalizationFilter, UpdateSourceTrigger=PropertyChanged}" />
+                            <TextBlock Text="Variante" Style="{StaticResource LabelStyle}" />
+                            <TextBox Text="{Binding ValidationVariantFilter, UpdateSourceTrigger=PropertyChanged}" />
+                            <TextBlock Text="Dependencias / Herencias" Style="{StaticResource LabelStyle}" />
+                            <TextBox Text="{Binding ValidationDependencyFilter, UpdateSourceTrigger=PropertyChanged}" />
+                            <TextBlock Text="Paquetes" Style="{StaticResource LabelStyle}" />
+                            <TextBox Text="{Binding ValidationPackageFilter, UpdateSourceTrigger=PropertyChanged}" />
 
                             <ListBox ItemsSource="{Binding ValidationView}"
                                      SelectedItem="{Binding SelectedValidation}"
-                                     DisplayMemberPath="Name"
                                      Height="420"
                                      Margin="0,8,0,0"
                                      Background="{DynamicResource SurfaceAltBrush}"
                                      BorderBrush="{DynamicResource BorderBrush}"
-                                     BorderThickness="1" />
+                                     BorderThickness="1">
+                                <ListBox.ItemTemplate>
+                                    <DataTemplate>
+                                        <StackPanel Margin="0,4,0,4">
+                                            <TextBlock Text="{Binding Name}" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}" />
+                                            <TextBlock Text="{Binding FormType}" Foreground="{DynamicResource TextSecondaryBrush}" FontSize="11"/>
+                                            <TextBlock Text="{Binding ScopeSummary}" Foreground="{DynamicResource TextSecondaryBrush}" FontSize="11"/>
+                                            <TextBlock Text="{Binding DependencySummary}" Foreground="{DynamicResource TextSecondaryBrush}" FontSize="11"/>
+                                        </StackPanel>
+                                    </DataTemplate>
+                                </ListBox.ItemTemplate>
+                            </ListBox>
 
                             <WrapPanel Margin="0,16,0,0">
                                 <Button Content="Actualizar" Command="{Binding RefreshCommand}" Background="{DynamicResource PrimaryDarkBrush}" />

@@ -87,6 +87,29 @@ namespace B1TuneUp.Models
             return clone;
         }
 
+        public string ScopeSummary
+        {
+            get
+            {
+                string users = string.IsNullOrWhiteSpace(AppliesToUser) ? "*" : AppliesToUser;
+                string groups = string.IsNullOrWhiteSpace(AppliesToUserGroup) ? "*" : AppliesToUserGroup;
+                string locale = string.IsNullOrWhiteSpace(ScopeLocalization) ? "*" : ScopeLocalization;
+                string variant = string.IsNullOrWhiteSpace(ScopeVariant) ? "*" : ScopeVariant;
+                return $"U:{users} · G:{groups} · L:{locale} · V:{variant}";
+            }
+        }
+
+        public string DependencySummary
+        {
+            get
+            {
+                string depends = string.IsNullOrWhiteSpace(ScopeDependsOn) ? "-" : ScopeDependsOn;
+                string inherit = string.IsNullOrWhiteSpace(ScopeInheritFrom) ? "-" : ScopeInheritFrom;
+                string packages = string.IsNullOrWhiteSpace(ScopePackages) ? "-" : ScopePackages;
+                return $"Dep:{depends} · Inherit:{inherit} · Pack:{packages}";
+            }
+        }
+
         internal void LoadMetadata(string rawNotes)
         {
             _metadata = ValidationScopeMetadata.Parse(rawNotes);

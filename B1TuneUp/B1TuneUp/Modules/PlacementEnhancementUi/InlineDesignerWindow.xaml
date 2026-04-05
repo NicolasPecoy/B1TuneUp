@@ -10,7 +10,7 @@
         Topmost="True"
         ShowInTaskbar="False"
         Width="408"
-        Height="900"
+        Height="1500"
         Loaded="OnLoaded"
         Closed="OnClosed"
         PreviewKeyDown="OnPreviewKeyDown"

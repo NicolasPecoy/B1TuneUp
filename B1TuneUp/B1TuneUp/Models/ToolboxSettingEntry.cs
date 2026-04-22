@@ -135,6 +135,8 @@ namespace B1TuneUp.Models
                     return "Tema aplicado a B1TuneUp (Light/Dark).";
                 case "SYS_USE_FLAGS_BP":
                     return "Activa iconos de bandera por país en Socios de Negocios (según dirección Bill To).";
+                case "SYS_USE_FLAGS_DOC":
+                    return "Activa iconos de bandera por país en documentos A/R y A/P (según dirección Bill To del documento).";
                 default:
                     return string.Empty;
             }

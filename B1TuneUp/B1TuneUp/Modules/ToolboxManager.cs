@@ -10,6 +10,7 @@ namespace B1TuneUp.Modules
     public static class ToolboxManager
     {
         public const string UseFlagsSettingCode = "SYS_USE_FLAGS_BP";
+        public const string UseFlagsDocumentsSettingCode = "SYS_USE_FLAGS_DOC";
 
         public static void ApplyToolboxSettings()
         {
@@ -23,6 +24,7 @@ namespace B1TuneUp.Modules
         private static void EnsureDefaultSettings()
         {
             EnsureSettingExists(UseFlagsSettingCode, "Y");
+            EnsureSettingExists(UseFlagsDocumentsSettingCode, "Y");
         }
 
         private static void ApplyPeriodLock()

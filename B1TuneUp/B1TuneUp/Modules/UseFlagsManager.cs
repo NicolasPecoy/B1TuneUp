@@ -12,6 +12,15 @@ namespace B1TuneUp.Modules
         private const string BusinessPartnerFormType = "134";
         private const string FlagItemId = "BTUN_FLG";
 
+        private static readonly string[] CardCodeItemCandidates = { "4", "5", "54", "14", "6" };
+        private static readonly string[] MarketingDocumentTables =
+        {
+            // A/R
+            "OQUT", "ORDR", "ODLN", "OINV", "ORIN", "ODPI", "ORDN",
+            // A/P
+            "OPQT", "OPOR", "OPDN", "OPCH", "ORPC", "ODPO", "ORPD"
+        };
+
         private static readonly object SyncRoot = new object();
         private static readonly Dictionary<string, UseFlagContext> ContextByFormUid = new Dictionary<string, UseFlagContext>(StringComparer.OrdinalIgnoreCase);
 
@@ -26,8 +35,6 @@ namespace B1TuneUp.Modules
                 return;
             }
 
-            if (!IsBusinessPartnerForm(form)) return;
-
             if (string.Equals(eventName, "et_CLICK", StringComparison.OrdinalIgnoreCase) &&
                 !pVal.BeforeAction &&
                 string.Equals(pVal.ItemUID, FlagItemId, StringComparison.OrdinalIgnoreCase))
@@ -36,7 +43,16 @@ namespace B1TuneUp.Modules
                 return;
             }
 
-            if (!ToolboxManager.IsSettingEnabled(ToolboxManager.UseFlagsSettingCode, true))
+            if (!TryResolveScope(form, out var scope))
+            {
+                return;
+            }
+
+            bool enabled = scope == UseFlagScope.BusinessPartner
+                ? ToolboxManager.IsSettingEnabled(ToolboxManager.UseFlagsSettingCode, true)
+                : ToolboxManager.IsSettingEnabled(ToolboxManager.UseFlagsDocumentsSettingCode, true);
+
+            if (!enabled)
             {
                 HideFlag(form);
                 return;
@@ -45,19 +61,29 @@ namespace B1TuneUp.Modules
             if (pVal.BeforeAction) return;
             if (!ShouldRefresh(eventName)) return;
 
-            RefreshFlag(form);
+            RefreshFlag(form, scope);
         }
 
-        private static bool IsBusinessPartnerForm(Form form)
+        private static bool TryResolveScope(Form form, out UseFlagScope scope)
         {
+            scope = UseFlagScope.None;
             try
             {
-                return string.Equals(form.TypeEx, BusinessPartnerFormType, StringComparison.OrdinalIgnoreCase);
+                if (string.Equals(form.TypeEx, BusinessPartnerFormType, StringComparison.OrdinalIgnoreCase))
+                {
+                    scope = UseFlagScope.BusinessPartner;
+                    return true;
+                }
+
+                if (TryGetDocumentTable(form, out _))
+                {
+                    scope = UseFlagScope.MarketingDocument;
+                    return true;
+                }
             }
-            catch
-            {
-                return false;
-            }
+            catch { }
+
+            return false;
         }
 
         private static bool ShouldRefresh(string eventName)
@@ -73,12 +99,12 @@ namespace B1TuneUp.Modules
                    || string.Equals(eventName, "et_CLICK", StringComparison.OrdinalIgnoreCase);
         }
 
-        private static void RefreshFlag(Form form)
+        private static void RefreshFlag(Form form, UseFlagScope scope)
         {
             try
             {
-                string cardCode = GetCardCode(form);
-                if (string.IsNullOrWhiteSpace(cardCode))
+                var context = BuildFormContext(form, scope);
+                if (context == null || string.IsNullOrWhiteSpace(context.CardCode))
                 {
                     HideFlag(form);
                     UpdateContext(form.UniqueID, string.Empty, string.Empty, string.Empty);
@@ -86,8 +112,7 @@ namespace B1TuneUp.Modules
                 }
 
                 var current = GetContext(form.UniqueID);
-                if (current != null &&
-                    string.Equals(current.CardCode, cardCode, StringComparison.OrdinalIgnoreCase))
+                if (current != null && string.Equals(current.CacheToken, context.CacheToken, StringComparison.OrdinalIgnoreCase))
                 {
                     if (string.IsNullOrWhiteSpace(current.CountryCode))
                     {
@@ -95,29 +120,130 @@ namespace B1TuneUp.Modules
                     }
                     else
                     {
-                        ApplyFlagToForm(form, current.CountryCode, current.CountryName);
+                        ApplyFlagToForm(form, current.CountryCode, current.CountryName, context.AnchorItemId);
                     }
                     return;
                 }
 
-                var info = ResolveBillToCountry(cardCode);
+                var info = ResolveBillToCountry(context.CardCode, context.BillToCode);
                 if (string.IsNullOrWhiteSpace(info.CountryCode))
                 {
                     HideFlag(form);
-                    UpdateContext(form.UniqueID, cardCode, string.Empty, string.Empty);
+                    UpdateContext(form.UniqueID, context.CacheToken, string.Empty, string.Empty);
                     return;
                 }
 
-                ApplyFlagToForm(form, info.CountryCode, info.CountryName);
-                UpdateContext(form.UniqueID, cardCode, info.CountryCode, info.CountryName);
+                ApplyFlagToForm(form, info.CountryCode, info.CountryName, context.AnchorItemId);
+                UpdateContext(form.UniqueID, context.CacheToken, info.CountryCode, info.CountryName);
             }
             catch
             {
-                // No interrumpimos la interacción del usuario por fallos visuales del indicador.
+                // El indicador visual no debe bloquear el flujo del usuario.
             }
         }
 
-        private static void ApplyFlagToForm(Form form, string countryCode, string countryName)
+        private static FormContext BuildFormContext(Form form, UseFlagScope scope)
+        {
+            if (scope == UseFlagScope.BusinessPartner)
+            {
+                string anchor = string.Empty;
+                string cardCode = GetCardCode(form, "OCRD", out anchor);
+                string normalizedCard = NormalizeSapValue(cardCode);
+                string cacheToken = $"BP|{normalizedCard}";
+                return new FormContext(normalizedCard, string.Empty, cacheToken, string.IsNullOrWhiteSpace(anchor) ? "5" : anchor);
+            }
+
+            if (!TryGetDocumentTable(form, out var table)) return null;
+
+            string documentAnchor = string.Empty;
+            string documentCardCode = GetCardCode(form, table, out documentAnchor);
+            string payToCode = ReadFromDbDataSource(form, table, "PayToCode");
+            string docEntryRaw = ReadFromDbDataSource(form, table, "DocEntry");
+            int.TryParse(docEntryRaw, out int docEntry);
+
+            string normalizedCardCode = NormalizeSapValue(documentCardCode);
+            string normalizedPayTo = NormalizeSapValue(payToCode);
+            string cacheTokenDoc = $"DOC|{table}|{docEntry}|{normalizedCardCode}|{normalizedPayTo}";
+
+            return new FormContext(
+                normalizedCardCode,
+                normalizedPayTo,
+                cacheTokenDoc,
+                string.IsNullOrWhiteSpace(documentAnchor) ? "4" : documentAnchor);
+        }
+
+        private static string GetCardCode(Form form, string preferredTable, out string anchorItemId)
+        {
+            anchorItemId = string.Empty;
+
+            if (!string.IsNullOrWhiteSpace(preferredTable))
+            {
+                string fromTable = ReadFromDbDataSource(form, preferredTable, "CardCode");
+                if (!string.IsNullOrWhiteSpace(fromTable))
+                {
+                    // Intentamos ubicar el item visual más probable del CardCode.
+                    foreach (var candidate in CardCodeItemCandidates)
+                    {
+                        if (!string.IsNullOrWhiteSpace(ReadFromItem(form, candidate)))
+                        {
+                            anchorItemId = candidate;
+                            break;
+                        }
+                    }
+                    return fromTable;
+                }
+            }
+
+            string fromOcrd = ReadFromDbDataSource(form, "OCRD", "CardCode");
+            if (!string.IsNullOrWhiteSpace(fromOcrd))
+            {
+                anchorItemId = "5";
+                return fromOcrd;
+            }
+
+            foreach (var itemId in CardCodeItemCandidates)
+            {
+                string value = ReadFromItem(form, itemId);
+                if (!string.IsNullOrWhiteSpace(value))
+                {
+                    anchorItemId = itemId;
+                    return value;
+                }
+            }
+
+            return string.Empty;
+        }
+
+        private static bool TryGetDocumentTable(Form form, out string tableName)
+        {
+            tableName = string.Empty;
+            if (form == null) return false;
+
+            foreach (var table in MarketingDocumentTables)
+            {
+                if (HasDbDataSource(form, table))
+                {
+                    tableName = table;
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        private static bool HasDbDataSource(Form form, string tableName)
+        {
+            try
+            {
+                var ds = form.DataSources?.DBDataSources?.Item(tableName);
+                return ds != null;
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
+        private static void ApplyFlagToForm(Form form, string countryCode, string countryName, string anchorItemId)
         {
             string iconPath = FlagIconProvider.GetIconPath(countryCode);
             if (string.IsNullOrWhiteSpace(iconPath))
@@ -129,7 +255,7 @@ namespace B1TuneUp.Modules
             var flagItem = EnsureFlagItem(form);
             if (flagItem == null) return;
 
-            PositionFlagItem(form, flagItem);
+            PositionFlagItem(form, flagItem, anchorItemId);
             SetPicture(flagItem, iconPath);
             flagItem.Visible = true;
 
@@ -166,11 +292,20 @@ namespace B1TuneUp.Modules
             return item;
         }
 
-        private static void PositionFlagItem(Form form, Item flagItem)
+        private static void PositionFlagItem(Form form, Item flagItem, string anchorItemId)
         {
             try
             {
-                Item anchor = TryGetItem(form, "5") ?? TryGetItem(form, "4");
+                Item anchor = TryGetItem(form, anchorItemId);
+                if (anchor == null)
+                {
+                    foreach (var candidate in CardCodeItemCandidates)
+                    {
+                        anchor = TryGetItem(form, candidate);
+                        if (anchor != null) break;
+                    }
+                }
+
                 if (anchor != null)
                 {
                     flagItem.Left = anchor.Left + anchor.Width + 6;
@@ -220,7 +355,7 @@ namespace B1TuneUp.Modules
             }
             catch
             {
-                // Ignoramos errores de rendering por variaciones del SDK.
+                // Variaciones del SDK: no interrumpimos el flujo.
             }
         }
 
@@ -238,18 +373,6 @@ namespace B1TuneUp.Modules
         {
             if (form == null || string.IsNullOrWhiteSpace(itemId)) return null;
             try { return form.Items.Item(itemId); } catch { return null; }
-        }
-
-        private static string GetCardCode(Form form)
-        {
-            string value = ReadFromDbDataSource(form, "OCRD", "CardCode");
-            if (!string.IsNullOrWhiteSpace(value)) return value;
-
-            value = ReadFromItem(form, "5");
-            if (!string.IsNullOrWhiteSpace(value)) return value;
-
-            value = ReadFromItem(form, "4");
-            return value ?? string.Empty;
         }
 
         private static string ReadFromDbDataSource(Form form, string table, string field)
@@ -286,7 +409,7 @@ namespace B1TuneUp.Modules
             return string.Empty;
         }
 
-        private static CountryInfo ResolveBillToCountry(string cardCode)
+        private static CountryInfo ResolveBillToCountry(string cardCode, string preferredBillToCode)
         {
             string normalizedCardCode = EscapeSql(cardCode);
             string billToDef = string.Empty;
@@ -295,7 +418,13 @@ namespace B1TuneUp.Modules
             ReadBusinessPartnerDefaults(normalizedCardCode, ref billToDef, ref bpCountry);
 
             string country = string.Empty;
-            if (!string.IsNullOrWhiteSpace(billToDef))
+            string preferred = NormalizeSapValue(preferredBillToCode);
+            if (!string.IsNullOrWhiteSpace(preferred))
+            {
+                country = ReadBillToCountryByAddress(normalizedCardCode, preferred);
+            }
+
+            if (string.IsNullOrWhiteSpace(country) && !string.IsNullOrWhiteSpace(billToDef))
             {
                 country = ReadBillToCountryByAddress(normalizedCardCode, billToDef);
             }
@@ -426,14 +555,14 @@ namespace B1TuneUp.Modules
             return (value ?? string.Empty).Replace("'", "''");
         }
 
-        private static void UpdateContext(string formUid, string cardCode, string countryCode, string countryName)
+        private static void UpdateContext(string formUid, string cacheToken, string countryCode, string countryName)
         {
             if (string.IsNullOrWhiteSpace(formUid)) return;
             lock (SyncRoot)
             {
                 ContextByFormUid[formUid] = new UseFlagContext
                 {
-                    CardCode = cardCode ?? string.Empty,
+                    CacheToken = cacheToken ?? string.Empty,
                     CountryCode = countryCode ?? string.Empty,
                     CountryName = countryName ?? string.Empty
                 };
@@ -471,9 +600,32 @@ namespace B1TuneUp.Modules
             B1App.Instance.Application.SetStatusBarMessage($"País: {name} ({ctx.CountryCode})", BoMessageTime.bmt_Short, false);
         }
 
+        private enum UseFlagScope
+        {
+            None,
+            BusinessPartner,
+            MarketingDocument
+        }
+
+        private sealed class FormContext
+        {
+            public FormContext(string cardCode, string billToCode, string cacheToken, string anchorItemId)
+            {
+                CardCode = cardCode ?? string.Empty;
+                BillToCode = billToCode ?? string.Empty;
+                CacheToken = cacheToken ?? string.Empty;
+                AnchorItemId = anchorItemId ?? string.Empty;
+            }
+
+            public string CardCode { get; }
+            public string BillToCode { get; }
+            public string CacheToken { get; }
+            public string AnchorItemId { get; }
+        }
+
         private sealed class UseFlagContext
         {
-            public string CardCode { get; set; } = string.Empty;
+            public string CacheToken { get; set; } = string.Empty;
             public string CountryCode { get; set; } = string.Empty;
             public string CountryName { get; set; } = string.Empty;
         }

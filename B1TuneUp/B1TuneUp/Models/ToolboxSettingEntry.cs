@@ -133,6 +133,8 @@ namespace B1TuneUp.Models
                     return "Fuente de datos de tipo de cambio (Manual, ECB, Fixer).";
                 case "SYS_THEME":
                     return "Tema aplicado a B1TuneUp (Light/Dark).";
+                case "SYS_USE_FLAGS_BP":
+                    return "Activa iconos de bandera por país en Socios de Negocios (según dirección Bill To).";
                 default:
                     return string.Empty;
             }

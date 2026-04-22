@@ -236,7 +236,7 @@
 
                     <ComboBox ItemsSource="{Binding FormTypes}" Text="{Binding FormFilter, UpdateSourceTrigger=PropertyChanged}" IsEditable="True" />
 
-                    <TextBlock Text="Buscar Item / AcciÃ³n" Style="{StaticResource LabelStyle}" />
+                    <TextBlock Text="Buscar Item / Acción" Style="{StaticResource LabelStyle}" />
 
                     <TextBox Text="{Binding SearchFilter, UpdateSourceTrigger=PropertyChanged}" />
 
@@ -326,7 +326,7 @@
 
                             <StackPanel Grid.Column="1">
 
-                                <TextBlock Text="AcciÃ³n" Style="{StaticResource LabelStyle}" />
+                                <TextBlock Text="Acción" Style="{StaticResource LabelStyle}" />
 
                                 <ComboBox ItemsSource="{Binding ActionOptions}"
 

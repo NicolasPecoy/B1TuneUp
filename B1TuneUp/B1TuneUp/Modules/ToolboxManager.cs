@@ -9,12 +9,20 @@ namespace B1TuneUp.Modules
 {
     public static class ToolboxManager
     {
+        public const string UseFlagsSettingCode = "SYS_USE_FLAGS_BP";
+
         public static void ApplyToolboxSettings()
         {
             // Aplicar configuraciones generales desde la tabla @BTUN_TBOX
+            EnsureDefaultSettings();
             ApplyPeriodLock();
             ApplyGeneralValidations();
             ApplySystemSettings();
+        }
+
+        private static void EnsureDefaultSettings()
+        {
+            EnsureSettingExists(UseFlagsSettingCode, "Y");
         }
 
         private static void ApplyPeriodLock()
@@ -130,6 +138,78 @@ namespace B1TuneUp.Modules
                     // Otros ajustes específicos del sistema
                     break;
             }
+        }
+
+        private static void EnsureSettingExists(string code, string defaultValue)
+        {
+            if (string.IsNullOrWhiteSpace(code)) return;
+
+            Recordset rs = null;
+            try
+            {
+                rs = (Recordset)B1App.Instance.Company.GetBusinessObject(BoObjectTypes.BoRecordset);
+                string safeCode = code.Replace("'", "''");
+                string safeValue = (defaultValue ?? string.Empty).Replace("'", "''");
+
+                string checkSql = B1App.Instance.IsHana
+                    ? $"SELECT \"Code\" FROM \"@BTUN_TBOX\" WHERE \"U_Code\" = '{safeCode}'"
+                    : $"SELECT [Code] FROM [@BTUN_TBOX] WHERE [U_Code] = '{safeCode}'";
+                rs.DoQuery(checkSql);
+                if (!rs.EoF) return;
+
+                string insertSql = B1App.Instance.IsHana
+                    ? $"INSERT INTO \"@BTUN_TBOX\" (\"Code\",\"Name\",\"U_Code\",\"U_Value\") VALUES ('{safeCode}','{safeCode}','{safeCode}','{safeValue}')"
+                    : $"INSERT INTO [@BTUN_TBOX] ([Code],[Name],[U_Code],[U_Value]) VALUES ('{safeCode}','{safeCode}','{safeCode}','{safeValue}')";
+                rs.DoQuery(insertSql);
+            }
+            catch
+            {
+                // Si falla el seed no bloqueamos el startup del add-on.
+            }
+            finally
+            {
+                ComObjectManager.Release(rs);
+            }
+        }
+
+        public static string GetSettingValue(string code, string defaultValue = null)
+        {
+            if (string.IsNullOrWhiteSpace(code)) return defaultValue;
+
+            Recordset rs = null;
+            try
+            {
+                rs = (Recordset)B1App.Instance.Company.GetBusinessObject(BoObjectTypes.BoRecordset);
+                string safeCode = code.Replace("'", "''");
+                string sql = B1App.Instance.IsHana
+                    ? $"SELECT \"U_Value\" FROM \"@BTUN_TBOX\" WHERE \"U_Code\" = '{safeCode}'"
+                    : $"SELECT [U_Value] FROM [@BTUN_TBOX] WHERE [U_Code] = '{safeCode}'";
+                rs.DoQuery(sql);
+                if (!rs.EoF)
+                {
+                    return rs.Fields.Item(0).Value?.ToString() ?? defaultValue;
+                }
+            }
+            catch
+            {
+                // Ignorado: retornamos default.
+            }
+            finally
+            {
+                ComObjectManager.Release(rs);
+            }
+
+            return defaultValue;
+        }
+
+        public static bool IsSettingEnabled(string code, bool defaultValue = false)
+        {
+            string fallback = defaultValue ? "Y" : "N";
+            string value = GetSettingValue(code, fallback);
+            if (string.IsNullOrWhiteSpace(value)) return defaultValue;
+
+            string normalized = value.Trim().ToUpperInvariant();
+            return normalized == "Y" || normalized == "YES" || normalized == "TRUE" || normalized == "1";
         }
 
         public static bool ValidateVAT(string vatNumber, string country)
@@ -376,6 +456,7 @@ namespace B1TuneUp.Modules
         {
             // Lógica para eventos automáticos de Toolbox
             // Por ejemplo, autocompletar campos o formatear textos
+            UseFlagsManager.HandleItemEvent(oForm, pVal);
         }
     }
 }

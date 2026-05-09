@@ -282,6 +282,58 @@
                 </Grid>
             </TabItem>
 
+            <TabItem Header="Worker / Queues">
+                <Grid Margin="0,14,0,0">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                        <RowDefinition Height="18" />
+                        <RowDefinition Height="*" />
+                    </Grid.RowDefinitions>
+                    <Border Style="{StaticResource PanelStyle}">
+                        <StackPanel Orientation="Horizontal">
+                            <Button Content="Start Worker" Command="{Binding StartWorkerCommand}" />
+                            <Button Content="Stop Worker" Command="{Binding StopWorkerCommand}" />
+                            <Button Content="Run Now" Command="{Binding RunWorkerTickCommand}" />
+                            <Button Content="Refresh" Command="{Binding RefreshCommand}" />
+                        </StackPanel>
+                    </Border>
+                    <Border Grid.Row="1" Style="{StaticResource PanelStyle}" Margin="0,14,0,0">
+                        <DockPanel>
+                            <TextBlock DockPanel.Dock="Top" Text="Worker Jobs" FontSize="16" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,12" />
+                            <DataGrid ItemsSource="{Binding WorkerJobs}" AutoGenerateColumns="False" CanUserAddRows="False">
+                                <DataGrid.Columns>
+                                    <DataGridTextColumn Header="Code" Binding="{Binding Code}" Width="190" />
+                                    <DataGridTextColumn Header="Type" Binding="{Binding JobType}" Width="130" />
+                                    <DataGridTextColumn Header="Status" Binding="{Binding Status}" Width="90" />
+                                    <DataGridTextColumn Header="Retries" Binding="{Binding RetryCount}" Width="70" />
+                                    <DataGridTextColumn Header="Created" Binding="{Binding CreatedAt}" Width="150" />
+                                    <DataGridTextColumn Header="Payload" Binding="{Binding Payload}" Width="220" />
+                                    <DataGridTextColumn Header="Error" Binding="{Binding LastError}" Width="*" />
+                                </DataGrid.Columns>
+                            </DataGrid>
+                        </DockPanel>
+                    </Border>
+                    <Border Grid.Row="3" Style="{StaticResource PanelStyle}">
+                        <DockPanel>
+                            <TextBlock DockPanel.Dock="Top" Text="Print &amp; Delivery Queue" FontSize="16" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,12" />
+                            <DataGrid ItemsSource="{Binding PrintDeliveryQueue}" AutoGenerateColumns="False" CanUserAddRows="False">
+                                <DataGrid.Columns>
+                                    <DataGridTextColumn Header="Code" Binding="{Binding Code}" Width="190" />
+                                    <DataGridTextColumn Header="Doc" Binding="{Binding DocType}" Width="80" />
+                                    <DataGridTextColumn Header="Entry" Binding="{Binding DocEntry}" Width="90" />
+                                    <DataGridTextColumn Header="Channel" Binding="{Binding Channel}" Width="90" />
+                                    <DataGridTextColumn Header="Report" Binding="{Binding ReportCode}" Width="160" />
+                                    <DataGridTextColumn Header="Status" Binding="{Binding Status}" Width="90" />
+                                    <DataGridTextColumn Header="Output" Binding="{Binding OutputFile}" Width="220" />
+                                    <DataGridTextColumn Header="Error" Binding="{Binding LastError}" Width="*" />
+                                </DataGrid.Columns>
+                            </DataGrid>
+                        </DockPanel>
+                    </Border>
+                </Grid>
+            </TabItem>
+
             <TabItem Header="Lifecycle / Samples">
                 <Grid Margin="0,14,0,0">
                     <Grid.ColumnDefinitions>

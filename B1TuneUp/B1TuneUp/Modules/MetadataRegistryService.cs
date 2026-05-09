@@ -50,6 +50,23 @@ namespace B1TuneUp.Modules
             AddField(entries, "BTUN_PKG", "DryRun", "Dry Run", BoFieldTypes.db_Alpha, 1, "Y", "Y:Yes;N:No");
             AddField(entries, "BTUN_PKG", "Summary", "Summary", BoFieldTypes.db_Memo);
             AddField(entries, "BTUN_PKG", "Backup", "Backup Path", BoFieldTypes.db_Alpha, 254);
+
+            AddTable(entries, "BTUN_WJOB", "B1TuneUp Worker Jobs");
+            AddField(entries, "BTUN_WJOB", "JobType", "Job Type", BoFieldTypes.db_Alpha, 40);
+            AddField(entries, "BTUN_WJOB", "Payload", "Payload", BoFieldTypes.db_Memo);
+            AddField(entries, "BTUN_WJOB", "Params", "Parameters", BoFieldTypes.db_Memo);
+            AddField(entries, "BTUN_WJOB", "Status", "Status", BoFieldTypes.db_Alpha, 20);
+            AddField(entries, "BTUN_WJOB", "Retries", "Retry Count", BoFieldTypes.db_Numeric, 5);
+            AddField(entries, "BTUN_WJOB", "LastError", "Last Error", BoFieldTypes.db_Memo);
+
+            AddTable(entries, "BTUN_PDQUE", "B1TuneUp Print Delivery Queue");
+            AddField(entries, "BTUN_PDQUE", "DocType", "Document Type", BoFieldTypes.db_Alpha, 30);
+            AddField(entries, "BTUN_PDQUE", "DocEntry", "Document Entry", BoFieldTypes.db_Alpha, 30);
+            AddField(entries, "BTUN_PDQUE", "Channel", "Channel", BoFieldTypes.db_Alpha, 20);
+            AddField(entries, "BTUN_PDQUE", "Report", "Report Code", BoFieldTypes.db_Alpha, 100);
+            AddField(entries, "BTUN_PDQUE", "Status", "Status", BoFieldTypes.db_Alpha, 20);
+            AddField(entries, "BTUN_PDQUE", "Output", "Output File", BoFieldTypes.db_Alpha, 254);
+            AddField(entries, "BTUN_PDQUE", "LastError", "Last Error", BoFieldTypes.db_Memo);
             return entries;
         }
 

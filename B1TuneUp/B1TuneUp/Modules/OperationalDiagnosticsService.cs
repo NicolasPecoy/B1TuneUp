@@ -24,6 +24,8 @@ namespace B1TuneUp.Modules
             Check(checks, "Metadata", "Required schema", () => MetadataRegistryService.Validate().All(m => m.Exists), "UDT/UDF registry.");
             Check(checks, "License", "License/trial", () => ProductLifecycleService.GetInfo().LicenseStatus != "Expired", ProductLifecycleService.GetInfo().Detail);
             Check(checks, "Version", "SAP compatibility", () => ProductLifecycleService.GetInfo().CompatibilityStatus == "OK", ProductLifecycleService.GetInfo().SapVersion);
+            Check(checks, "Worker", "Runtime", () => B1TuneUpWorkerRuntime.IsRunning, B1TuneUpWorkerRuntime.IsRunning ? "Worker runtime active." : "Worker runtime stopped.");
+            Check(checks, "Crystal", "Runtime", CrystalReportEngineService.IsCrystalRuntimeAvailable, CrystalReportEngineService.IsCrystalRuntimeAvailable() ? "Crystal runtime available." : "Crystal runtime not found.");
             Check(checks, "Filesystem", "Log folder writable", () =>
             {
                 string dir = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Logs");

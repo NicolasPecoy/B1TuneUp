@@ -17,8 +17,8 @@ namespace B1TuneUp.Modules
             {
                 bool isHana = B1App.Instance.IsHana;
                 string sql = isHana
-                    ? "SELECT \"Code\",\"Name\",\"U_Query\",\"U_Action\" FROM \"@BTUN_SEARCH\" ORDER BY \"Name\""
-                    : "SELECT [Code],[Name],[U_Query],[U_Action] FROM [@BTUN_SEARCH] ORDER BY [Name]";
+                    ? "SELECT * FROM \"@BTUN_SEARCH\" ORDER BY \"Name\""
+                    : "SELECT * FROM [@BTUN_SEARCH] ORDER BY [Name]";
                 rs = (Recordset)B1App.Instance.Company.GetBusinessObject(BoObjectTypes.BoRecordset);
                 rs.DoQuery(sql);
                 while (!rs.EoF)
@@ -28,7 +28,18 @@ namespace B1TuneUp.Modules
                         Code = ReadString(rs, "Code"),
                         Name = ReadString(rs, "Name"),
                         Query = ReadString(rs, "U_Query"),
-                        Action = ReadString(rs, "U_Action")
+                        Action = ReadString(rs, "U_Action"),
+                        Description = ReadString(rs, "U_Desc"),
+                        Category = ReadString(rs, "U_Category"),
+                        Tags = ReadString(rs, "U_Tags"),
+                        AllowedUsers = ReadString(rs, "U_AllowUsers"),
+                        AllowedGroups = ReadString(rs, "U_AllowGrps"),
+                        DeniedUsers = ReadString(rs, "U_DenyUsers"),
+                        DeniedGroups = ReadString(rs, "U_DenyGrps"),
+                        Favorite = string.Equals(ReadString(rs, "U_Favorite"), "Y", StringComparison.OrdinalIgnoreCase),
+                        Active = !string.Equals(ReadString(rs, "U_Active"), "N", StringComparison.OrdinalIgnoreCase),
+                        PageSize = SafeInt(ReadString(rs, "U_PageSize"), 50),
+                        CacheSeconds = SafeInt(ReadString(rs, "U_CacheSec"), 30)
                     });
                     rs.MoveNext();
                 }
@@ -65,6 +76,17 @@ namespace B1TuneUp.Modules
 
                 SetField(table, "U_Query", entry.Query);
                 SetField(table, "U_Action", entry.Action);
+                SetField(table, "U_Desc", entry.Description);
+                SetField(table, "U_Category", entry.Category);
+                SetField(table, "U_Tags", entry.Tags);
+                SetField(table, "U_AllowUsers", entry.AllowedUsers);
+                SetField(table, "U_AllowGrps", entry.AllowedGroups);
+                SetField(table, "U_DenyUsers", entry.DeniedUsers);
+                SetField(table, "U_DenyGrps", entry.DeniedGroups);
+                SetField(table, "U_Favorite", entry.Favorite ? "Y" : "N");
+                SetField(table, "U_Active", entry.Active ? "Y" : "N");
+                SetField(table, "U_PageSize", entry.PageSize.ToString());
+                SetField(table, "U_CacheSec", entry.CacheSeconds.ToString());
 
                 int res = exists ? table.Update() : table.Add();
                 if (res != 0)
@@ -114,6 +136,11 @@ namespace B1TuneUp.Modules
         {
             try { return B1TuneUp.Utils.SapUiSafe.SafeField(rs, field); }
             catch { return string.Empty; }
+        }
+
+        private static int SafeInt(string value, int fallback)
+        {
+            return int.TryParse(value, out var parsed) ? parsed : fallback;
         }
     }
 }

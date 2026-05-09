@@ -26,6 +26,8 @@ namespace B1TuneUp.Modules.ConfigCenter
         private readonly ObservableCollection<OperationalHealthEntry> _healthChecks = new ObservableCollection<OperationalHealthEntry>();
         private readonly ObservableCollection<TestRunResult> _logSummary = new ObservableCollection<TestRunResult>();
         private readonly ObservableCollection<FunctionalTemplateEntry> _samples = new ObservableCollection<FunctionalTemplateEntry>();
+        private readonly ObservableCollection<WorkerJobEntry> _workerJobs = new ObservableCollection<WorkerJobEntry>();
+        private readonly ObservableCollection<PrintDeliveryQueueEntry> _printDeliveryQueue = new ObservableCollection<PrintDeliveryQueueEntry>();
         private ModuleConfigurationEntry _selectedModule;
         private UniversalFunctionEntry _selectedFunction;
         private AuthorizationGroupEntry _selectedGroup;
@@ -73,6 +75,9 @@ namespace B1TuneUp.Modules.ConfigCenter
             GenerateOwnerLicenseCommand = new RelayCommand(async () => await GenerateOwnerLicenseAsync());
             RunUpgradeCommand = new RelayCommand(async () => await RunUpgradeAsync());
             InstallSampleCommand = new RelayCommand(async () => await InstallSampleAsync(), () => SelectedSample != null);
+            StartWorkerCommand = new RelayCommand(StartWorker);
+            StopWorkerCommand = new RelayCommand(StopWorker);
+            RunWorkerTickCommand = new RelayCommand(async () => await RunWorkerTickAsync());
         }
 
         public ObservableCollection<ModuleConfigurationEntry> Modules => _modules;
@@ -88,6 +93,8 @@ namespace B1TuneUp.Modules.ConfigCenter
         public ObservableCollection<OperationalHealthEntry> HealthChecks => _healthChecks;
         public ObservableCollection<TestRunResult> LogSummary => _logSummary;
         public ObservableCollection<FunctionalTemplateEntry> Samples => _samples;
+        public ObservableCollection<WorkerJobEntry> WorkerJobs => _workerJobs;
+        public ObservableCollection<PrintDeliveryQueueEntry> PrintDeliveryQueue => _printDeliveryQueue;
         public string[] FunctionTypes => UniversalFunctionService.SupportedTypes;
         public string[] TriggerEvents => UnifiedTriggerService.SupportedEvents;
 
@@ -247,6 +254,9 @@ namespace B1TuneUp.Modules.ConfigCenter
         public RelayCommand GenerateOwnerLicenseCommand { get; }
         public RelayCommand RunUpgradeCommand { get; }
         public RelayCommand InstallSampleCommand { get; }
+        public RelayCommand StartWorkerCommand { get; }
+        public RelayCommand StopWorkerCommand { get; }
+        public RelayCommand RunWorkerTickCommand { get; }
 
         public event PropertyChangedEventHandler PropertyChanged;
 
@@ -267,6 +277,8 @@ namespace B1TuneUp.Modules.ConfigCenter
                 Replace(_healthChecks, OperationalDiagnosticsService.RunHealthChecks());
                 Replace(_logSummary, OperationalDiagnosticsService.GetOperationalLogSummary());
                 Replace(_samples, FunctionalTemplateService.GetSamples());
+                Replace(_workerJobs, WorkerQueueService.GetAll());
+                Replace(_printDeliveryQueue, PrintDeliveryQueueService.GetAll());
                 LifecycleInfo = ProductLifecycleService.GetInfo();
                 LicenseKey = string.Empty;
                 SuperUsers = AuthorizationAdminService.GetSuperUsers();
@@ -521,6 +533,8 @@ namespace B1TuneUp.Modules.ConfigCenter
             {
                 Replace(_healthChecks, OperationalDiagnosticsService.RunHealthChecks());
                 Replace(_logSummary, OperationalDiagnosticsService.GetOperationalLogSummary());
+                Replace(_workerJobs, WorkerQueueService.GetAll());
+                Replace(_printDeliveryQueue, PrintDeliveryQueueService.GetAll());
                 LifecycleInfo = ProductLifecycleService.GetInfo();
                 StatusMessage = "Health checks actualizados.";
             });
@@ -579,6 +593,31 @@ namespace B1TuneUp.Modules.ConfigCenter
                 Replace(_functions, UniversalFunctionService.GetAll().Select(f => f.Clone()));
                 Replace(_searchResults, ConsultantWorkbenchService.Search(GlobalSearchText));
                 StatusMessage = $"Sample '{sample.Code}' instalado.";
+            });
+        }
+
+        private void StartWorker()
+        {
+            B1TuneUpWorkerRuntime.Start();
+            Replace(_healthChecks, OperationalDiagnosticsService.RunHealthChecks());
+            StatusMessage = "Worker runtime iniciado.";
+        }
+
+        private void StopWorker()
+        {
+            B1TuneUpWorkerRuntime.Stop();
+            Replace(_healthChecks, OperationalDiagnosticsService.RunHealthChecks());
+            StatusMessage = "Worker runtime detenido.";
+        }
+
+        private async Task RunWorkerTickAsync()
+        {
+            await RunAsync("Ejecutando worker...", () =>
+            {
+                B1TuneUpWorkerRuntime.Tick();
+                Replace(_workerJobs, WorkerQueueService.GetAll());
+                Replace(_printDeliveryQueue, PrintDeliveryQueueService.GetAll());
+                StatusMessage = "Worker ejecutado.";
             });
         }
 

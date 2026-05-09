@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using SAPbouiCOM;
 using B1TuneUp.Core;
+using B1TuneUp.Models;
 using B1TuneUp.Utils;
 using SAPbobsCOM;
 
@@ -52,82 +53,71 @@ namespace B1TuneUp.Modules
             Grid grid = SapUiSafe.TryGetSpecific<Grid>(oForm, "grdRes");
             if (grid == null) return;
 
-            Recordset rs = (Recordset)B1App.Instance.Company.GetBusinessObject(BoObjectTypes.BoRecordset);
             try
             {
-                string configSql = B1App.Instance.IsHana
-                    ? "SELECT * FROM \"@BTUN_SEARCH\""
-                    : "SELECT * FROM [@BTUN_SEARCH]";
+                var results = AdvancedSearchService.Search(searchText, 0, 50);
+                SAPbouiCOM.DataTable dt;
+                try { dt = oForm.DataSources.DataTables.Item("dtRes"); dt.Rows.Clear(); }
+                catch { dt = oForm.DataSources.DataTables.Add("dtRes"); }
 
-                rs.DoQuery(configSql);
-                string combinedSql = "";
-                while (!rs.EoF)
+                EnsureColumn(dt, "Rank", BoFieldsType.ft_Integer, 10);
+                EnsureColumn(dt, "Search", BoFieldsType.ft_AlphaNumeric, 80);
+                EnsureColumn(dt, "Key", BoFieldsType.ft_AlphaNumeric, 80);
+                EnsureColumn(dt, "Title", BoFieldsType.ft_AlphaNumeric, 254);
+                EnsureColumn(dt, "Subtitle", BoFieldsType.ft_AlphaNumeric, 254);
+                EnsureColumn(dt, "Action", BoFieldsType.ft_Text, 0);
+                EnsureColumn(dt, "DataJson", BoFieldsType.ft_Text, 0);
+
+                for (int i = 0; i < results.Count; i++)
                 {
-                    string sql = SapUiSafe.SafeField(rs, "U_Query");
-                    sql = sql.Replace("%search%", searchText.Replace("'", "''"));
-
-                    if (combinedSql != "") combinedSql += " UNION ALL ";
-                    combinedSql += sql;
-
-                    rs.MoveNext();
+                    dt.Rows.Add();
+                    dt.SetValue("Rank", i, results[i].Rank);
+                    dt.SetValue("Search", i, results[i].SearchCode ?? string.Empty);
+                    dt.SetValue("Key", i, results[i].Key ?? string.Empty);
+                    dt.SetValue("Title", i, results[i].Title ?? string.Empty);
+                    dt.SetValue("Subtitle", i, results[i].Subtitle ?? string.Empty);
+                    dt.SetValue("Action", i, results[i].Action ?? string.Empty);
+                    dt.SetValue("DataJson", i, results[i].DataJson ?? string.Empty);
                 }
-
-                if (!string.IsNullOrEmpty(combinedSql))
-                {
-                    oForm.DataSources.DataTables.Add("dtRes");
-                    oForm.DataSources.DataTables.Item("dtRes").ExecuteQuery(combinedSql);
-                    grid.DataTable = oForm.DataSources.DataTables.Item("dtRes");
-                }
+                grid.DataTable = dt;
             }
-            finally
+            catch (Exception ex)
             {
-                ComObjectManager.Release(rs);
+                B1App.Instance.Application.SetStatusBarMessage($"Error buscando: {ex.Message}", BoMessageTime.bmt_Short, true);
+                ExceptionLogger.LogHandled(ex, "B1SearchManager.ExecuteSearch");
             }
         }
-
         public static void OpenSelectedRecord(Form oForm)
         {
             try
             {
                 Grid grid = SapUiSafe.TryGetSpecific<Grid>(oForm, "grdRes");
                 if (grid == null) return;
-                if (grid.Rows.SelectedRows.Count > 0)
+                if (grid.Rows.SelectedRows.Count <= 0) return;
+
+                int rowIndex = grid.Rows.SelectedRows.Item(0, SAPbouiCOM.BoOrderType.ot_RowOrder);
+                var result = new AdvancedSearchResult
                 {
-                    int rowIndex = grid.Rows.SelectedRows.Item(0, SAPbouiCOM.BoOrderType.ot_RowOrder);
-
-                    // Buscar la configuración de búsqueda correspondiente
-                    Recordset rs = (Recordset)B1App.Instance.Company.GetBusinessObject(BoObjectTypes.BoRecordset);
-                    try
-                    {
-                        string sql = B1App.Instance.IsHana
-                            ? "SELECT * FROM \"@BTUN_SEARCH\""
-                            : "SELECT * FROM [@BTUN_SEARCH]";
-
-                        rs.DoQuery(sql);
-
-                        // Aquí se podría ejecutar la acción asociada a la búsqueda
-                        // Para ahora simplemente mostramos un mensaje
-                        if (!rs.EoF)
-                        {
-                            string action = SapUiSafe.SafeField(rs, "U_Action");
-
-                            // Procesar la acción reemplazando variables de la fila seleccionada
-                            string processedAction = ProcessActionForRow(action, grid, rowIndex);
-                            MacroEngine.ExecuteMacro(processedAction, oForm);
-                        }
-                    }
-                    finally
-                    {
-                        ComObjectManager.Release(rs);
-                    }
-                }
+                    SearchCode = grid.DataTable.GetValue("Search", rowIndex)?.ToString(),
+                    Key = grid.DataTable.GetValue("Key", rowIndex)?.ToString(),
+                    Title = grid.DataTable.GetValue("Title", rowIndex)?.ToString(),
+                    Action = grid.DataTable.GetValue("Action", rowIndex)?.ToString(),
+                    DataJson = grid.DataTable.GetValue("DataJson", rowIndex)?.ToString()
+                };
+                AdvancedSearchService.ExecuteAction(result, oForm);
             }
             catch (Exception ex)
             {
                 B1App.Instance.Application.SetStatusBarMessage($"Error abriendo registro: {ex.Message}", SAPbouiCOM.BoMessageTime.bmt_Short, true);
+                ExceptionLogger.LogHandled(ex, "B1SearchManager.OpenSelectedRecord");
             }
         }
 
+        private static void EnsureColumn(SAPbouiCOM.DataTable dt, string name, BoFieldsType type, int size)
+        {
+            try { var _ = dt.Columns.Item(name); }
+            catch { dt.Columns.Add(name, type, size); }
+        }
         private static string ProcessActionForRow(string action, Grid grid, int rowIndex)
         {
             // Reemplaza placeholders como $[ColumnName] con los valores de la fila

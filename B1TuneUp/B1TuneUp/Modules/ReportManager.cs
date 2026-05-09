@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.Linq;
 using System.Text;
 using SAPbouiCOM;
 using SAPbobsCOM;
@@ -224,7 +225,14 @@ namespace B1TuneUp.Modules
         {
             try
             {
-                // In environments without Crystal assemblies show a simple info form and indicate it's a preview placeholder.
+                if (CrystalReportEngineService.IsCrystalRuntimeAvailable())
+                {
+                    string paramString = parameters == null ? string.Empty : string.Join("|", parameters.Select(k => k.Key + "=" + k.Value));
+                    string pdf = CrystalReportEngineService.ExportToPdf(templateName, paramString);
+                    System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo { FileName = pdf, UseShellExecute = true });
+                    return;
+                }
+
                 string formUID = "BTUN_RPT_PREV_" + Guid.NewGuid().ToString().Substring(0, 5);
                 FormCreationParams fcp = (FormCreationParams)B1App.Instance.Application.CreateObject(BoCreatableObjectType.cot_FormCreationParams);
                 fcp.FormType = "BTUN_RPTPREV";

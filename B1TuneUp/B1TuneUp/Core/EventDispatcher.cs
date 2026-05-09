@@ -117,6 +117,19 @@ namespace B1TuneUp.Core
             }
         }
 
+        public void UnregisterLocalItemChangeHandlers(string formUID)
+        {
+            if (string.IsNullOrEmpty(formUID)) return;
+            string prefix = formUID + "|";
+            lock (_localItemChangeHandlers)
+            {
+                foreach (var key in _localItemChangeHandlers.Keys.Where(k => k.StartsWith(prefix, StringComparison.OrdinalIgnoreCase)).ToList())
+                {
+                    _localItemChangeHandlers.Remove(key);
+                }
+            }
+        }
+
         private void OnLayoutKeyBefore(ref LayoutKeyInfo eventInfo, out bool BubbleEvent)
         {
             BubbleEvent = true;
@@ -157,7 +170,7 @@ namespace B1TuneUp.Core
                 var val = pVal;
                 var matchingRules = _rules.Where(r =>
                     (r.FormType == val.FormTypeEx || string.IsNullOrEmpty(r.FormType)) &&
-                    (r.EventType == val.EventType.ToString() || r.EventType == "et_ITEM_PRESSED" || r.EventType == "et_DOUBLE_CLICK") &&
+                    EventMatches(r.EventType, val.EventType) &&
                     (r.BeforeAction == val.BeforeAction || r.BeforeAction == false)
                 );
 
@@ -177,6 +190,7 @@ namespace B1TuneUp.Core
                 if (pVal.EventType == BoEventTypes.et_FORM_LOAD && !pVal.BeforeAction)
                 {
                     Form oForm = B1App.Instance.Application.Forms.Item(FormUID);
+                    UnregisterLocalItemChangeHandlers(FormUID);
                     UICustomizer.ApplyCustomization(oForm);
                     DefaultValueManager.ApplyOnLoad(oForm);
                     LockFieldManager.ApplyOnLoad(oForm);
@@ -215,6 +229,8 @@ namespace B1TuneUp.Core
                 if (pVal.EventType == BoEventTypes.et_FORM_CLOSE && pVal.BeforeAction)
                 {
                     OnFormCloseSaveSettings(FormUID, pVal.BeforeAction);
+                    UnregisterLocalItemChangeHandlers(FormUID);
+                    QuickCopyManager.ClearForm(FormUID);
                 }
 
                 // Clic en botones de Quick Copy
@@ -342,6 +358,34 @@ namespace B1TuneUp.Core
                 FormSettingsManager.SaveSettings(oForm);
             }
             catch { }
+        }
+
+        private static bool EventMatches(string configuredEvent, BoEventTypes runtimeEvent)
+        {
+            if (string.IsNullOrWhiteSpace(configuredEvent)) return true;
+            string actual = runtimeEvent.ToString();
+            if (string.Equals(configuredEvent, actual, StringComparison.OrdinalIgnoreCase)) return true;
+
+            switch (configuredEvent.Trim().ToUpperInvariant())
+            {
+                case "ITEM_PRESSED":
+                case "ET_ITEM_PRESSED":
+                    return runtimeEvent == BoEventTypes.et_ITEM_PRESSED || runtimeEvent == BoEventTypes.et_CLICK;
+                case "CLICK":
+                case "ET_CLICK":
+                    return runtimeEvent == BoEventTypes.et_CLICK || runtimeEvent == BoEventTypes.et_ITEM_PRESSED;
+                case "DOUBLE_CLICK":
+                case "ET_DOUBLE_CLICK":
+                    return runtimeEvent == BoEventTypes.et_DOUBLE_CLICK;
+                case "VALIDATE":
+                case "ET_VALIDATE":
+                    return runtimeEvent == BoEventTypes.et_VALIDATE;
+                case "COMBO_SELECT":
+                case "ET_COMBO_SELECT":
+                    return runtimeEvent == BoEventTypes.et_COMBO_SELECT;
+                default:
+                    return false;
+            }
         }
 
         private void OnRightClickEvent(ref ContextMenuInfo eventInfo, out bool BubbleEvent)

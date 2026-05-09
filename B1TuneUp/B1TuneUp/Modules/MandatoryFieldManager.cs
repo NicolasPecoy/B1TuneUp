@@ -22,17 +22,17 @@ namespace B1TuneUp.Modules
 
                 while (!rs.EoF)
                 {
-                    string itemId = rs.Fields.Item("U_ItemID").Value.ToString();
-                    string colId = rs.Fields.Item("U_ColumnID").Value.ToString();
-                    string condition = rs.Fields.Item("U_Condition").Value.ToString();
-                    string errorMsg = rs.Fields.Item("U_ErrorMsg").Value.ToString();
+                    string itemId = SafeField(rs, "U_ItemID");
+                    string colId = SafeField(rs, "U_ColumnID");
+                    string condition = SafeField(rs, "U_Condition");
+                    string errorMsg = SafeField(rs, "U_ErrorMsg");
 
                     if (MacroEngine.CheckCondition(condition, oForm))
                     {
                         if (string.IsNullOrEmpty(colId))
                         {
                             // Campo de cabecera
-                            Item item = oForm.Items.Item(itemId);
+                            Item item = GetItem(oForm, itemId);
                             string val = GetItemValue(item);
                             if (string.IsNullOrEmpty(val))
                             {
@@ -43,13 +43,14 @@ namespace B1TuneUp.Modules
                         else
                         {
                             // Campo de matriz
-                            Matrix matrix = (Matrix)oForm.Items.Item(itemId).Specific;
+                            Item matrixItem = GetItem(oForm, itemId);
+                            Matrix matrix = (Matrix)matrixItem.Specific;
                             for (int i = 1; i <= matrix.RowCount; i++)
                             {
-                                string val = ((EditText)matrix.Columns.Item(colId).Cells.Item(i).Specific).Value;
+                                string val = GetCellValue(matrix, colId, i);
                                 if (string.IsNullOrEmpty(val))
                                 {
-                                    ShowError($"{errorMsg} (Fila {i})", (Item)matrix);
+                                    ShowError($"{errorMsg} (Fila {i})", matrixItem);
                                     return false;
                                 }
                             }
@@ -62,7 +63,8 @@ namespace B1TuneUp.Modules
             catch (Exception ex)
             {
                 B1App.Instance.Application.SetStatusBarMessage($"Error en validación de obligatorios: {ex.Message}", BoMessageTime.bmt_Short, true);
-                return true;
+                ExceptionLogger.LogHandled(ex, $"MandatoryFieldManager.ValidateMandatoryFields:{oForm?.TypeEx}");
+                return false;
             }
             finally
             {
@@ -77,6 +79,30 @@ namespace B1TuneUp.Modules
             if (item.Type == BoFormItemTypes.it_COMBO_BOX)
                 return ((SAPbouiCOM.ComboBox)item.Specific).Selected?.Value;
             return "";
+        }
+
+        private static Item GetItem(SAPbouiCOM.Form form, string itemId)
+        {
+            if (form == null) throw new ArgumentNullException(nameof(form));
+            if (string.IsNullOrWhiteSpace(itemId)) throw new InvalidOperationException("La regla de obligatorio no tiene ItemID configurado.");
+            return form.Items.Item(itemId);
+        }
+
+        private static string GetCellValue(Matrix matrix, string colId, int row)
+        {
+            if (matrix == null) return string.Empty;
+            if (string.IsNullOrWhiteSpace(colId)) return string.Empty;
+            object specific = matrix.Columns.Item(colId).Cells.Item(row).Specific;
+            if (specific is EditText et) return et.Value ?? string.Empty;
+            if (specific is SAPbouiCOM.ComboBox cb) return cb.Selected?.Value ?? string.Empty;
+            if (specific is SAPbouiCOM.CheckBox chk) return chk.Checked ? "Y" : string.Empty;
+            return string.Empty;
+        }
+
+        private static string SafeField(Recordset rs, string field)
+        {
+            try { return rs.Fields.Item(field).Value?.ToString() ?? string.Empty; }
+            catch { return string.Empty; }
         }
 
         private static void ShowError(string msg, Item item)

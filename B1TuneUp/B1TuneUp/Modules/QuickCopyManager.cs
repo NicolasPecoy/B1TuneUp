@@ -99,6 +99,19 @@ namespace B1TuneUp.Modules
             return true;
         }
 
+        public static void ClearForm(string formUID)
+        {
+            if (string.IsNullOrEmpty(formUID)) return;
+            string prefix = formUID + "|";
+            foreach (var key in new List<string>(_btnMap.Keys))
+            {
+                if (key.StartsWith(prefix, StringComparison.OrdinalIgnoreCase))
+                {
+                    _btnMap.Remove(key);
+                }
+            }
+        }
+
         /// <summary>
         /// Realiza la copia usando el DI API de SAP B1:
         /// Lee el documento fuente y crea uno nuevo vinculando líneas via BaseEntry/BaseLine/BaseType.
@@ -127,6 +140,14 @@ namespace B1TuneUp.Modules
                     return;
                 }
 
+                if (!IsMarketingDocumentType(srcEnum) || !IsMarketingDocumentType(tgtEnum))
+                {
+                    B1App.Instance.Application.SetStatusBarMessage(
+                        $"Quick Copy solo soporta documentos de marketing DI API. Configuracion: {srcObjType} -> {tgtObjType}.",
+                        BoMessageTime.bmt_Short, true);
+                    return;
+                }
+
                 // Cargar documento fuente
                 srcDoc = (SAPbobsCOM.Documents)B1App.Instance.Company.GetBusinessObject(srcEnum);
                 if (!srcDoc.GetByKey(srcDocEntry))
@@ -147,12 +168,26 @@ namespace B1TuneUp.Modules
                 // Vincular líneas al documento base (forma estándar en SAP B1 DI API)
                 int srcTypeInt  = (int)srcEnum;
                 int lineCount   = srcDoc.Lines.Count;
+                int copiedLines = 0;
                 for (int i = 0; i < lineCount; i++)
                 {
-                    if (i > 0) tgtDoc.Lines.Add();
+                    srcDoc.Lines.SetCurrentLine(i);
+                    if (IsSourceLineClosed(srcDoc.Lines))
+                        continue;
+
+                    if (copiedLines > 0) tgtDoc.Lines.Add();
                     tgtDoc.Lines.BaseType  = srcTypeInt;
                     tgtDoc.Lines.BaseEntry = srcDocEntry;
                     tgtDoc.Lines.BaseLine  = i;
+                    copiedLines++;
+                }
+
+                if (copiedLines == 0)
+                {
+                    B1App.Instance.Application.SetStatusBarMessage(
+                        "El documento no tiene lineas abiertas disponibles para copiar.",
+                        BoMessageTime.bmt_Short, true);
+                    return;
                 }
 
                 int retCode = tgtDoc.Add();
@@ -205,6 +240,46 @@ namespace B1TuneUp.Modules
         {
             try { var _ = oForm.Items.Item(itemUID); return true; }
             catch { return false; }
+        }
+
+        private static bool IsMarketingDocumentType(BoObjectTypes type)
+        {
+            string name = type.ToString();
+            switch (name)
+            {
+                case "oOrders":
+                case "oDeliveryNotes":
+                case "oInvoices":
+                case "oPurchaseOrders":
+                case "oPurchaseDeliveryNotes":
+                case "oPurchaseInvoices":
+                case "oQuotations":
+                case "oPurchaseQuotations":
+                case "oReturns":
+                case "oCreditNotes":
+                case "oPurchaseReturns":
+                case "oPurchaseCreditNotes":
+                case "oDrafts":
+                    return true;
+                default:
+                    return false;
+            }
+        }
+
+        private static bool IsSourceLineClosed(object lines)
+        {
+            try
+            {
+                var prop = lines.GetType().GetProperty("LineStatus");
+                var value = prop?.GetValue(lines, null)?.ToString();
+                return string.Equals(value, "bost_Close", StringComparison.OrdinalIgnoreCase)
+                    || string.Equals(value, "Closed", StringComparison.OrdinalIgnoreCase)
+                    || string.Equals(value, "C", StringComparison.OrdinalIgnoreCase);
+            }
+            catch
+            {
+                return false;
+            }
         }
     }
 }

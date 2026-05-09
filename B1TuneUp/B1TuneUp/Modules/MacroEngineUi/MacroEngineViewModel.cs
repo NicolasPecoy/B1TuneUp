@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Linq;
@@ -15,6 +16,8 @@ namespace B1TuneUp.Modules.MacroEngineUi
     public class MacroEngineViewModel : INotifyPropertyChanged
     {
         private readonly ObservableCollection<MacroScriptEntry> _macros = new ObservableCollection<MacroScriptEntry>();
+        private readonly ObservableCollection<string> _detectedCommands = new ObservableCollection<string>();
+        private readonly ObservableCollection<string> _snippets = new ObservableCollection<string>();
         private readonly ListCollectionView _macrosView;
 
         private MacroScriptEntry _selectedMacro;
@@ -23,6 +26,7 @@ namespace B1TuneUp.Modules.MacroEngineUi
         private string _busyMessage;
         private string _statusMessage;
         private string _testResult;
+        private string _selectedSnippet;
 
         public MacroEngineViewModel()
         {
@@ -36,9 +40,19 @@ namespace B1TuneUp.Modules.MacroEngineUi
             DeleteCommand = new RelayCommand(async () => await DeleteAsync(), () => SelectedMacro != null);
             RunCommand = new RelayCommand(RunMacro, () => SelectedMacro != null);
             CopyCommand = new RelayCommand(CopySource, () => SelectedMacro != null && !string.IsNullOrEmpty(SelectedMacro.Source));
+            ValidateCommand = new RelayCommand(ValidateMacro, () => SelectedMacro != null);
+            InsertSnippetCommand = new RelayCommand(InsertSnippet, () => SelectedMacro != null && !string.IsNullOrWhiteSpace(SelectedSnippet));
+
+            foreach (var snippet in BuildSnippets())
+            {
+                _snippets.Add(snippet);
+            }
+            SelectedSnippet = _snippets.FirstOrDefault();
         }
 
         public ICollectionView MacrosView => _macrosView;
+        public ObservableCollection<string> DetectedCommands => _detectedCommands;
+        public ObservableCollection<string> Snippets => _snippets;
 
         public MacroScriptEntry SelectedMacro
         {
@@ -53,6 +67,9 @@ namespace B1TuneUp.Modules.MacroEngineUi
                 DeleteCommand.RaiseCanExecuteChanged();
                 RunCommand.RaiseCanExecuteChanged();
                 CopyCommand.RaiseCanExecuteChanged();
+                ValidateCommand.RaiseCanExecuteChanged();
+                InsertSnippetCommand.RaiseCanExecuteChanged();
+                RefreshDetectedCommands();
                 TestResult = string.Empty;
             }
         }
@@ -93,6 +110,18 @@ namespace B1TuneUp.Modules.MacroEngineUi
             private set { if (_testResult == value) return; _testResult = value; OnPropertyChanged(); }
         }
 
+        public string SelectedSnippet
+        {
+            get => _selectedSnippet;
+            set
+            {
+                if (_selectedSnippet == value) return;
+                _selectedSnippet = value;
+                OnPropertyChanged();
+                InsertSnippetCommand.RaiseCanExecuteChanged();
+            }
+        }
+
         public RelayCommand RefreshCommand { get; }
         public RelayCommand NewCommand { get; }
         public RelayCommand DuplicateCommand { get; }
@@ -100,6 +129,8 @@ namespace B1TuneUp.Modules.MacroEngineUi
         public RelayCommand DeleteCommand { get; }
         public RelayCommand RunCommand { get; }
         public RelayCommand CopyCommand { get; }
+        public RelayCommand ValidateCommand { get; }
+        public RelayCommand InsertSnippetCommand { get; }
 
         public event PropertyChangedEventHandler PropertyChanged;
 
@@ -175,14 +206,64 @@ namespace B1TuneUp.Modules.MacroEngineUi
             if (SelectedMacro == null) return;
             try
             {
+                ValidateMacro();
+                if (TestResult.StartsWith("Error", StringComparison.OrdinalIgnoreCase)) return;
                 MacroEngine.ExecuteMacro(SelectedMacro.Source ?? string.Empty);
                 TestResult = "Macro executed successfully.";
                 StatusMessage = $"Macro '{SelectedMacro.Name}' executed.";
+                RefreshDetectedCommands();
             }
             catch (Exception ex)
             {
                 TestResult = ex.Message;
                 StatusMessage = "Macro execution error.";
+            }
+        }
+
+        private void ValidateMacro()
+        {
+            if (SelectedMacro == null) return;
+            if (MacroEngine.ValidateSyntax(SelectedMacro.Source ?? string.Empty, out var message))
+            {
+                TestResult = message;
+                StatusMessage = "Macro validada.";
+            }
+            else
+            {
+                TestResult = "Error: " + message;
+                StatusMessage = "La macro requiere correcciones.";
+            }
+            RefreshDetectedCommands();
+        }
+
+        private void InsertSnippet()
+        {
+            if (SelectedMacro == null || string.IsNullOrWhiteSpace(SelectedSnippet)) return;
+            var source = SelectedMacro.Source ?? string.Empty;
+            if (!string.IsNullOrWhiteSpace(source) && !source.TrimEnd().EndsWith(";"))
+            {
+                source += ";";
+            }
+            if (!string.IsNullOrWhiteSpace(source)) source += Environment.NewLine;
+            SelectedMacro.Source = source + SelectedSnippet;
+            OnPropertyChanged(nameof(SelectedMacro));
+            RefreshDetectedCommands();
+            CopyCommand.RaiseCanExecuteChanged();
+        }
+
+        private void RefreshDetectedCommands()
+        {
+            _detectedCommands.Clear();
+            if (SelectedMacro == null) return;
+            try
+            {
+                foreach (var command in MacroEngine.ParseMacroCommands(SelectedMacro.Source ?? string.Empty))
+                {
+                    _detectedCommands.Add(command);
+                }
+            }
+            catch
+            {
             }
         }
 
@@ -212,6 +293,17 @@ namespace B1TuneUp.Modules.MacroEngineUi
         {
             if (string.IsNullOrEmpty(source) || string.IsNullOrEmpty(term)) return false;
             return source.IndexOf(term, StringComparison.OrdinalIgnoreCase) >= 0;
+        }
+
+        private static IEnumerable<string> BuildSnippets()
+        {
+            yield return "InvokeHandler('B1TuneUp.CustomLogic.Handler','Execute','$[$8.0.0]|Payload','B1TuneUp')";
+            yield return "SQLExecute('UPDATE \"@BTUN_LOG\" SET \"U_Status\"=''OK'' WHERE \"Code\"=''$[$Code.0.0]''')";
+            yield return "SetValue(38.U_Field, '$[$4.0.0]')";
+            yield return "Loop(38, 'SetValue(38.U_Field, $[$38.1.0])')";
+            yield return "IF(SELECT CASE WHEN '$[$4.0.0]' <> '' THEN 'Y' ELSE 'N' END) THEN { Status('Valido') } ELSE { Msg('Dato requerido') }";
+            yield return "REST('https://api.example.com/orders','POST','{\"docEntry\":\"$[$8.0.0]\"}','Authorization=Bearer token')";
+            yield return "SaveForm()";
         }
 
         private async Task RunSafeAsync(string message, Func<Task> work)

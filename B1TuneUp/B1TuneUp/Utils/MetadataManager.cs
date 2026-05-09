@@ -127,7 +127,7 @@ namespace B1TuneUp.Utils
             CreateUDT("BTUN_UI", "B1TuneUp UI Customization", BoUTBTableType.bott_NoObject);
             CreateUDF("@BTUN_UI", "FormType", "Form Type", BoFieldTypes.db_Alpha, 20);
             CreateUDF("@BTUN_UI", "ItemID", "Item ID", BoFieldTypes.db_Alpha, 20);
-            CreateUDF("@BTUN_UI", "Action", "Action (Hide/Move/Add)", BoFieldTypes.db_Alpha, 20, "Hide", "Hide:Hide;Move:Move;AddButton:Add Button");
+            CreateUDF("@BTUN_UI", "Action", "Action (Hide/Move/Add)", BoFieldTypes.db_Alpha, 20, "Hide", "Hide:Hide;Move:Move;Resize:Resize;ChangeLabel:Change Label;Enable:Enable;Disable:Disable;AddButton:Add Button;AddFolder:Add Folder;AddEditText:Add Edit Text");
             CreateUDF("@BTUN_UI", "Top", "Top", BoFieldTypes.db_Numeric, 5);
             CreateUDF("@BTUN_UI", "Left", "Left", BoFieldTypes.db_Numeric, 5);
             CreateUDF("@BTUN_UI", "Width", "Width", BoFieldTypes.db_Numeric, 5);

@@ -155,11 +155,39 @@
                     <StackPanel Grid.Row="1">
                         <TextBlock Text="Fuente" Style="{StaticResource LabelStyle}" />
                         <TextBox Text="{Binding SelectedMacro.Source, UpdateSourceTrigger=PropertyChanged}" AcceptsReturn="True" VerticalScrollBarVisibility="Auto" Height="320" FontFamily="Consolas" />
+                        <Grid Margin="0,0,0,12">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="16" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <StackPanel Grid.Column="0">
+                                <TextBlock Text="Snippets" Style="{StaticResource LabelStyle}" />
+                                <ComboBox ItemsSource="{Binding Snippets}"
+                                          SelectedItem="{Binding SelectedSnippet}"
+                                          Height="28"
+                                          Margin="0,0,0,8"
+                                          Background="{DynamicResource SurfaceBrush}"
+                                          Foreground="{DynamicResource TextPrimaryBrush}" />
+                                <Button Content="Insertar snippet" Command="{Binding InsertSnippetCommand}" Background="{DynamicResource AccentAltBrush}" />
+                            </StackPanel>
+                            <StackPanel Grid.Column="2">
+                                <TextBlock Text="Comandos detectados" Style="{StaticResource LabelStyle}" />
+                                <ListBox ItemsSource="{Binding DetectedCommands}"
+                                         Height="76"
+                                         BorderBrush="{DynamicResource BorderBrush}"
+                                         BorderThickness="1"
+                                         Background="{DynamicResource SurfaceAltBrush}"
+                                         FontFamily="Consolas"
+                                         FontSize="12" />
+                            </StackPanel>
+                        </Grid>
                     </StackPanel>
 
                     <StackPanel Grid.Row="2">
                         <WrapPanel>
                             <Button Content="Guardar" Command="{Binding SaveCommand}" />
+                            <Button Content="Validar" Command="{Binding ValidateCommand}" Background="{DynamicResource PrimaryDarkBrush}" />
                             <Button Content="Ejecutar" Command="{Binding RunCommand}" Background="{DynamicResource AccentAltBrush}" />
                             <Button Content="Copiar" Command="{Binding CopyCommand}" Background="{DynamicResource PrimaryDarkBrush}" />
                         </WrapPanel>

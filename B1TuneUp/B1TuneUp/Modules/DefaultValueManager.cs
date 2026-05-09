@@ -26,21 +26,24 @@ namespace B1TuneUp.Modules
             try
             {
                 string eventFilter = onLoad ? "Load" : "Change";
+                string safeFormType = EscapeSqlValue(oForm.TypeEx);
+                string safeEvent = EscapeSqlValue(eventFilter);
+                string safeItemId = EscapeSqlValue(itemId);
                 string sql;
                 if (B1App.Instance.IsHana)
                 {
-                    sql = $"SELECT * FROM \"@BTUN_DEFAULTS\" WHERE \"U_FormType\" = '{oForm.TypeEx}' AND \"U_OnEvent\" = '{eventFilter}'";
+                    sql = $"SELECT * FROM \"@BTUN_DEFAULTS\" WHERE \"U_FormType\" = '{safeFormType}' AND \"U_OnEvent\" = '{safeEvent}'";
                     if (!string.IsNullOrEmpty(itemId))
                     {
-                        sql += $" AND (\"U_ItemID\" = '{itemId}' OR IFNULL(\"U_ItemID\", '') = '')";
+                        sql += $" AND (\"U_ItemID\" = '{safeItemId}' OR IFNULL(\"U_ItemID\", '') = '')";
                     }
                 }
                 else
                 {
-                    sql = $"SELECT * FROM [@BTUN_DEFAULTS] WHERE [U_FormType] = '{oForm.TypeEx}' AND [U_OnEvent] = '{eventFilter}'";
+                    sql = $"SELECT * FROM [@BTUN_DEFAULTS] WHERE [U_FormType] = '{safeFormType}' AND [U_OnEvent] = '{safeEvent}'";
                     if (!string.IsNullOrEmpty(itemId))
                     {
-                        sql += $" AND ([U_ItemID] = '{itemId}' OR ISNULL([U_ItemID], '') = '')";
+                        sql += $" AND ([U_ItemID] = '{safeItemId}' OR ISNULL([U_ItemID], '') = '')";
                     }
                 }
 
@@ -48,12 +51,12 @@ namespace B1TuneUp.Modules
 
                 while (!rs.EoF)
                 {
-                    string targetItem = rs.Fields.Item("U_ItemID").Value.ToString();
-                    string colId = rs.Fields.Item("U_ColID").Value.ToString();
-                    string query = rs.Fields.Item("U_Query").Value.ToString();
+                    string targetItem = SafeField(rs, "U_ItemID");
+                    string colId = SafeField(rs, "U_ColID");
+                    string query = SafeField(rs, "U_Query");
 
                     // Procesar la consulta para reemplazar variables dinámicas
-                    string processedQuery = ProcessQueryVariables(query, oForm);
+                    string processedQuery = ProcessQueryVariables(query, oForm, true);
 
                     // Ejecutar consulta y obtener valor
                     string value = ExecuteScalar(rsVal, processedQuery);
@@ -92,7 +95,10 @@ namespace B1TuneUp.Modules
                             }
                         }
                     }
-                    catch { }
+                    catch (Exception ex)
+                    {
+                        ExceptionLogger.LogHandled(ex, $"DefaultValueManager.ApplyItem:{oForm?.TypeEx}:{targetItem}");
+                    }
 
                     rs.MoveNext();
                 }
@@ -125,7 +131,7 @@ namespace B1TuneUp.Modules
             return string.Empty;
         }
 
-        private static string ProcessQueryVariables(string query, SAPbouiCOM.Form oForm)
+        private static string ProcessQueryVariables(string query, SAPbouiCOM.Form oForm, bool escapeForSql)
         {
             // Reemplaza variables dinámicas como $[FieldName] con valores del formulario actual
             string processedQuery = query;
@@ -144,6 +150,10 @@ namespace B1TuneUp.Modules
                     string fieldRef = processedQuery.Substring(startIndex + 2, endIndex - startIndex - 2); // Quitar $[
 
                     string fieldValue = GetFieldValue(oForm, fieldRef);
+                    if (escapeForSql)
+                    {
+                        fieldValue = EscapeSqlValue(fieldValue);
+                    }
                     processedQuery = processedQuery.Replace(fullTag, fieldValue);
 
                     // Avanzar posición más allá del lugar donde hicimos el reemplazo
@@ -204,6 +214,17 @@ namespace B1TuneUp.Modules
             }
 
             return "";
+        }
+
+        private static string SafeField(Recordset rs, string field)
+        {
+            try { return rs.Fields.Item(field).Value?.ToString() ?? string.Empty; }
+            catch { return string.Empty; }
+        }
+
+        private static string EscapeSqlValue(string value)
+        {
+            return (value ?? string.Empty).Replace("'", "''");
         }
     }
 }

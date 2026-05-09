@@ -1,5 +1,8 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
+using System.Text;
 using SAPbobsCOM;
 using SAPbouiCOM;
 using B1TuneUp.Core;
@@ -16,11 +19,49 @@ namespace B1TuneUp.Modules
             // Un motor de macros simple que interpreta comandos básicos
             // Ejemplo: "Click(1); SetValue(4, 'Hello'); Loop(38, 'SetValue(U_MyField, $[$38.1.0])');"
 
-            string[] commands = macroCommand.Split(';');
-            foreach (var cmd in commands)
+            foreach (var cmd in SplitTopLevel(macroCommand, ';'))
             {
                 ProcessCommand(cmd.Trim(), activeForm, rowOverride);
             }
+        }
+
+        public static IList<string> ParseMacroCommands(string macroCommand)
+        {
+            return SplitTopLevel(macroCommand, ';')
+                .Select(c => c.Trim())
+                .Where(c => !string.IsNullOrWhiteSpace(c))
+                .ToList();
+        }
+
+        public static bool ValidateSyntax(string macroCommand, out string message)
+        {
+            message = string.Empty;
+            if (string.IsNullOrWhiteSpace(macroCommand))
+            {
+                message = "La macro esta vacia.";
+                return false;
+            }
+
+            var commands = ParseMacroCommands(macroCommand);
+            if (commands.Count == 0)
+            {
+                message = "No se detectaron comandos ejecutables.";
+                return false;
+            }
+
+            foreach (var command in commands)
+            {
+                int open = command.IndexOf('(');
+                int close = command.LastIndexOf(')');
+                if (open <= 0 || close < open)
+                {
+                    message = $"Comando invalido: {command}";
+                    return false;
+                }
+            }
+
+            message = $"{commands.Count} comando(s) validos.";
+            return true;
         }
 
         private static void ProcessCommand(string command, Form activeForm, int rowOverride = -1)
@@ -49,26 +90,12 @@ namespace B1TuneUp.Modules
                 else if (command.StartsWith("SetValue("))
                 {
                     string parameters = ExtractParameter(command, "SetValue");
-                    string[] parts = parameters.Split(',');
+                    string[] parts = SplitParameters(parameters);
                     if (parts.Length >= 2)
                     {
-                        string itemId = parts[0].Trim('\'', ' ');
-                        string val = ProcessSqlVariables(parts[1].Trim('\'', ' '), activeForm, rowOverride);
-                        Item item = activeForm.Items.Item(itemId);
-
-                        if (item.Type == BoFormItemTypes.it_EDIT || item.Type == BoFormItemTypes.it_EXTEDIT)
-                        {
-                            ((EditText)item.Specific).Value = val;
-                        }
-                        else if (item.Type == BoFormItemTypes.it_MATRIX && itemId.Contains("."))
-                        {
-                            // Soporte para SetValue(38.U_MyField, value)
-                            string[] itemParts = itemId.Split('.');
-                            Matrix matrix = (Matrix)activeForm.Items.Item(itemParts[0]).Specific;
-                            int row = rowOverride != -1 ? rowOverride : matrix.GetNextSelectedRow(0, BoOrderType.ot_SelectionOrder);
-                            if (row == -1) row = 1;
-                            ((EditText)matrix.Columns.Item(itemParts[1]).Cells.Item(row).Specific).Value = val;
-                        }
+                        string target = Unquote(parts[0]);
+                        string val = ProcessSqlVariables(Unquote(string.Join(",", parts.Skip(1))), activeForm, rowOverride);
+                        SetFormValue(activeForm, target, val, rowOverride);
                     }
                 }
                 else if (command.StartsWith("OpenForm("))
@@ -79,11 +106,11 @@ namespace B1TuneUp.Modules
                 else if (command.StartsWith("Loop("))
                 {
                     string parameters = ExtractParameter(command, "Loop");
-                    int firstComma = parameters.IndexOf(',');
-                    if (firstComma != -1)
+                    string[] parts = SplitParameters(parameters);
+                    if (parts.Length >= 2)
                     {
-                        string matrixId = parameters.Substring(0, firstComma).Trim('\'', ' ');
-                        string innerMacro = parameters.Substring(firstComma + 1).Trim('\'', ' ');
+                        string matrixId = Unquote(parts[0]);
+                        string innerMacro = Unquote(string.Join(",", parts.Skip(1)));
                         ProcessLoop(matrixId, innerMacro, activeForm);
                     }
                 }
@@ -97,12 +124,12 @@ namespace B1TuneUp.Modules
                 {
                     // Transfer(FromItem, ToItem, ToFormType)
                     string parameters = ExtractParameter(command, "Transfer");
-                    string[] parts = parameters.Split(',');
+                    string[] parts = SplitParameters(parameters);
                     if (parts.Length >= 3)
                     {
-                        string fromId = parts[0].Trim();
-                        string toId = parts[1].Trim();
-                        string targetFormType = parts[2].Trim();
+                        string fromId = Unquote(parts[0]);
+                        string toId = Unquote(parts[1]);
+                        string targetFormType = Unquote(parts[2]);
                         ProcessTransfer(fromId, toId, targetFormType, activeForm);
                     }
                 }
@@ -149,9 +176,9 @@ namespace B1TuneUp.Modules
                 else if (command.StartsWith("OpenSRF("))
                 {
                     string parameters = ExtractParameter(command, "OpenSRF");
-                    string[] parts = parameters.Split(',');
-                    string file = parts[0].Trim('\'', ' ');
-                    string uid = parts.Length > 1 ? parts[1].Trim('\'', ' ') : "";
+                    string[] parts = SplitParameters(parameters);
+                    string file = parts.Length > 0 ? Unquote(parts[0]) : "";
+                    string uid = parts.Length > 1 ? Unquote(parts[1]) : "";
                     FormLoader.LoadFromSRF(file, uid);
                 }
                 else if (command.StartsWith("Email("))
@@ -235,9 +262,7 @@ namespace B1TuneUp.Modules
                 }
                 else if (command.StartsWith("SaveForm("))
                 {
-                    activeForm.PaneLevel = 1;
-                    activeForm.Items.Item(activeForm.UniqueID).Click(BoCellClickType.ct_Regular);
-                    activeForm.Items.Item(activeForm.UniqueID).Click(BoCellClickType.ct_Regular);
+                    SaveActiveForm(activeForm);
                 }
                 else if (command.StartsWith("ExportToExcel("))
                 {
@@ -303,11 +328,11 @@ namespace B1TuneUp.Modules
                 {
                     // REST(url, method, body, headers)
                     string parameters = ExtractParameter(command, "REST");
-                    string[] parts = parameters.Split(',');
-                    string url = parts.Length > 0 ? parts[0].Trim('\'', ' ') : "";
-                    string method = parts.Length > 1 ? parts[1].Trim('\'', ' ') : "GET";
-                    string body = parts.Length > 2 ? parts[2].Trim('\'', ' ') : null;
-                    string headers = parts.Length > 3 ? parts[3].Trim('\'', ' ') : null;
+                    string[] parts = SplitParameters(parameters);
+                    string url = parts.Length > 0 ? Unquote(parts[0]) : "";
+                    string method = parts.Length > 1 ? Unquote(parts[1]) : "GET";
+                    string body = parts.Length > 2 ? Unquote(parts[2]) : null;
+                    string headers = parts.Length > 3 ? Unquote(parts[3]) : null;
                     string resp = IntegrationManager.CallRest(url, method, body, headers);
                     B1App.Instance.Application.SetStatusBarMessage(resp.Length > 200 ? resp.Substring(0, 200) + "..." : resp, BoMessageTime.bmt_Short, false);
                 }
@@ -315,10 +340,10 @@ namespace B1TuneUp.Modules
                 {
                     // SOAP(url, action, body)
                     string parameters = ExtractParameter(command, "SOAP");
-                    string[] parts = parameters.Split(',');
-                    string url = parts.Length > 0 ? parts[0].Trim('\'', ' ') : "";
-                    string action = parts.Length > 1 ? parts[1].Trim('\'', ' ') : "";
-                    string body = parts.Length > 2 ? parts[2].Trim('\'', ' ') : "";
+                    string[] parts = SplitParameters(parameters);
+                    string url = parts.Length > 0 ? Unquote(parts[0]) : "";
+                    string action = parts.Length > 1 ? Unquote(parts[1]) : "";
+                    string body = parts.Length > 2 ? Unquote(parts[2]) : "";
                     string resp = IntegrationManager.CallSoap(url, action, body);
                     B1App.Instance.Application.SetStatusBarMessage(resp.Length > 200 ? resp.Substring(0, 200) + "..." : resp, BoMessageTime.bmt_Short, false);
                 }
@@ -326,12 +351,12 @@ namespace B1TuneUp.Modules
                 {
                     // StartSync(id, url, intervalSeconds, handlerMacro)
                     string parameters = ExtractParameter(command, "StartSync");
-                    string[] parts = parameters.Split(',');
-                    string id = parts.Length > 0 ? parts[0].Trim('\'', ' ') : "";
-                    string url = parts.Length > 1 ? parts[1].Trim('\'', ' ') : "";
+                    string[] parts = SplitParameters(parameters);
+                    string id = parts.Length > 0 ? Unquote(parts[0]) : "";
+                    string url = parts.Length > 1 ? Unquote(parts[1]) : "";
                     int interval = 60;
-                    int.TryParse(parts.Length > 2 ? parts[2].Trim() : "60", out interval);
-                    string handler = parts.Length > 3 ? parts[3].Trim('\'', ' ') : "";
+                    int.TryParse(parts.Length > 2 ? Unquote(parts[2]) : "60", out interval);
+                    string handler = parts.Length > 3 ? Unquote(parts[3]) : "";
                     IntegrationManager.StartRealTimeSync(id, url, interval, handler);
                     B1App.Instance.Application.SetStatusBarMessage($"Sync iniciado: {id}", BoMessageTime.bmt_Short, false);
                 }
@@ -345,9 +370,9 @@ namespace B1TuneUp.Modules
                 {
                     // ImportCsv(filePath, mapping)
                     string parameters = ExtractParameter(command, "ImportCsv");
-                    string[] parts = parameters.Split(',');
-                    string file = parts.Length > 0 ? parts[0].Trim('\'', ' ') : "";
-                    string mapping = parts.Length > 1 ? parts[1].Trim('\'', ' ') : "";
+                    string[] parts = SplitParameters(parameters);
+                    string file = parts.Length > 0 ? Unquote(parts[0]) : "";
+                    string mapping = parts.Length > 1 ? Unquote(parts[1]) : "";
                     bool ok = IntegrationManager.ImportCsvToForm(file, mapping, activeForm);
                     B1App.Instance.Application.SetStatusBarMessage(ok ? "CSV importado" : "Error importando CSV", BoMessageTime.bmt_Short, !ok);
                 }
@@ -355,10 +380,10 @@ namespace B1TuneUp.Modules
                 {
                     // ExportCsv(filePath, gridId, mapping)
                     string parameters = ExtractParameter(command, "ExportCsv");
-                    string[] parts = parameters.Split(',');
-                    string file = parts.Length > 0 ? parts[0].Trim('\'', ' ') : "";
-                    string gridId = parts.Length > 1 ? parts[1].Trim('\'', ' ') : "";
-                    string mapping = parts.Length > 2 ? parts[2].Trim('\'', ' ') : "";
+                    string[] parts = SplitParameters(parameters);
+                    string file = parts.Length > 0 ? Unquote(parts[0]) : "";
+                    string gridId = parts.Length > 1 ? Unquote(parts[1]) : "";
+                    string mapping = parts.Length > 2 ? Unquote(parts[2]) : "";
                     bool ok = IntegrationManager.ExportGridToCsv(file, activeForm, gridId, mapping);
                     B1App.Instance.Application.SetStatusBarMessage(ok ? "CSV exportado" : "Error exportando CSV", BoMessageTime.bmt_Short, !ok);
                 }
@@ -451,6 +476,10 @@ namespace B1TuneUp.Modules
                     string tgt = ExtractParameter(command, "ScanBarcode");
                     UIEnhancementsManager.ScanBarcode(tgt, activeForm);
                 }
+                else if (command.StartsWith("InvokeHandler("))
+                {
+                    InvokeCustomHandler(ExtractParameter(command, "InvokeHandler"), activeForm, rowOverride);
+                }
             }
             catch (Exception ex)
             {
@@ -507,14 +536,14 @@ namespace B1TuneUp.Modules
                     B1App.Instance.Application.ActivateMenuItem(formType);
                     Form oForm = B1App.Instance.Application.Forms.ActiveForm;
 
-                    string[] pairs = fieldValues.Split(';');
+                    string[] pairs = SplitTopLevel(fieldValues, ';');
                     foreach (var pair in pairs)
                     {
-                        string[] kv = pair.Split('=');
+                        string[] kv = pair.Split(new[] { '=' }, 2);
                         if (kv.Length == 2)
                         {
                             string itemId = kv[0].Trim();
-                            string val = kv[1].Trim();
+                            string val = Unquote(kv[1]);
                             ((EditText)oForm.Items.Item(itemId).Specific).Value = val;
                         }
                     }
@@ -564,11 +593,11 @@ namespace B1TuneUp.Modules
 
             try
             {
-                var parts = parameters.Split(',');
-                string typeName = parts.Length > 0 ? parts[0].Trim('\'', ' ', '\t') : string.Empty;
-                string methodName = parts.Length > 1 ? parts[1].Trim('\'', ' ', '\t') : "Execute";
+                var parts = SplitParameters(parameters);
+                string typeName = parts.Length > 0 ? Unquote(parts[0]) : string.Empty;
+                string methodName = parts.Length > 1 ? Unquote(parts[1]) : "Execute";
                 string argPayload = parts.Length > 2 ? parts[2].Trim() : string.Empty;
-                string assemblyHint = parts.Length > 3 ? parts[3].Trim('\'', ' ', '\t') : null;
+                string assemblyHint = parts.Length > 3 ? Unquote(parts[3]) : null;
 
                 if (string.IsNullOrWhiteSpace(typeName))
                 {
@@ -578,7 +607,7 @@ namespace B1TuneUp.Modules
 
                 if (!string.IsNullOrEmpty(argPayload))
                 {
-                    argPayload = ProcessSqlVariables(argPayload.Trim('\'', ' ', '\t'), activeForm, rowOverride);
+                    argPayload = ProcessSqlVariables(Unquote(argPayload), activeForm, rowOverride);
                 }
 
                 string[] handlerArgs = string.IsNullOrEmpty(argPayload) ? Array.Empty<string>() : argPayload.Split('|');
@@ -670,13 +699,185 @@ namespace B1TuneUp.Modules
             }
         }
 
+        private static void SetFormValue(Form form, string target, string value, int rowOverride)
+        {
+            if (form == null) throw new InvalidOperationException("No hay formulario activo para SetValue.");
+            if (string.IsNullOrWhiteSpace(target)) throw new ArgumentException("SetValue requiere ItemID.", nameof(target));
+
+            string itemId = target;
+            string colId = string.Empty;
+            int dot = target.IndexOf('.');
+            if (dot > 0 && dot < target.Length - 1)
+            {
+                itemId = target.Substring(0, dot);
+                colId = target.Substring(dot + 1);
+            }
+
+            Item item = form.Items.Item(itemId);
+            if (!string.IsNullOrEmpty(colId))
+            {
+                if (item.Type != BoFormItemTypes.it_MATRIX)
+                    throw new InvalidOperationException($"El item {itemId} no es una matriz.");
+
+                Matrix matrix = (Matrix)item.Specific;
+                int row = rowOverride != -1 ? rowOverride : matrix.GetNextSelectedRow(0, BoOrderType.ot_SelectionOrder);
+                if (row < 1) row = 1;
+                if (row > matrix.RowCount)
+                    throw new InvalidOperationException($"Fila {row} fuera de rango para matriz {itemId}.");
+
+                object specific = matrix.Columns.Item(colId).Cells.Item(row).Specific;
+                SetSpecificValue(specific, value);
+                return;
+            }
+
+            SetSpecificValue(item.Specific, value);
+        }
+
+        private static void SetSpecificValue(object specific, string value)
+        {
+            if (specific is EditText et)
+            {
+                et.Value = value;
+            }
+            else if (specific is ComboBox cb)
+            {
+                cb.Select(value, BoSearchKey.psk_ByValue);
+            }
+            else if (specific is CheckBox chk)
+            {
+                chk.Checked = IsTruthy(value);
+            }
+            else if (specific is StaticText st)
+            {
+                st.Caption = value;
+            }
+            else if (specific is SAPbouiCOM.Button btn)
+            {
+                btn.Caption = value;
+            }
+            else
+            {
+                throw new InvalidOperationException("El tipo de item no soporta asignacion directa.");
+            }
+        }
+
+        private static void SaveActiveForm(Form form)
+        {
+            if (form == null) throw new InvalidOperationException("No hay formulario activo para guardar.");
+            try
+            {
+                form.Items.Item("1").Click(BoCellClickType.ct_Regular);
+                return;
+            }
+            catch
+            {
+                // Some system forms expose Save/Update only through the main menu.
+            }
+
+            try
+            {
+                B1App.Instance.Application.ActivateMenuItem("1282");
+            }
+            catch (Exception ex)
+            {
+                throw new InvalidOperationException($"No se pudo ejecutar SaveForm: {ex.Message}", ex);
+            }
+        }
+
+        private static string[] SplitParameters(string parameters)
+        {
+            return SplitTopLevel(parameters, ',')
+                .Select(p => p.Trim())
+                .ToArray();
+        }
+
+        private static string[] SplitTopLevel(string input, char separator)
+        {
+            if (string.IsNullOrEmpty(input)) return Array.Empty<string>();
+
+            var result = new List<string>();
+            var current = new StringBuilder();
+            int parens = 0;
+            int braces = 0;
+            int brackets = 0;
+            char quote = '\0';
+            bool escape = false;
+
+            foreach (char ch in input)
+            {
+                if (quote != '\0')
+                {
+                    current.Append(ch);
+                    if (escape)
+                    {
+                        escape = false;
+                    }
+                    else if (ch == '\\')
+                    {
+                        escape = true;
+                    }
+                    else if (ch == quote)
+                    {
+                        quote = '\0';
+                    }
+                    continue;
+                }
+
+                if (ch == '\'' || ch == '"')
+                {
+                    quote = ch;
+                    current.Append(ch);
+                    continue;
+                }
+
+                if (ch == '(') parens++;
+                else if (ch == ')' && parens > 0) parens--;
+                else if (ch == '{') braces++;
+                else if (ch == '}' && braces > 0) braces--;
+                else if (ch == '[') brackets++;
+                else if (ch == ']' && brackets > 0) brackets--;
+
+                if (ch == separator && parens == 0 && braces == 0 && brackets == 0)
+                {
+                    result.Add(current.ToString());
+                    current.Clear();
+                    continue;
+                }
+
+                current.Append(ch);
+            }
+
+            result.Add(current.ToString());
+            return result.ToArray();
+        }
+
+        private static string Unquote(string value)
+        {
+            if (value == null) return string.Empty;
+            string trimmed = value.Trim();
+            if (trimmed.Length >= 2 &&
+                ((trimmed[0] == '\'' && trimmed[trimmed.Length - 1] == '\'') ||
+                 (trimmed[0] == '"' && trimmed[trimmed.Length - 1] == '"')))
+            {
+                return trimmed.Substring(1, trimmed.Length - 2);
+            }
+            return trimmed;
+        }
+
+        private static bool IsTruthy(string value)
+        {
+            return string.Equals(value, "Y", StringComparison.OrdinalIgnoreCase)
+                || string.Equals(value, "TRUE", StringComparison.OrdinalIgnoreCase)
+                || string.Equals(value, "1", StringComparison.OrdinalIgnoreCase);
+        }
+
         private static string ExtractParameter(string command, string funcName)
         {
             int start = funcName.Length + 1;
             int end = command.LastIndexOf(')');
             if (start < end)
             {
-                return command.Substring(start, end - start).Trim('\'');
+                return command.Substring(start, end - start).Trim();
             }
             return string.Empty;
         }

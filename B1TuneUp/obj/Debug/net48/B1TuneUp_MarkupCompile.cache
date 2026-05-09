@@ -1,5 +1,5 @@
 ﻿B1TuneUp
-
+1.0.0.0
 
 winexe
 C#
@@ -12,7 +12,7 @@ TRACE;DEBUG;NETFRAMEWORK;NET48;NET30_OR_GREATER;NET35_OR_GREATER;NET40_OR_GREATE
 
 29-819774028
 
-204-1945778849
+2061108083158
 1451313145659
 B1TuneUp\Modules\ActionPadInlineDesigner\ActionPadInlineDesignerWindow.xaml;B1TuneUp\Modules\ActionQuickUi\ActionQuickWindow.xaml;B1TuneUp\Modules\AuditLogViewer\AuditLogWindow.xaml;B1TuneUp\Modules\AutomationDashboardUi\AutomationDashboardWindow.xaml;B1TuneUp\Modules\BarcodeScannerUi\BarcodeScannerWindow.xaml;B1TuneUp\Modules\DashboardSearchMacroUi\DashboardSearchMacroWindow.xaml;B1TuneUp\Modules\DragDropUi\DragDropHelperWindow.xaml;B1TuneUp\Modules\EmailDesigner\EmailDesignerWindow.xaml;B1TuneUp\Modules\FormEnhancementUi\FormEnhancementWindow.xaml;B1TuneUp\Modules\IntegrationUi\IntegrationConfiguratorWindow.xaml;B1TuneUp\Modules\ItemActionsUi\ItemActionsWindow.xaml;B1TuneUp\Modules\ItemEditorUi\AddItemWindow.xaml;B1TuneUp\Modules\ItemEditorUi\ItemEditorWindow.xaml;B1TuneUp\Modules\LanguageSelectorUi\LanguageSelectorWindow.xaml;B1TuneUp\Modules\LayoutManagerUi\LayoutManagerWindow.xaml;B1TuneUp\Modules\MacroEngineUi\MacroEngineWindow.xaml;B1TuneUp\Modules\PlacementEnhancementUi\InlineDesignerWindow.xaml;B1TuneUp\Modules\PlacementEnhancementUi\PlacementEnhancementWindow.xaml;B1TuneUp\Modules\ProcessDesigner\ProcessDesignerWindow.xaml;B1TuneUp\Modules\ProcessStepsUi\ProcessStepsWindow.xaml;B1TuneUp\Modules\QueryExportUi\QueryExportWindow.xaml;B1TuneUp\Modules\RichTextEditorUi\RichTextEditorWindow.xaml;B1TuneUp\Modules\RuleBuilder\RuleBuilderWindow.xaml;B1TuneUp\Modules\SchedulerUi\SchedulerWindow.xaml;B1TuneUp\Modules\TemplateReportUi\TemplateReportWindow.xaml;B1TuneUp\Modules\ToolboxUi\ToolboxDesignerWindow.xaml;B1TuneUp\Modules\UiDesigner\UiCustomizerWindow.xaml;B1TuneUp\Modules\ValidationUi\ValidationDesignerWindow.xaml;B1TuneUp\Resources\B1Theme.xaml;
 

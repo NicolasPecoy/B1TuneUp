@@ -142,6 +142,10 @@
                             <TextBlock Text="Tipo de formulario (manual opcional)" Style="{StaticResource LabelStyle}" />
                             <TextBox Text="{Binding ManualFormType, UpdateSourceTrigger=PropertyChanged}" />
 
+                            <TextBlock Text="Item activo" Style="{StaticResource LabelStyle}" />
+                            <TextBlock Text="{Binding ActiveItemInfo}" Foreground="{DynamicResource TextSecondaryBrush}" TextWrapping="Wrap" />
+                            <Button Content="Capturar item activo" Command="{Binding CaptureActiveItemCommand}" Background="{DynamicResource PrimaryDarkBrush}" />
+
                             <TextBlock Text="Nombre del layout" Style="{StaticResource LabelStyle}" />
                             <TextBox Text="{Binding NewLayoutName, UpdateSourceTrigger=PropertyChanged}" />
 
@@ -151,6 +155,61 @@
                             <WrapPanel Margin="0,8,0,0">
                                 <Button Content="Guardar desde formulario" Command="{Binding SaveLayoutCommand}" />
                                 <Button Content="Importar desde archivo" Command="{Binding ImportLayoutCommand}" Background="{DynamicResource AccentAltBrush}" />
+                            </WrapPanel>
+                        </StackPanel>
+                    </Border>
+
+                    <Border Style="{StaticResource CardStyle}">
+                        <StackPanel>
+                            <TextBlock Text="Regla de Item Placement" FontSize="17" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}" />
+                            <TextBlock Text="Item UID" Style="{StaticResource LabelStyle}" />
+                            <TextBox Text="{Binding PlacementItemId, UpdateSourceTrigger=PropertyChanged}" />
+                            <TextBlock Text="Accion" Style="{StaticResource LabelStyle}" />
+                            <ComboBox SelectedValue="{Binding PlacementAction, UpdateSourceTrigger=PropertyChanged}"
+                                      SelectedValuePath="Content"
+                                      Height="28"
+                                      Margin="0,0,0,10"
+                                      Background="{DynamicResource SurfaceBrush}"
+                                      Foreground="{DynamicResource TextPrimaryBrush}">
+                                <ComboBoxItem Content="Move" />
+                                <ComboBoxItem Content="Resize" />
+                                <ComboBoxItem Content="Hide" />
+                                <ComboBoxItem Content="ChangeLabel" />
+                                <ComboBoxItem Content="Enable" />
+                                <ComboBoxItem Content="Disable" />
+                                <ComboBoxItem Content="AddButton" />
+                                <ComboBoxItem Content="AddEditText" />
+                                <ComboBoxItem Content="AddFolder" />
+                            </ComboBox>
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="8" />
+                                    <ColumnDefinition Width="*" />
+                                </Grid.ColumnDefinitions>
+                                <StackPanel Grid.Column="0">
+                                    <TextBlock Text="Left" Style="{StaticResource LabelStyle}" />
+                                    <TextBox Text="{Binding PlacementLeft, UpdateSourceTrigger=PropertyChanged}" />
+                                    <TextBlock Text="Width" Style="{StaticResource LabelStyle}" />
+                                    <TextBox Text="{Binding PlacementWidth, UpdateSourceTrigger=PropertyChanged}" />
+                                </StackPanel>
+                                <StackPanel Grid.Column="2">
+                                    <TextBlock Text="Top" Style="{StaticResource LabelStyle}" />
+                                    <TextBox Text="{Binding PlacementTop, UpdateSourceTrigger=PropertyChanged}" />
+                                    <TextBlock Text="Height" Style="{StaticResource LabelStyle}" />
+                                    <TextBox Text="{Binding PlacementHeight, UpdateSourceTrigger=PropertyChanged}" />
+                                </StackPanel>
+                            </Grid>
+                            <TextBlock Text="Caption / valor" Style="{StaticResource LabelStyle}" />
+                            <TextBox Text="{Binding PlacementLabel, UpdateSourceTrigger=PropertyChanged}" />
+                            <TextBlock Text="Usuario" Style="{StaticResource LabelStyle}" />
+                            <TextBox Text="{Binding PlacementUserCode, UpdateSourceTrigger=PropertyChanged}" />
+                            <TextBlock Text="Condicion SQL" Style="{StaticResource LabelStyle}" />
+                            <TextBox Text="{Binding PlacementCondition, UpdateSourceTrigger=PropertyChanged}" AcceptsReturn="True" Height="54" TextWrapping="Wrap" />
+                            <WrapPanel>
+                                <Button Content="Guardar regla" Command="{Binding SavePlacementRuleCommand}" />
+                                <Button Content="Exportar paquete" Command="{Binding ExportPackageCommand}" Background="{DynamicResource AccentAltBrush}" />
+                                <Button Content="Importar paquete" Command="{Binding ImportPackageCommand}" Background="{DynamicResource PrimaryDarkBrush}" />
                             </WrapPanel>
                         </StackPanel>
                     </Border>

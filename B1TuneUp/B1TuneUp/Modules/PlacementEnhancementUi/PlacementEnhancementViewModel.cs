@@ -33,6 +33,16 @@ namespace B1TuneUp.Modules.PlacementEnhancementUi
         private string _pivotGridId;
         private string _barcodeTargetId;
         private string _dashboardQuery;
+        private string _activeItemInfo;
+        private string _placementItemId;
+        private string _placementAction = "Move";
+        private string _placementLabel;
+        private int? _placementLeft;
+        private int? _placementTop;
+        private int? _placementWidth;
+        private int? _placementHeight;
+        private string _placementUserCode;
+        private string _placementCondition;
         private bool _isBusy;
         private string _busyMessage;
         private string _statusMessage;
@@ -58,6 +68,10 @@ namespace B1TuneUp.Modules.PlacementEnhancementUi
             OpenBarcodeCommand = new RelayCommand(() => UIEnhancementsManager.ScanBarcode(BarcodeTargetId, null));
             OpenDashboardCommand = new RelayCommand(() => UIEnhancementsManager.ShowAdvancedDashboard(DashboardQuery));
             OpenDesignerCommand = new RelayCommand(() => UIEnhancementsManager.OpenVisualDesigner(null));
+            CaptureActiveItemCommand = new RelayCommand(CaptureActiveItem);
+            SavePlacementRuleCommand = new RelayCommand(async () => await SavePlacementRuleAsync(), () => !string.IsNullOrWhiteSpace(PlacementItemId) && !string.IsNullOrWhiteSpace(PlacementAction));
+            ExportPackageCommand = new RelayCommand(ExportPackage, () => !string.IsNullOrWhiteSpace(ManualFormType));
+            ImportPackageCommand = new RelayCommand(ImportPackage);
 
             UpdateActiveFormInfo();
         }
@@ -121,7 +135,13 @@ namespace B1TuneUp.Modules.PlacementEnhancementUi
         public string ManualFormType
         {
             get => _manualFormType;
-            set { if (_manualFormType == value) return; _manualFormType = value; OnPropertyChanged(); }
+            set
+            {
+                if (_manualFormType == value) return;
+                _manualFormType = value;
+                OnPropertyChanged();
+                ExportPackageCommand.RaiseCanExecuteChanged();
+            }
         }
 
         public string ActiveFormInfo
@@ -166,6 +186,78 @@ namespace B1TuneUp.Modules.PlacementEnhancementUi
             set { if (_dashboardQuery == value) return; _dashboardQuery = value; OnPropertyChanged(); }
         }
 
+        public string ActiveItemInfo
+        {
+            get => _activeItemInfo;
+            private set { if (_activeItemInfo == value) return; _activeItemInfo = value; OnPropertyChanged(); }
+        }
+
+        public string PlacementItemId
+        {
+            get => _placementItemId;
+            set
+            {
+                if (_placementItemId == value) return;
+                _placementItemId = value;
+                OnPropertyChanged();
+                SavePlacementRuleCommand.RaiseCanExecuteChanged();
+            }
+        }
+
+        public string PlacementAction
+        {
+            get => _placementAction;
+            set
+            {
+                if (_placementAction == value) return;
+                _placementAction = value;
+                OnPropertyChanged();
+                SavePlacementRuleCommand.RaiseCanExecuteChanged();
+            }
+        }
+
+        public string PlacementLabel
+        {
+            get => _placementLabel;
+            set { if (_placementLabel == value) return; _placementLabel = value; OnPropertyChanged(); }
+        }
+
+        public int? PlacementLeft
+        {
+            get => _placementLeft;
+            set { if (_placementLeft == value) return; _placementLeft = value; OnPropertyChanged(); }
+        }
+
+        public int? PlacementTop
+        {
+            get => _placementTop;
+            set { if (_placementTop == value) return; _placementTop = value; OnPropertyChanged(); }
+        }
+
+        public int? PlacementWidth
+        {
+            get => _placementWidth;
+            set { if (_placementWidth == value) return; _placementWidth = value; OnPropertyChanged(); }
+        }
+
+        public int? PlacementHeight
+        {
+            get => _placementHeight;
+            set { if (_placementHeight == value) return; _placementHeight = value; OnPropertyChanged(); }
+        }
+
+        public string PlacementUserCode
+        {
+            get => _placementUserCode;
+            set { if (_placementUserCode == value) return; _placementUserCode = value; OnPropertyChanged(); }
+        }
+
+        public string PlacementCondition
+        {
+            get => _placementCondition;
+            set { if (_placementCondition == value) return; _placementCondition = value; OnPropertyChanged(); }
+        }
+
         public bool IsBusy
         {
             get => _isBusy;
@@ -199,6 +291,10 @@ namespace B1TuneUp.Modules.PlacementEnhancementUi
         public RelayCommand OpenBarcodeCommand { get; }
         public RelayCommand OpenDashboardCommand { get; }
         public RelayCommand OpenDesignerCommand { get; }
+        public RelayCommand CaptureActiveItemCommand { get; }
+        public RelayCommand SavePlacementRuleCommand { get; }
+        public RelayCommand ExportPackageCommand { get; }
+        public RelayCommand ImportPackageCommand { get; }
 
         public event PropertyChangedEventHandler PropertyChanged;
 
@@ -275,6 +371,107 @@ namespace B1TuneUp.Modules.PlacementEnhancementUi
                 await ReloadLayoutsInternalAsync();
                 StatusMessage = $"Layout importado desde {Path.GetFileName(sourceFile)}.";
             });
+        }
+
+        private async Task SavePlacementRuleAsync()
+        {
+            await RunSafeAsync("Guardando regla de item placement...", async () =>
+            {
+                string formType = ResolveCurrentFormType();
+                var entry = new UiCustomizationEntry
+                {
+                    FormType = formType,
+                    ItemId = PlacementItemId?.Trim(),
+                    Action = PlacementAction?.Trim(),
+                    Label = PlacementLabel ?? string.Empty,
+                    Left = PlacementLeft,
+                    Top = PlacementTop,
+                    Width = PlacementWidth,
+                    Height = PlacementHeight,
+                    FromPane = 0,
+                    ToPane = 0,
+                    UserCode = PlacementUserCode ?? string.Empty,
+                    Condition = PlacementCondition ?? string.Empty,
+                    Priority = 10
+                };
+
+                await Task.Run(() => UICustomizerService.Save(entry));
+                UICustomizerService.RefreshActiveForm();
+                StatusMessage = $"Regla {entry.Action} guardada para {entry.FormType}/{entry.ItemId}.";
+            });
+        }
+
+        private void CaptureActiveItem()
+        {
+            try
+            {
+                var form = B1App.Instance?.Application?.Forms?.ActiveForm;
+                if (form == null)
+                {
+                    ActiveItemInfo = "Sin formulario activo.";
+                    return;
+                }
+
+                string activeItemId = GetActiveItemId(form);
+                if (string.IsNullOrWhiteSpace(activeItemId))
+                {
+                    ActiveItemInfo = "Selecciona un item en SAP y vuelve a capturar.";
+                    return;
+                }
+
+                var item = form.Items.Item(activeItemId);
+                ManualFormType = form.TypeEx;
+                PlacementItemId = activeItemId;
+                PlacementLeft = item.Left;
+                PlacementTop = item.Top;
+                PlacementWidth = item.Width;
+                PlacementHeight = item.Height;
+                ActiveItemInfo = $"{form.TypeEx}/{activeItemId} {item.Type} L:{item.Left} T:{item.Top} W:{item.Width} H:{item.Height} Pane:{item.FromPane}-{item.ToPane}";
+            }
+            catch (Exception ex)
+            {
+                ActiveItemInfo = ex.Message;
+            }
+        }
+
+        private void ExportPackage()
+        {
+            var formType = ResolveCurrentFormType();
+            var dlg = new SaveFileDialog
+            {
+                Filter = "B1TuneUp package (*.json)|*.json|Todos los archivos (*.*)|*.*",
+                FileName = $"B1TuneUp_{formType}_package.json"
+            };
+            if (dlg.ShowDialog() != true) return;
+
+            try
+            {
+                UICustomizerService.ExportPackage(formType, dlg.FileName);
+                StatusMessage = $"Paquete exportado para {formType}.";
+            }
+            catch (Exception ex)
+            {
+                StatusMessage = ex.Message;
+            }
+        }
+
+        private void ImportPackage()
+        {
+            var dlg = new OpenFileDialog
+            {
+                Filter = "B1TuneUp package (*.json)|*.json|Todos los archivos (*.*)|*.*"
+            };
+            if (dlg.ShowDialog() != true) return;
+
+            try
+            {
+                var package = UICustomizerService.ImportPackage(dlg.FileName);
+                StatusMessage = $"Paquete importado para {package.FormType}.";
+            }
+            catch (Exception ex)
+            {
+                StatusMessage = ex.Message;
+            }
         }
 
         private void SaveLayoutFromActiveForm()
@@ -456,14 +653,17 @@ namespace B1TuneUp.Modules.PlacementEnhancementUi
                 }
 
                 ActiveFormInfo = $"{form.TypeEx} - {form.Title}";
+                ActiveItemInfo = "Item activo no capturado.";
                 if (string.IsNullOrWhiteSpace(ManualFormType))
                 {
                     ManualFormType = form.TypeEx;
                 }
+                ExportPackageCommand.RaiseCanExecuteChanged();
             }
             catch
             {
                 ActiveFormInfo = "Sin formulario activo.";
+                ActiveItemInfo = "Sin item activo.";
             }
         }
 
@@ -505,6 +705,34 @@ namespace B1TuneUp.Modules.PlacementEnhancementUi
             throw new InvalidOperationException("No se pudo determinar el tipo de formulario. Active uno en SAP o completa el campo Tipo de formulario.");
         }
 
+        private string ResolveCurrentFormType()
+        {
+            if (!string.IsNullOrWhiteSpace(ManualFormType)) return ManualFormType.Trim();
+            var form = B1App.Instance?.Application?.Forms?.ActiveForm;
+            return ResolveFormType(form);
+        }
+
+        private static string GetActiveItemId(SAPbouiCOM.Form form)
+        {
+            try
+            {
+                var prop = form.GetType().GetProperty("ActiveItem");
+                var value = prop?.GetValue(form, null)?.ToString();
+                if (!string.IsNullOrWhiteSpace(value)) return value;
+            }
+            catch { }
+
+            try
+            {
+                var prop = form.GetType().GetProperty("ActiveItemUID");
+                var value = prop?.GetValue(form, null)?.ToString();
+                if (!string.IsNullOrWhiteSpace(value)) return value;
+            }
+            catch { }
+
+            return string.Empty;
+        }
+
         private async Task RunSafeAsync(string message, Func<Task> work)
         {
             try
@@ -533,6 +761,8 @@ namespace B1TuneUp.Modules.PlacementEnhancementUi
             ExportLayoutCommand.RaiseCanExecuteChanged();
             OpenRichTextCommand.RaiseCanExecuteChanged();
             OpenPivotCommand.RaiseCanExecuteChanged();
+            SavePlacementRuleCommand.RaiseCanExecuteChanged();
+            ExportPackageCommand.RaiseCanExecuteChanged();
         }
 
         private void OnPropertyChanged([CallerMemberName] string propertyName = null)

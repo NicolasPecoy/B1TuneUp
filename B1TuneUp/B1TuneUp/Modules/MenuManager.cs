@@ -1,4 +1,4 @@
-ï»¿using System;
+using System;
 using System.Collections.Generic;
 using System.Drawing;
 using SAPbouiCOM;
@@ -58,11 +58,11 @@ namespace B1TuneUp.Modules
                 rs.DoQuery(sql);
                 while (!rs.EoF)
                 {
-                    string parentId = rs.Fields.Item("U_ParentID").Value.ToString();
-                    string menuId = rs.Fields.Item("U_MenuID").Value.ToString();
-                    string name = rs.Fields.Item("U_Name").Value.ToString();
-                    int pos = (int)rs.Fields.Item("U_Position").Value;
-                    string action = rs.Fields.Item("U_Action").Value.ToString();
+                    string parentId = B1TuneUp.Utils.SapUiSafe.SafeField(rs, "U_ParentID");
+                    string menuId = B1TuneUp.Utils.SapUiSafe.SafeField(rs, "U_MenuID");
+                    string name = B1TuneUp.Utils.SapUiSafe.SafeField(rs, "U_Name");
+                    int pos = (int)B1TuneUp.Utils.SapUiSafe.SafeFieldValue(rs, "U_Position");
+                    string action = B1TuneUp.Utils.SapUiSafe.SafeField(rs, "U_Action");
 
                     AddMenuItem(parentId, menuId, name, pos);
                     _menuActions[menuId] = action;
@@ -72,7 +72,7 @@ namespace B1TuneUp.Modules
             }
             catch (Exception ex)
             {
-                B1App.Instance.Application.SetStatusBarMessage($"Error cargando menÃºs: {ex.Message}", BoMessageTime.bmt_Short, true);
+                B1App.Instance.Application.SetStatusBarMessage($"Error cargando menús: {ex.Message}", BoMessageTime.bmt_Short, true);
                 LogMenuError(ex, "LoadCustomMenus");
             }
             finally
@@ -122,7 +122,7 @@ namespace B1TuneUp.Modules
             }
             catch (Exception ex)
             {
-                B1App.Instance.Application.SetStatusBarMessage($"Error creando menÃº {menuId}: {ex.Message}", BoMessageTime.bmt_Short, true);
+                B1App.Instance.Application.SetStatusBarMessage($"Error creando menú {menuId}: {ex.Message}", BoMessageTime.bmt_Short, true);
                 LogMenuError(ex, $"AddMenuItem:{menuId}");
             }
         }
@@ -188,7 +188,7 @@ namespace B1TuneUp.Modules
             }
             catch (Exception ex)
             {
-                app.SetStatusBarMessage($"Error creando menÃº de integraciones: {ex.Message}", BoMessageTime.bmt_Short, true);
+                app.SetStatusBarMessage($"Error creando menú de integraciones: {ex.Message}", BoMessageTime.bmt_Short, true);
                 LogMenuError(ex, "EnsureIntegrationMenu");
             }
         }
@@ -220,7 +220,7 @@ namespace B1TuneUp.Modules
             }
             catch (Exception ex)
             {
-                app.SetStatusBarMessage($"Error creando menÃº UI Customizer: {ex.Message}", BoMessageTime.bmt_Short, true);
+                app.SetStatusBarMessage($"Error creando menú UI Customizer: {ex.Message}", BoMessageTime.bmt_Short, true);
                 LogMenuError(ex, "EnsureUiDesignerMenu");
             }
         }
@@ -252,7 +252,7 @@ namespace B1TuneUp.Modules
             }
             catch (Exception ex)
             {
-                app.SetStatusBarMessage($"Error creando menÃº Scheduler Studio: {ex.Message}", BoMessageTime.bmt_Short, true);
+                app.SetStatusBarMessage($"Error creando menú Scheduler Studio: {ex.Message}", BoMessageTime.bmt_Short, true);
                 LogMenuError(ex, "EnsureSchedulerMenu");
             }
         }
@@ -284,7 +284,7 @@ namespace B1TuneUp.Modules
             }
             catch (Exception ex)
             {
-                app.SetStatusBarMessage($"Error creando menÃº Rule Builder: {ex.Message}", BoMessageTime.bmt_Short, true);
+                app.SetStatusBarMessage($"Error creando menú Rule Builder: {ex.Message}", BoMessageTime.bmt_Short, true);
                 LogMenuError(ex, "EnsureRuleBuilderMenu");
             }
         }
@@ -316,7 +316,7 @@ namespace B1TuneUp.Modules
             }
             catch (Exception ex)
             {
-                app.SetStatusBarMessage($"Error creando menÃº Process Designer: {ex.Message}", BoMessageTime.bmt_Short, true);
+                app.SetStatusBarMessage($"Error creando menú Process Designer: {ex.Message}", BoMessageTime.bmt_Short, true);
                 LogMenuError(ex, "EnsureProcessDesignerMenu");
             }
         }
@@ -348,7 +348,7 @@ namespace B1TuneUp.Modules
             }
             catch (Exception ex)
             {
-                app.SetStatusBarMessage($"Error creando menÃº Audit Log: {ex.Message}", BoMessageTime.bmt_Short, true);
+                app.SetStatusBarMessage($"Error creando menú Audit Log: {ex.Message}", BoMessageTime.bmt_Short, true);
                 LogMenuError(ex, "EnsureAuditLogMenu");
             }
         }
@@ -381,11 +381,11 @@ namespace B1TuneUp.Modules
                 creationParams.String = caption;
                 creationParams.Position = 9016;
                 parent.SubMenus.AddEx(creationParams);
-                app.SetStatusBarMessage("Template & Report Studio disponible desde el menÃº.", BoMessageTime.bmt_Short, false);
+                app.SetStatusBarMessage("Template & Report Studio disponible desde el menú.", BoMessageTime.bmt_Short, false);
             }
             catch (Exception ex)
             {
-                app.SetStatusBarMessage($"Error creando menÃº Template & Report: {ex.Message}", BoMessageTime.bmt_Short, true);
+                app.SetStatusBarMessage($"Error creando menú Template & Report: {ex.Message}", BoMessageTime.bmt_Short, true);
                 LogMenuError(ex, "EnsureTemplateReportMenu");
             }
         }
@@ -418,11 +418,11 @@ namespace B1TuneUp.Modules
                 creationParams.String = caption;
                 creationParams.Position = 9017;
                 parent.SubMenus.AddEx(creationParams);
-                app.SetStatusBarMessage("Email & Notification Designer disponible en el menÃº.", BoMessageTime.bmt_Short, false);
+                app.SetStatusBarMessage("Email & Notification Designer disponible en el menú.", BoMessageTime.bmt_Short, false);
             }
             catch (Exception ex)
             {
-                app.SetStatusBarMessage($"Error creando menÃº Email Designer: {ex.Message}", BoMessageTime.bmt_Short, true);
+                app.SetStatusBarMessage($"Error creando menú Email Designer: {ex.Message}", BoMessageTime.bmt_Short, true);
                 LogMenuError(ex, "EnsureEmailDesignerMenu");
             }
         }
@@ -455,11 +455,11 @@ namespace B1TuneUp.Modules
                 creationParams.String = caption;
                 creationParams.Position = 9018;
                 parent.SubMenus.AddEx(creationParams);
-                app.SetStatusBarMessage("Toolbox / Settings disponible en el menÃº.", BoMessageTime.bmt_Short, false);
+                app.SetStatusBarMessage("Toolbox / Settings disponible en el menú.", BoMessageTime.bmt_Short, false);
             }
             catch (Exception ex)
             {
-                app.SetStatusBarMessage($"Error creando menÃº Toolbox: {ex.Message}", BoMessageTime.bmt_Short, true);
+                app.SetStatusBarMessage($"Error creando menú Toolbox: {ex.Message}", BoMessageTime.bmt_Short, true);
                 LogMenuError(ex, "EnsureToolboxMenu");
             }
         }
@@ -492,11 +492,11 @@ namespace B1TuneUp.Modules
                 creationParams.String = caption;
                 creationParams.Position = 9019;
                 parent.SubMenus.AddEx(creationParams);
-                app.SetStatusBarMessage("Validation & Mandatory Fields disponible en el menÃº.", BoMessageTime.bmt_Short, false);
+                app.SetStatusBarMessage("Validation & Mandatory Fields disponible en el menú.", BoMessageTime.bmt_Short, false);
             }
             catch (Exception ex)
             {
-                app.SetStatusBarMessage($"Error creando menÃº Validation Manager: {ex.Message}", BoMessageTime.bmt_Short, true);
+                app.SetStatusBarMessage($"Error creando menú Validation Manager: {ex.Message}", BoMessageTime.bmt_Short, true);
                 LogMenuError(ex, "EnsureValidationMenu");
             }
         }

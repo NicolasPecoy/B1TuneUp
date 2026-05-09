@@ -11,12 +11,14 @@ namespace B1TuneUp.Modules
     {
         public static bool ValidateMandatoryFields(SAPbouiCOM.Form oForm)
         {
+            if (oForm == null) return true;
             Recordset rs = (Recordset)B1App.Instance.Company.GetBusinessObject(BoObjectTypes.BoRecordset);
             try
             {
+                string safeFormType = (oForm.TypeEx ?? string.Empty).Replace("'", "''");
                 string sql = B1App.Instance.IsHana
-                    ? $"SELECT * FROM \"@BTUN_MAND\" WHERE \"U_FormType\" = '{oForm.TypeEx}'"
-                    : $"SELECT * FROM [@BTUN_MAND] WHERE [U_FormType] = '{oForm.TypeEx}'";
+                    ? $"SELECT * FROM \"@BTUN_MAND\" WHERE \"U_FormType\" = '{safeFormType}'"
+                    : $"SELECT * FROM [@BTUN_MAND] WHERE [U_FormType] = '{safeFormType}'";
 
                 rs.DoQuery(sql);
 
@@ -44,7 +46,12 @@ namespace B1TuneUp.Modules
                         {
                             // Campo de matriz
                             Item matrixItem = GetItem(oForm, itemId);
-                            Matrix matrix = (Matrix)matrixItem.Specific;
+                            Matrix matrix = SapUiSafe.TryGetSpecific<Matrix>(matrixItem);
+                            if (matrix == null)
+                            {
+                                ShowError($"La regla de obligatorio apunta a una matriz inexistente o inválida: {itemId}", matrixItem);
+                                return false;
+                            }
                             for (int i = 1; i <= matrix.RowCount; i++)
                             {
                                 string val = GetCellValue(matrix, colId, i);
@@ -74,35 +81,26 @@ namespace B1TuneUp.Modules
 
         private static string GetItemValue(Item item)
         {
-            if (item.Type == BoFormItemTypes.it_EDIT || item.Type == BoFormItemTypes.it_EXTEDIT)
-                return ((EditText)item.Specific).Value;
-            if (item.Type == BoFormItemTypes.it_COMBO_BOX)
-                return ((SAPbouiCOM.ComboBox)item.Specific).Selected?.Value;
-            return "";
+            return SapUiSafe.SafeItemValue(item);
         }
 
         private static Item GetItem(SAPbouiCOM.Form form, string itemId)
         {
             if (form == null) throw new ArgumentNullException(nameof(form));
             if (string.IsNullOrWhiteSpace(itemId)) throw new InvalidOperationException("La regla de obligatorio no tiene ItemID configurado.");
-            return form.Items.Item(itemId);
+            var item = SapUiSafe.TryGetItem(form, itemId);
+            if (item == null) throw new InvalidOperationException($"No existe el ItemID '{itemId}' en el formulario {form.TypeEx}.");
+            return item;
         }
 
         private static string GetCellValue(Matrix matrix, string colId, int row)
         {
-            if (matrix == null) return string.Empty;
-            if (string.IsNullOrWhiteSpace(colId)) return string.Empty;
-            object specific = matrix.Columns.Item(colId).Cells.Item(row).Specific;
-            if (specific is EditText et) return et.Value ?? string.Empty;
-            if (specific is SAPbouiCOM.ComboBox cb) return cb.Selected?.Value ?? string.Empty;
-            if (specific is SAPbouiCOM.CheckBox chk) return chk.Checked ? "Y" : string.Empty;
-            return string.Empty;
+            return SapUiSafe.SafeMatrixCell(matrix, colId, row);
         }
 
         private static string SafeField(Recordset rs, string field)
         {
-            try { return rs.Fields.Item(field).Value?.ToString() ?? string.Empty; }
-            catch { return string.Empty; }
+            return SapUiSafe.SafeField(rs, field);
         }
 
         private static void ShowError(string msg, Item item)

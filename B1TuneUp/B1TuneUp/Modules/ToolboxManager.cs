@@ -1,4 +1,4 @@
-锘縰sing System;
+using System;
 using System.Linq;
 using SAPbouiCOM;
 using SAPbobsCOM;
@@ -46,18 +46,18 @@ namespace B1TuneUp.Modules
                 rs.DoQuery(sql);
                 if (!rs.EoF)
                 {
-                    string lockSetting = rs.Fields.Item(0).Value.ToString();
+                    string lockSetting = B1TuneUp.Utils.SapUiSafe.SafeField(rs, 0);
                     if (lockSetting == "Y")
                     {
                         // Implementar bloqueo de periodos si es necesario
-                        // Esta funcionalidad puede ser extendida seg煤n las necesidades
-                        B1App.Instance.Application.SetStatusBarMessage("Per铆odos bloqueados seg煤n configuraci贸n", SAPbouiCOM.BoMessageTime.bmt_Short, false);
+                        // Esta funcionalidad puede ser extendida seg鷑 las necesidades
+                        B1App.Instance.Application.SetStatusBarMessage("Per韔dos bloqueados seg鷑 configuraci髇", SAPbouiCOM.BoMessageTime.bmt_Short, false);
                     }
                 }
             }
             catch (Exception ex)
             {
-                B1App.Instance.Application.SetStatusBarMessage($"Error aplicando bloqueo de per铆odo: {ex.Message}", SAPbouiCOM.BoMessageTime.bmt_Short, true);
+                B1App.Instance.Application.SetStatusBarMessage($"Error aplicando bloqueo de per韔do: {ex.Message}", SAPbouiCOM.BoMessageTime.bmt_Short, true);
             }
             finally
             {
@@ -77,7 +77,7 @@ namespace B1TuneUp.Modules
                 rs.DoQuery(sql);
                 if (!rs.EoF)
                 {
-                    string validationSetting = rs.Fields.Item(0).Value.ToString();
+                    string validationSetting = B1TuneUp.Utils.SapUiSafe.SafeField(rs, 0);
                     if (validationSetting == "Y")
                     {
                         // Aplicar validaciones generales
@@ -107,8 +107,8 @@ namespace B1TuneUp.Modules
                 rs.DoQuery(sql);
                 while (!rs.EoF)
                 {
-                    string settingCode = rs.Fields.Item("U_Code").Value.ToString();
-                    string settingValue = rs.Fields.Item("U_Value").Value.ToString();
+                    string settingCode = B1TuneUp.Utils.SapUiSafe.SafeField(rs, "U_Code");
+                    string settingValue = B1TuneUp.Utils.SapUiSafe.SafeField(rs, "U_Value");
 
                     // Procesar configuraciones del sistema
                     ProcessSystemSetting(settingCode, settingValue);
@@ -132,19 +132,19 @@ namespace B1TuneUp.Modules
             switch (settingCode)
             {
                 case "SYS_AUTO_LOGIN":
-                    // Configuraci贸n de inicio de sesi贸n autom谩tico
+                    // Configuraci髇 de inicio de sesi髇 autom醫ico
                     break;
                 case "SYS_NOTIFICATIONS":
-                    // Configuraci贸n de notificaciones
+                    // Configuraci髇 de notificaciones
                     break;
                 case "SYS_THEME":
-                    // Configuraci贸n de tema visual
+                    // Configuraci髇 de tema visual
                     break;
                 case "SYS_LANGUAGE":
-                    // Configuraci贸n de idioma
+                    // Configuraci髇 de idioma
                     break;
                 default:
-                    // Otros ajustes espec铆ficos del sistema
+                    // Otros ajustes espec韋icos del sistema
                     break;
             }
         }
@@ -196,7 +196,7 @@ namespace B1TuneUp.Modules
                 rs.DoQuery(sql);
                 if (!rs.EoF)
                 {
-                    return rs.Fields.Item(0).Value?.ToString() ?? defaultValue;
+                    return B1TuneUp.Utils.SapUiSafe.SafeField(rs, 0) ?? defaultValue;
                 }
             }
             catch
@@ -223,16 +223,16 @@ namespace B1TuneUp.Modules
 
         public static bool ValidateVAT(string vatNumber, string country)
         {
-            // Implementaci贸n de validaci贸n de NIF/VAT
+            // Implementaci髇 de validaci髇 de NIF/VAT
             if (string.IsNullOrEmpty(vatNumber)) return false;
 
             // Remover espacios y caracteres especiales
             vatNumber = vatNumber.Replace(" ", "").Replace("-", "").Replace(".", "");
 
-            // Verificar patrones b谩sicos por pa铆s
+            // Verificar patrones b醩icos por pa韘
             switch (country?.ToUpper())
             {
-                case "ES": // Espa帽a
+                case "ES": // Espa馻
                     return ValidateSpanishVAT(vatNumber);
                 case "DE": // Alemania
                     return ValidateGermanVAT(vatNumber);
@@ -244,10 +244,10 @@ namespace B1TuneUp.Modules
                     return ValidateUKVAT(vatNumber);
                 case "US": // Estados Unidos
                     return ValidateUSVAT(vatNumber);
-                case "MX": // M茅xico
+                case "MX": // M閤ico
                     return ValidateMexicanVAT(vatNumber);
                 default:
-                    // Si no se especifica pa铆s, validar formato gen茅rico
+                    // Si no se especifica pa韘, validar formato gen閞ico
                     return vatNumber.Length >= 2 && vatNumber.Length <= 15;
             }
         }
@@ -259,10 +259,10 @@ namespace B1TuneUp.Modules
             string dni = vatNumber.Substring(1);
             char letter = vatNumber[0];
 
-            // Para personas f铆sicas (empiezan con n煤mero o K,L,M,X,Y,Z)
+            // Para personas f韘icas (empiezan con n鷐ero o K,L,M,X,Y,Z)
             if (char.IsDigit(letter) || "KLMXYZ".IndexOf(letter) >= 0)
             {
-                // Extraer d铆gito de control
+                // Extraer d韌ito de control
                 string digits = dni.Substring(0, dni.Length - 1);
                 char control = dni[dni.Length - 1];
 
@@ -286,7 +286,7 @@ namespace B1TuneUp.Modules
 
                 if (!int.TryParse(controlDigits, out int controlNumeric)) return false;
 
-                // C谩lculo para sociedades
+                // C醠culo para sociedades
                 string validChars = "ABCDEFGHJKLMNPQRSUVW";
                 string validDigits = "0123456789";
 
@@ -303,7 +303,7 @@ namespace B1TuneUp.Modules
             string digits = vatNumber.Substring(2);
             if (!long.TryParse(digits, out long num)) return false;
 
-            // Algoritmo de verificaci贸n para Alemania
+            // Algoritmo de verificaci髇 para Alemania
             int temp = 0;
             for (int i = 0; i < 8; i++)
             {
@@ -341,7 +341,7 @@ namespace B1TuneUp.Modules
             string digits = vatNumber.Substring(2);
             if (!long.TryParse(digits, out long vat)) return false;
 
-            // Verificaci贸n del c贸digo fiscal italiano
+            // Verificaci髇 del c骴igo fiscal italiano
             int sum = 0;
             for (int i = 0; i < 10; i += 2)
             {
@@ -402,7 +402,7 @@ namespace B1TuneUp.Modules
 
         private static bool ValidateUSVAT(string vatNumber)
         {
-            // Validaci贸n para SSN o FEIN (formato XX-XXXXXXX)
+            // Validaci髇 para SSN o FEIN (formato XX-XXXXXXX)
             if (vatNumber.Length == 10 && vatNumber[2] == '-')
             {
                 string[] parts = vatNumber.Split('-');
@@ -420,7 +420,7 @@ namespace B1TuneUp.Modules
                 }
             }
 
-            // Validaci贸n sin gui贸n
+            // Validaci髇 sin gui髇
             if (vatNumber.Length == 9)
             {
                 foreach (char c in vatNumber)
@@ -435,10 +435,10 @@ namespace B1TuneUp.Modules
 
         private static bool ValidateMexicanVAT(string vatNumber)
         {
-            // Validaci贸n b谩sica para RFC mexicano
+            // Validaci髇 b醩ica para RFC mexicano
             if (vatNumber.Length < 10 || vatNumber.Length > 13) return false;
 
-            // RFC persona f铆sica o moral
+            // RFC persona f韘ica o moral
             string alphaPart = vatNumber.Substring(0, 3);
             string numPart = vatNumber.Substring(3, 6);
 
@@ -453,7 +453,7 @@ namespace B1TuneUp.Modules
 
             if (vatNumber.Length == 13)
             {
-                // Tiene homoclave de 3 d铆gitos
+                // Tiene homoclave de 3 d韌itos
                 string homoclave = vatNumber.Substring(9, 3);
                 if (homoclave.Any(c => !char.IsDigit(c))) return false;
             }
@@ -463,7 +463,7 @@ namespace B1TuneUp.Modules
 
         public static void HandleToolboxEvents(Form oForm, ItemEvent pVal)
         {
-            // L贸gica para eventos autom谩ticos de Toolbox
+            // L骻ica para eventos autom醫icos de Toolbox
             // Por ejemplo, autocompletar campos o formatear textos
             if (oForm == null) return;
             if (ModuleActivationService.IsEnabled("UseFlags"))

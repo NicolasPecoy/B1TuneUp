@@ -83,7 +83,7 @@ namespace B1TuneUp.Modules.Forms
             {
                 for (int i = 0; i < _b1Form.Items.Count; i++)
                 {
-                    var it = _b1Form.Items.Item(i + 1);
+                    var it = SapUiSafe.TryGetItem(_b1Form, i + 1);
                     _lstItems.Items.Add(it.UniqueID);
                 }
             }
@@ -100,7 +100,7 @@ namespace B1TuneUp.Modules.Forms
                 if (_lstItems.SelectedItem == null) return;
                 string id = _lstItems.SelectedItem.ToString();
                 if (!_b1Form.Items.Exists(id)) return;
-                var it = _b1Form.Items.Item(id);
+                var it = SapUiSafe.TryGetItem(_b1Form, id);
                 _nudLeft.Value = it.Left;
                 _nudTop.Value = it.Top;
                 _nudWidth.Value = it.Width;
@@ -116,7 +116,7 @@ namespace B1TuneUp.Modules.Forms
                 if (_lstItems.SelectedItem == null) return;
                 string id = _lstItems.SelectedItem.ToString();
                 if (!_b1Form.Items.Exists(id)) return;
-                var it = _b1Form.Items.Item(id);
+                var it = SapUiSafe.TryGetItem(_b1Form, id);
                 it.Left = (int)_nudLeft.Value;
                 it.Top = (int)_nudTop.Value;
                 it.Width = (int)_nudWidth.Value;
@@ -140,7 +140,7 @@ namespace B1TuneUp.Modules.Forms
                 var root = doc.CreateElement("Layout"); doc.AppendChild(root);
                 for (int i = 0; i < _b1Form.Items.Count; i++)
                 {
-                    var it = _b1Form.Items.Item(i + 1);
+                    var it = SapUiSafe.TryGetItem(_b1Form, i + 1);
                     var n = doc.CreateElement("Item");
                     var aid = doc.CreateAttribute("id"); aid.Value = it.UniqueID; n.Attributes.Append(aid);
                     var aL = doc.CreateAttribute("left"); aL.Value = it.Left.ToString(); n.Attributes.Append(aL);

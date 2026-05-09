@@ -45,7 +45,7 @@ namespace B1TuneUp.Modules
 
                 if (!rs.EoF)
                 {
-                    string codeValue = rs.Fields.Item(0).Value?.ToString();
+                    string codeValue = B1TuneUp.Utils.SapUiSafe.SafeField(rs, 0);
                     string updateSql = isHana
                         ? $"UPDATE \"@BTUN_DMAPPER\" SET \"U_Def\" = '{encoded}', \"U_Desc\" = '{desc}', \"U_UpdatedAt\" = CURRENT_TIMESTAMP WHERE \"Code\" = '{codeValue}'"
                         : $"UPDATE [@BTUN_DMAPPER] SET U_Def = '{encoded}', U_Desc = '{desc}', U_UpdatedAt = GETDATE() WHERE [Code] = '{codeValue}'";
@@ -115,9 +115,9 @@ namespace B1TuneUp.Modules
                 while (!rs.EoF)
                 {
                     var row = dt.NewRow();
-                    row[0] = rs.Fields.Item(0).Value?.ToString();
-                    row[1] = rs.Fields.Item(1).Value?.ToString();
-                    row[2] = rs.Fields.Item(2).Value?.ToString();
+                    row[0] = B1TuneUp.Utils.SapUiSafe.SafeField(rs, 0);
+                    row[1] = B1TuneUp.Utils.SapUiSafe.SafeField(rs, 1);
+                    row[2] = B1TuneUp.Utils.SapUiSafe.SafeField(rs, 2);
                     dt.Rows.Add(row);
                     rs.MoveNext();
                 }
@@ -138,7 +138,7 @@ namespace B1TuneUp.Modules
                     ? $"SELECT \"U_Def\" FROM \"@BTUN_DMAPPER\" WHERE \"U_Name\" = '{name.Replace("'","''")}'"
                     : $"SELECT U_Def FROM [@BTUN_DMAPPER] WHERE [U_Name] = '{name.Replace("'","''")}'";
                 rs.DoQuery(sql);
-                if (!rs.EoF) return rs.Fields.Item(0).Value?.ToString() ?? "";
+                if (!rs.EoF) return B1TuneUp.Utils.SapUiSafe.SafeField(rs, 0);
             }
             catch { }
             finally { ComObjectManager.Release(rs); }
@@ -165,7 +165,7 @@ namespace B1TuneUp.Modules
                 gridItem.Left = 10;
                 gridItem.Width = 760;
                 gridItem.Height = 460;
-                SAPbouiCOM.Grid grid = (SAPbouiCOM.Grid)gridItem.Specific;
+                SAPbouiCOM.Grid grid = SapUiSafe.TryGetSpecific<SAPbouiCOM.Grid>(gridItem);
 
                 try
                 {
@@ -175,10 +175,10 @@ namespace B1TuneUp.Modules
                 catch { }
 
                 // Buttons: New, Edit, Delete, Export
-                Item btnNew = oForm.Items.Add("btnNew", BoFormItemTypes.it_BUTTON); btnNew.Left = 10; btnNew.Top = 480; btnNew.Width = 80; ((SAPbouiCOM.Button)btnNew.Specific).Caption = "Nuevo";
-                Item btnEdit = oForm.Items.Add("btnEdit", BoFormItemTypes.it_BUTTON); btnEdit.Left = 100; btnEdit.Top = 480; btnEdit.Width = 80; ((SAPbouiCOM.Button)btnEdit.Specific).Caption = "Editar";
-                Item btnDel = oForm.Items.Add("btnDel", BoFormItemTypes.it_BUTTON); btnDel.Left = 190; btnDel.Top = 480; btnDel.Width = 80; ((SAPbouiCOM.Button)btnDel.Specific).Caption = "Eliminar";
-                Item btnExport = oForm.Items.Add("btnExp", BoFormItemTypes.it_BUTTON); btnExport.Left = 280; btnExport.Top = 480; btnExport.Width = 120; ((SAPbouiCOM.Button)btnExport.Specific).Caption = "Exportar CSV";
+                Item btnNew = oForm.Items.Add("btnNew", BoFormItemTypes.it_BUTTON); btnNew.Left = 10; btnNew.Top = 480; btnNew.Width = 80; SapUiSafe.TrySetCaption(btnNew, "Nuevo");
+                Item btnEdit = oForm.Items.Add("btnEdit", BoFormItemTypes.it_BUTTON); btnEdit.Left = 100; btnEdit.Top = 480; btnEdit.Width = 80; SapUiSafe.TrySetCaption(btnEdit, "Editar");
+                Item btnDel = oForm.Items.Add("btnDel", BoFormItemTypes.it_BUTTON); btnDel.Left = 190; btnDel.Top = 480; btnDel.Width = 80; SapUiSafe.TrySetCaption(btnDel, "Eliminar");
+                Item btnExport = oForm.Items.Add("btnExp", BoFormItemTypes.it_BUTTON); btnExport.Left = 280; btnExport.Top = 480; btnExport.Width = 120; SapUiSafe.TrySetCaption(btnExport, "Exportar CSV");
 
                 oForm.Visible = true;
             }
@@ -289,7 +289,7 @@ namespace B1TuneUp.Modules
                 // create columns
                 for (int i = 0; i < rs.Fields.Count; i++)
                 {
-                    string name = rs.Fields.Item(i).Name;
+                    string name = B1TuneUp.Utils.SapUiSafe.SafeFieldName(rs, i);
                     if (string.IsNullOrEmpty(name)) name = "F" + i;
                     dt.Columns.Add(name);
                 }
@@ -299,7 +299,7 @@ namespace B1TuneUp.Modules
                     var row = dt.NewRow();
                     for (int i = 0; i < rs.Fields.Count; i++)
                     {
-                        try { row[i] = rs.Fields.Item(i).Value?.ToString(); } catch { row[i] = null; }
+                        try { row[i] = B1TuneUp.Utils.SapUiSafe.SafeField(rs, i); } catch { row[i] = null; }
                     }
                     dt.Rows.Add(row);
                     rs.MoveNext();

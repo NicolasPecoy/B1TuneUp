@@ -153,7 +153,7 @@ namespace B1TuneUp.Modules
         {
             try
             {
-                if (form == null) form = B1App.Instance.Application.Forms.ActiveForm;
+                if (form == null) form = SapUiSafe.TryGetActiveForm();
                 if (form == null) return false;
                 if (!File.Exists(filePath)) return false;
 
@@ -176,12 +176,12 @@ namespace B1TuneUp.Modules
                                 var itemId = mapping[colName];
                                 try
                                 {
-                                    if (form.Items.Exists(itemId))
+                                    var it = SapUiSafe.TryGetItem(form, itemId);
+                                    if (it != null)
                                     {
-                                        var it = form.Items.Item(itemId);
                                         var val = i < cols.Length ? cols[i] : "";
-                                        if (it.Specific is SAPbouiCOM.EditText et) et.Value = val;
-                                        else if (it.Specific is SAPbouiCOM.ComboBox cb) { try { cb.Select(val, BoSearchKey.psk_ByValue); } catch { } }
+                                        if (SapUiSafe.TryGetSpecific<SAPbouiCOM.EditText>(it) is SAPbouiCOM.EditText et) et.Value = val;
+                                        else if (SapUiSafe.TryGetSpecific<SAPbouiCOM.ComboBox>(it) is SAPbouiCOM.ComboBox cb) { try { cb.Select(val, BoSearchKey.psk_ByValue); } catch { } }
                                     }
                                 }
                                 catch { }
@@ -206,11 +206,11 @@ namespace B1TuneUp.Modules
         {
             try
             {
-                if (form == null) form = B1App.Instance.Application.Forms.ActiveForm;
+                if (form == null) form = SapUiSafe.TryGetActiveForm();
                 if (form == null) return false;
-                if (!form.Items.Exists(gridId)) return false;
 
-                var grid = (SAPbouiCOM.Grid)form.Items.Item(gridId).Specific;
+                var grid = SapUiSafe.TryGetSpecific<SAPbouiCOM.Grid>(form, gridId);
+                if (grid == null) return false;
                 var mapping = ParseKeyValueString(mappingSerialized);
 
                 using (var sw = new StreamWriter(filePath, false, Encoding.UTF8))

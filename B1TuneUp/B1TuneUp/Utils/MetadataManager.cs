@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using SAPbobsCOM;
 using B1TuneUp.Core;
 
@@ -92,7 +92,7 @@ namespace B1TuneUp.Utils
                 rs.DoQuery(sql);
                 if (rs.RecordCount > 0)
                 {
-                    return (int)rs.Fields.Item(0).Value;
+                    return (int)B1TuneUp.Utils.SapUiSafe.SafeFieldValue(rs, 0);
                 }
                 return -1;
             }
@@ -104,7 +104,7 @@ namespace B1TuneUp.Utils
 
         public static void SetupMetadata()
         {
-            B1App.Instance.Application.SetStatusBarMessage("Iniciando configuración de metadatos B1TuneUp...", SAPbouiCOM.BoMessageTime.bmt_Short, false);
+            B1App.Instance.Application.SetStatusBarMessage("Iniciando configuraci�n de metadatos B1TuneUp...", SAPbouiCOM.BoMessageTime.bmt_Short, false);
 
             // Tabla para Reglas
             CreateUDT("BTUN_RULES", "B1TuneUp Rules", BoUTBTableType.bott_NoObject);
@@ -115,7 +115,7 @@ namespace B1TuneUp.Utils
             CreateUDF("@BTUN_RULES", "Condition", "Condition SQL", BoFieldTypes.db_Memo);
             CreateUDF("@BTUN_RULES", "Action", "Action Macro", BoFieldTypes.db_Memo);
 
-            // Tabla para Menús Personalizados
+            // Tabla para Men�s Personalizados
             CreateUDT("BTUN_MENUS", "B1TuneUp Menus", BoUTBTableType.bott_NoObject);
             CreateUDF("@BTUN_MENUS", "ParentID", "Parent Menu ID", BoFieldTypes.db_Alpha, 20);
             CreateUDF("@BTUN_MENUS", "MenuID", "Menu ID", BoFieldTypes.db_Alpha, 20);
@@ -123,7 +123,7 @@ namespace B1TuneUp.Utils
             CreateUDF("@BTUN_MENUS", "Position", "Position", BoFieldTypes.db_Numeric, 5);
             CreateUDF("@BTUN_MENUS", "Action", "Action Macro", BoFieldTypes.db_Memo);
 
-            // Tabla para Personalización de UI (Item Placement Tool)
+            // Tabla para Personalizaci�n de UI (Item Placement Tool)
             CreateUDT("BTUN_UI", "B1TuneUp UI Customization", BoUTBTableType.bott_NoObject);
             CreateUDF("@BTUN_UI", "FormType", "Form Type", BoFieldTypes.db_Alpha, 20);
             CreateUDF("@BTUN_UI", "ItemID", "Item ID", BoFieldTypes.db_Alpha, 20);
@@ -175,7 +175,7 @@ namespace B1TuneUp.Utils
             CreateUDF("@BTUN_MAND", "Condition", "Condition SQL", BoFieldTypes.db_Memo);
             CreateUDF("@BTUN_MAND", "ErrorMsg", "Error Message", BoFieldTypes.db_Alpha, 254);
 
-            // Tabla para Menús Contextuales (Right-Click)
+            // Tabla para Men�s Contextuales (Right-Click)
             CreateUDT("BTUN_RCLICK", "B1TuneUp Right-Click Menus", BoUTBTableType.bott_NoObject);
             CreateUDF("@BTUN_RCLICK", "FormType", "Form Type", BoFieldTypes.db_Alpha, 20);
             CreateUDF("@BTUN_RCLICK", "ItemID", "Item ID (Optional)", BoFieldTypes.db_Alpha, 20);
@@ -221,12 +221,12 @@ namespace B1TuneUp.Utils
             CreateUDF("@BTUN_PADB", "Width", "Canvas Width", BoFieldTypes.db_Numeric, 6);
             CreateUDF("@BTUN_PADB", "Height", "Canvas Height", BoFieldTypes.db_Numeric, 6);
 
-            // Tabla para Código C# Dinámico (Universal Functions - Code)
+            // Tabla para C�digo C# Din�mico (Universal Functions - Code)
             CreateUDT("BTUN_CODE", "B1TuneUp Dynamic Code", BoUTBTableType.bott_NoObject);
             CreateUDF("@BTUN_CODE", "CodeName", "Code Name/ID", BoFieldTypes.db_Alpha, 50);
             CreateUDF("@BTUN_CODE", "Source", "C# Source Code", BoFieldTypes.db_Memo);
 
-            // Tabla para B1 Search (Búsqueda Universal)
+            // Tabla para B1 Search (B�squeda Universal)
             CreateUDT("BTUN_SEARCH", "B1TuneUp Search", BoUTBTableType.bott_NoObject);
             CreateUDF("@BTUN_SEARCH", "Name", "Search Name", BoFieldTypes.db_Alpha, 50);
             CreateUDF("@BTUN_SEARCH", "Query", "SQL Search Query (use %search% tag)", BoFieldTypes.db_Memo);
@@ -392,7 +392,7 @@ namespace B1TuneUp.Utils
             CreateUDF("@BTUN_PD", "CreatedAt", "Created At", BoFieldTypes.db_Date);
             CreateUDF("@BTUN_PD", "UpdatedAt", "Updated At", BoFieldTypes.db_Date);
 
-            // ── Tabla para Lock Fields (Bloqueo dinámico de campos) ────────────────
+            // -- Tabla para Lock Fields (Bloqueo din�mico de campos) ----------------
             CreateUDT("BTUN_LOCK", "B1TuneUp Lock Fields", BoUTBTableType.bott_NoObject);
             CreateUDF("@BTUN_LOCK", "FormType",    "Form Type",                    BoFieldTypes.db_Alpha, 20);
             CreateUDF("@BTUN_LOCK", "ItemID",      "Item ID",                      BoFieldTypes.db_Alpha, 20);
@@ -402,7 +402,7 @@ namespace B1TuneUp.Utils
             CreateUDF("@BTUN_LOCK", "TriggerItem", "Trigger Item ID (Change)",     BoFieldTypes.db_Alpha, 20);
             CreateUDF("@BTUN_LOCK", "OnEvent",     "On Event",                     BoFieldTypes.db_Alpha, 10, "Load", "Load:Form Load;Change:Item Change");
 
-            // ── Tabla para Quick Copy (Copia rápida de documentos) ─────────────────
+            // -- Tabla para Quick Copy (Copia r�pida de documentos) -----------------
             CreateUDT("BTUN_QCOPY", "B1TuneUp Quick Copy", BoUTBTableType.bott_NoObject);
             CreateUDF("@BTUN_QCOPY", "Name",        "Config Name",                 BoFieldTypes.db_Alpha, 50);
             CreateUDF("@BTUN_QCOPY", "SrcFormType", "Source Form Type",              BoFieldTypes.db_Alpha, 20);
@@ -413,13 +413,13 @@ namespace B1TuneUp.Utils
             CreateUDF("@BTUN_QCOPY", "PostMacro",   "Post-Copy Macro",             BoFieldTypes.db_Memo);
             CreateUDF("@BTUN_QCOPY", "Active",      "Active",                      BoFieldTypes.db_Alpha, 1, "Y", "Y:Yes;N:No");
 
-            // ── Tabla para Form Settings (Ajustes visuales por usuario) ────────────
+            // -- Tabla para Form Settings (Ajustes visuales por usuario) ------------
             CreateUDT("BTUN_FSET", "B1TuneUp Form Settings", BoUTBTableType.bott_NoObject);
             CreateUDF("@BTUN_FSET", "FormType", "Form Type",  BoFieldTypes.db_Alpha, 20);
             CreateUDF("@BTUN_FSET", "UserCode", "User Code",  BoFieldTypes.db_Alpha, 50);
             CreateUDF("@BTUN_FSET", "Data",     "Settings (key=val;...)", BoFieldTypes.db_Memo);
 
-            // ── Tabla para configuración de Integraciones (REST/SOAP) ──────────────
+            // -- Tabla para configuraci�n de Integraciones (REST/SOAP) --------------
             CreateUDT("BTUN_INTCFG", "B1TuneUp Integration Config", BoUTBTableType.bott_NoObject);
             CreateUDF("@BTUN_INTCFG", "Channel",   "Channel (REST/SOAP)",       BoFieldTypes.db_Alpha, 10, "REST", "REST:REST;SOAP:SOAP");
             CreateUDF("@BTUN_INTCFG", "Method",    "HTTP Method",               BoFieldTypes.db_Alpha, 10);
@@ -434,7 +434,7 @@ namespace B1TuneUp.Utils
             CreateUDF("@BTUN_INTCFG", "Notes",     "Notes/Description",         BoFieldTypes.db_Memo);
             CreateUDF("@BTUN_INTCFG", "Active",    "Active",                    BoFieldTypes.db_Alpha, 1, "Y", "Y:Yes;N:No");
 
-            // ── Tabla para Process Steps – cabecera ────────────────────────────────
+            // -- Tabla para Process Steps � cabecera --------------------------------
             CreateUDT("BTUN_PSTEP", "B1TuneUp Process Steps", BoUTBTableType.bott_NoObject);
             CreateUDF("@BTUN_PSTEP", "Name",     "Process Name",          BoFieldTypes.db_Alpha, 100);
             CreateUDF("@BTUN_PSTEP", "FormType", "Form Type",             BoFieldTypes.db_Alpha, 20);
@@ -442,7 +442,7 @@ namespace B1TuneUp.Utils
             CreateUDF("@BTUN_PSTEP", "Active",   "Active",                BoFieldTypes.db_Alpha, 1, "Y", "Y:Yes;N:No");
             CreateUDF("@BTUN_PSTEP", "AutoShow", "Auto Show on Form Load",BoFieldTypes.db_Alpha, 1, "N", "Y:Yes;N:No");
 
-            // ── Tabla para Process Steps – detalle ─────────────────────────────────
+            // -- Tabla para Process Steps � detalle ---------------------------------
             CreateUDT("BTUN_PSTEPD", "B1TuneUp Process Step Details", BoUTBTableType.bott_NoObject);
             CreateUDF("@BTUN_PSTEPD", "ProcessEntry", "Process Entry ID (DocEntry de BTUN_PSTEP)", BoFieldTypes.db_Alpha, 20);
             CreateUDF("@BTUN_PSTEPD", "StepOrder",    "Step Order",                                BoFieldTypes.db_Numeric, 5);
@@ -452,7 +452,7 @@ namespace B1TuneUp.Utils
             CreateUDF("@BTUN_PSTEPD", "Action",       "Step Action Macro",                         BoFieldTypes.db_Memo);
             CreateUDF("@BTUN_PSTEPD", "Mandatory",    "Mandatory Step",                            BoFieldTypes.db_Alpha, 1, "Y", "Y:Yes;N:No");
 
-            B1App.Instance.Application.SetStatusBarMessage("Metadatos B1TuneUp configurados con éxito.", SAPbouiCOM.BoMessageTime.bmt_Short, false);
+            B1App.Instance.Application.SetStatusBarMessage("Metadatos B1TuneUp configurados con �xito.", SAPbouiCOM.BoMessageTime.bmt_Short, false);
         }
     }
 }

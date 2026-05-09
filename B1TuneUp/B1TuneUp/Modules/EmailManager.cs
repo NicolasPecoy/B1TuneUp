@@ -1,4 +1,4 @@
-ï»¿using System;
+using System;
 using System.Collections.Generic;
 using System.Net.Mail;
 using SAPbobsCOM;
@@ -35,7 +35,7 @@ namespace B1TuneUp.Modules
 
                     if (!active)
                     {
-                        B1App.Instance.Application.SetStatusBarMessage("Plantilla de email inactiva, no se envÃ­a notificaciÃ³n.", SAPbouiCOM.BoMessageTime.bmt_Short, false);
+                        B1App.Instance.Application.SetStatusBarMessage("Plantilla de email inactiva, no se envía notificación.", SAPbouiCOM.BoMessageTime.bmt_Short, false);
                         return;
                     }
 
@@ -63,7 +63,7 @@ namespace B1TuneUp.Modules
         {
             try
             {
-                // Obtener configuraciÃ³n SMTP desde la base de datos
+                // Obtener configuración SMTP desde la base de datos
                 string smtpServer = GetSmtpSetting("Server", "smtp.gmail.com");
                 int smtpPort = int.Parse(GetSmtpSetting("Port", "587"));
                 string smtpUsername = GetSmtpSetting("Username", "");
@@ -180,7 +180,7 @@ namespace B1TuneUp.Modules
 
         private static string ReadField(Recordset rs, string fieldName)
         {
-            try { return rs.Fields.Item(fieldName).Value?.ToString() ?? string.Empty; }
+            try { return B1TuneUp.Utils.SapUiSafe.SafeField(rs, fieldName); }
             catch { return string.Empty; }
         }
 
@@ -196,7 +196,7 @@ namespace B1TuneUp.Modules
                 rs.DoQuery(sql);
                 if (!rs.EoF)
                 {
-                    return rs.Fields.Item(0).Value.ToString();
+                    return B1TuneUp.Utils.SapUiSafe.SafeField(rs, 0);
                 }
                 return defaultValue;
             }

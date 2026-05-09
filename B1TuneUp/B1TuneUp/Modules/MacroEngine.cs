@@ -1,4 +1,4 @@
-Ôªøusing System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
@@ -16,7 +16,7 @@ namespace B1TuneUp.Modules
     {
         public static void ExecuteMacro(string macroCommand, Form activeForm = null, int rowOverride = -1)
         {
-            // Un motor de macros simple que interpreta comandos b√°sicos
+            // Un motor de macros simple que interpreta comandos b·sicos
             // Ejemplo: "Click(1); SetValue(4, 'Hello'); Loop(38, 'SetValue(U_MyField, $[$38.1.0])');"
 
             foreach (var cmd in SplitTopLevel(macroCommand, ';'))
@@ -70,7 +70,7 @@ namespace B1TuneUp.Modules
 
             try
             {
-                if (activeForm == null) activeForm = B1App.Instance.Application.Forms.ActiveForm;
+                if (activeForm == null) activeForm = SapUiSafe.TryGetActiveForm();
 
                 if (command.StartsWith("Msg("))
                 {
@@ -85,7 +85,7 @@ namespace B1TuneUp.Modules
                 else if (command.StartsWith("Click("))
                 {
                     string itemId = ExtractParameter(command, "Click");
-                    activeForm.Items.Item(itemId).Click();
+                    SapUiSafe.TryGetItem(activeForm, itemId)?.Click();
                 }
                 else if (command.StartsWith("SetValue("))
                 {
@@ -136,22 +136,24 @@ namespace B1TuneUp.Modules
                 else if (command.StartsWith("Disable("))
                 {
                     string itemId = ExtractParameter(command, "Disable");
-                    activeForm.Items.Item(itemId).Enabled = false;
+                    var item = SapUiSafe.TryGetItem(activeForm, itemId);
+                    if (item != null) item.Enabled = false;
                 }
                 else if (command.StartsWith("Enable("))
                 {
                     string itemId = ExtractParameter(command, "Enable");
-                    activeForm.Items.Item(itemId).Enabled = true;
+                    var item = SapUiSafe.TryGetItem(activeForm, itemId);
+                    if (item != null) item.Enabled = true;
                 }
                 else if (command.StartsWith("Focus("))
                 {
                     string itemId = ExtractParameter(command, "Focus");
-                    activeForm.Items.Item(itemId).Click(BoCellClickType.ct_Regular);
+                    SapUiSafe.TryGetItem(activeForm, itemId)?.Click(BoCellClickType.ct_Regular);
                 }
                 else if (command.StartsWith("ActivateTab("))
                 {
                     string tabId = ExtractParameter(command, "ActivateTab");
-                    ((Folder)activeForm.Items.Item(tabId).Specific).Select();
+                    SapUiSafe.TryGetSpecific<Folder>(activeForm, tabId)?.Select();
                 }
                 else if (command.StartsWith("Code("))
                 {
@@ -534,7 +536,7 @@ namespace B1TuneUp.Modules
 
                     // Abrir el formulario y asignar valores
                     B1App.Instance.Application.ActivateMenuItem(formType);
-                    Form oForm = B1App.Instance.Application.Forms.ActiveForm;
+                    Form oForm = SapUiSafe.TryGetActiveForm();
 
                     string[] pairs = SplitTopLevel(fieldValues, ';');
                     foreach (var pair in pairs)
@@ -544,7 +546,8 @@ namespace B1TuneUp.Modules
                         {
                             string itemId = kv[0].Trim();
                             string val = Unquote(kv[1]);
-                            ((EditText)oForm.Items.Item(itemId).Specific).Value = val;
+                            var edit = SapUiSafe.TryGetSpecific<EditText>(oForm, itemId);
+                            if (edit != null) edit.Value = val;
                         }
                     }
                 }
@@ -567,19 +570,24 @@ namespace B1TuneUp.Modules
             try
             {
                 string val = "";
-                Item item = activeForm.Items.Item(fromId);
-                if (item.Type == BoFormItemTypes.it_EDIT || item.Type == BoFormItemTypes.it_EXTEDIT)
-                    val = ((EditText)item.Specific).Value;
+                Item item = SapUiSafe.TryGetItem(activeForm, fromId);
+                if (item != null && (item.Type == BoFormItemTypes.it_EDIT || item.Type == BoFormItemTypes.it_EXTEDIT))
+                    val = SapUiSafe.TryGetSpecific<EditText>(item)?.Value ?? string.Empty;
 
                 // Buscar la ventana destino
                 for (int i = 0; i < B1App.Instance.Application.Forms.Count; i++)
                 {
-                    Form targetForm = B1App.Instance.Application.Forms.Item(i);
+                    Form targetForm = null;
+                    try { targetForm = SapUiSafe.TryGetForm(i); } catch { }
+                    if (targetForm == null) continue;
                     if (targetForm.TypeEx == targetFormType)
                     {
-                        Item targetItem = targetForm.Items.Item(toId);
-                        if (targetItem.Type == BoFormItemTypes.it_EDIT || targetItem.Type == BoFormItemTypes.it_EXTEDIT)
-                            ((EditText)targetItem.Specific).Value = val;
+                        Item targetItem = SapUiSafe.TryGetItem(targetForm, toId);
+                        if (targetItem != null && (targetItem.Type == BoFormItemTypes.it_EDIT || targetItem.Type == BoFormItemTypes.it_EXTEDIT))
+                        {
+                            var edit = SapUiSafe.TryGetSpecific<EditText>(targetItem);
+                            if (edit != null) edit.Value = val;
+                        }
                         break;
                     }
                 }
@@ -688,10 +696,11 @@ namespace B1TuneUp.Modules
 
         private static void ProcessLoop(string matrixId, string innerMacro, Form activeForm)
         {
-            Item item = activeForm.Items.Item(matrixId);
-            if (item.Type == BoFormItemTypes.it_MATRIX)
+            Item item = SapUiSafe.TryGetItem(activeForm, matrixId);
+            if (item != null && item.Type == BoFormItemTypes.it_MATRIX)
             {
-                Matrix matrix = (Matrix)item.Specific;
+                Matrix matrix = SapUiSafe.TryGetSpecific<Matrix>(item);
+                if (matrix == null) return;
                 for (int i = 1; i <= matrix.RowCount; i++)
                 {
                     ExecuteMacro(innerMacro, activeForm, i);
@@ -713,24 +722,26 @@ namespace B1TuneUp.Modules
                 colId = target.Substring(dot + 1);
             }
 
-            Item item = form.Items.Item(itemId);
+            Item item = SapUiSafe.TryGetItem(form, itemId);
+            if (item == null) throw new InvalidOperationException($"No existe el item {itemId}.");
             if (!string.IsNullOrEmpty(colId))
             {
                 if (item.Type != BoFormItemTypes.it_MATRIX)
                     throw new InvalidOperationException($"El item {itemId} no es una matriz.");
 
-                Matrix matrix = (Matrix)item.Specific;
+                Matrix matrix = SapUiSafe.TryGetSpecific<Matrix>(item);
+                if (matrix == null) throw new InvalidOperationException($"El item {itemId} no expone una matriz valida.");
                 int row = rowOverride != -1 ? rowOverride : matrix.GetNextSelectedRow(0, BoOrderType.ot_SelectionOrder);
                 if (row < 1) row = 1;
                 if (row > matrix.RowCount)
                     throw new InvalidOperationException($"Fila {row} fuera de rango para matriz {itemId}.");
 
-                object specific = matrix.Columns.Item(colId).Cells.Item(row).Specific;
-                SetSpecificValue(specific, value);
+                if (!SapUiSafe.TrySetMatrixCell(matrix, colId, row, value))
+                    throw new InvalidOperationException($"No se pudo asignar {itemId}.{colId}.");
                 return;
             }
 
-            SetSpecificValue(item.Specific, value);
+            SetSpecificValue(SapUiSafe.TryGetSpecificObject(item), value);
         }
 
         private static void SetSpecificValue(object specific, string value)
@@ -766,7 +777,7 @@ namespace B1TuneUp.Modules
             if (form == null) throw new InvalidOperationException("No hay formulario activo para guardar.");
             try
             {
-                form.Items.Item("1").Click(BoCellClickType.ct_Regular);
+                SapUiSafe.TryGetItem(form, "1")?.Click(BoCellClickType.ct_Regular);
                 return;
             }
             catch
@@ -889,13 +900,13 @@ namespace B1TuneUp.Modules
             Recordset rs = (Recordset)B1App.Instance.Company.GetBusinessObject(BoObjectTypes.BoRecordset);
             try
             {
-                // Reemplazar variables din√°micas como $[$38.1.0] por valores del formulario actual
+                // Reemplazar variables din·micas como $[$38.1.0] por valores del formulario actual
                 string processedSql = ProcessSqlVariables(sql, activeForm);
                 rs.DoQuery(processedSql);
 
                 if (rs.RecordCount > 0)
                 {
-                    string result = rs.Fields.Item(0).Value.ToString().ToUpper();
+                string result = SapUiSafe.SafeField(rs, 0).ToUpper();
                     return result == "TRUE" || result == "Y" || result == "1" || result == "VALID";
                 }
                 return false;
@@ -913,9 +924,10 @@ namespace B1TuneUp.Modules
         private static string ProcessSqlVariables(string input, Form activeForm, int rowOverride = -1)
         {
             if (string.IsNullOrEmpty(input)) return input;
-            if (activeForm == null) activeForm = B1App.Instance.Application.Forms.ActiveForm;
+            if (activeForm == null) activeForm = SapUiSafe.TryGetActiveForm();
+            if (activeForm == null) return input;
 
-            // Patr√≥n b√°sico: $[$Item.Col.Type]
+            // PatrÛn b·sico: $[$Item.Col.Type]
             try
             {
                 int startIdx = input.IndexOf("$[$");
@@ -932,11 +944,23 @@ namespace B1TuneUp.Modules
                     string colId = parts.Length > 1 ? parts[1] : "";
 
                     string val = "";
-                    Item item = activeForm.Items.Item(itemId);
+                    Item item = SapUiSafe.TryGetItem(activeForm, itemId);
+                    if (item == null)
+                    {
+                        input = input.Replace(fullTag, string.Empty);
+                        startIdx = input.IndexOf("$[$", startIdx);
+                        continue;
+                    }
 
                     if (item.Type == BoFormItemTypes.it_MATRIX && !string.IsNullOrEmpty(colId))
                     {
-                        Matrix matrix = (Matrix)item.Specific;
+                        Matrix matrix = SapUiSafe.TryGetSpecific<Matrix>(item);
+                        if (matrix == null)
+                        {
+                            input = input.Replace(fullTag, string.Empty);
+                            startIdx = input.IndexOf("$[$", startIdx);
+                            continue;
+                        }
                         int row = rowOverride;
                         if (row == -1)
                         {
@@ -946,15 +970,15 @@ namespace B1TuneUp.Modules
 
                         if (row > 0 && row <= matrix.RowCount)
                         {
-                            val = ((EditText)matrix.Columns.Item(colId).Cells.Item(row).Specific).Value;
+                            val = SapUiSafe.SafeMatrixCell(matrix, colId, row);
                         }
                     }
                     else if (item.Type == BoFormItemTypes.it_EDIT || item.Type == BoFormItemTypes.it_EXTEDIT || item.Type == BoFormItemTypes.it_COMBO_BOX)
                     {
                         if (item.Type == BoFormItemTypes.it_COMBO_BOX)
-                            val = ((ComboBox)item.Specific).Selected?.Value ?? "";
+                            val = SapUiSafe.SafeComboValue(SapUiSafe.TryGetSpecific<ComboBox>(item));
                         else
-                            val = ((EditText)item.Specific).Value;
+                            val = SapUiSafe.TryGetSpecific<EditText>(item)?.Value ?? string.Empty;
                     }
 
                     input = input.Replace(fullTag, val);
@@ -982,12 +1006,12 @@ namespace B1TuneUp.Modules
                 {
                     if (item.Type == BoFormItemTypes.it_GRID)
                     {
-                        B1App.Instance.Application.SetStatusBarMessage("Exportaci√≥n a Excel no disponible en esta versi√≥n", BoMessageTime.bmt_Short, true);
+                        B1App.Instance.Application.SetStatusBarMessage("ExportaciÛn a Excel no disponible en esta versiÛn", BoMessageTime.bmt_Short, true);
                         return;
                     }
                 }
 
-                B1App.Instance.Application.SetStatusBarMessage("No se encontr√≥ grilla para exportar", BoMessageTime.bmt_Short, true);
+                B1App.Instance.Application.SetStatusBarMessage("No se encontrÛ grilla para exportar", BoMessageTime.bmt_Short, true);
             }
             catch (Exception ex)
             {
@@ -1000,7 +1024,7 @@ namespace B1TuneUp.Modules
             try
             {
                 // Import functionality would depend on specific form structure
-                B1App.Instance.Application.SetStatusBarMessage("Importaci√≥n desde Excel no implementada", BoMessageTime.bmt_Short, true);
+                B1App.Instance.Application.SetStatusBarMessage("ImportaciÛn desde Excel no implementada", BoMessageTime.bmt_Short, true);
             }
             catch (Exception ex)
             {
@@ -1015,7 +1039,7 @@ namespace B1TuneUp.Modules
                 // Print functionality
                 // In SAP B1, printing is usually done through specific menu items or document reports
                 B1App.Instance.Application.ActivateMenuItem("2026"); // Standard print menu item
-                B1App.Instance.Application.SetStatusBarMessage($"Impresi√≥n iniciada para: {reportName}", BoMessageTime.bmt_Short, false);
+                B1App.Instance.Application.SetStatusBarMessage($"ImpresiÛn iniciada para: {reportName}", BoMessageTime.bmt_Short, false);
             }
             catch (Exception ex)
             {

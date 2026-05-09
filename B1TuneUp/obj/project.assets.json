@@ -1720,7 +1720,6 @@
       },
       "frameworks": {
         "net48": {
-          "framework": "net48",
           "targetAlias": "net48",
           "projectReferences": {}
         }
@@ -1739,7 +1738,6 @@
     },
     "frameworks": {
       "net48": {
-        "framework": "net48",
         "targetAlias": "net48",
         "dependencies": {
           "Serilog": {

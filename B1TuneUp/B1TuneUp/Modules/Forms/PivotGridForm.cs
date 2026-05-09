@@ -50,7 +50,8 @@ namespace B1TuneUp.Modules.Forms
                 {
                     try
                     {
-                        var grid = (SAPbouiCOM.Grid)_parentForm.Items.Item(_gridId).Specific;
+                        var grid = SapUiSafe.TryGetSpecific<SAPbouiCOM.Grid>(_parentForm, _gridId);
+                        if (grid == null) return;
                         // Try to extract data from grid's DataTable
                         var dt = new System.Data.DataTable();
                         for (int c = 0; c < grid.DataTable.Columns.Count; c++)
@@ -81,11 +82,11 @@ namespace B1TuneUp.Modules.Forms
                         rs.DoQuery(sql);
                         var dt = new System.Data.DataTable();
                         // create columns
-                        for (int i = 0; i < rs.Fields.Count; i++) dt.Columns.Add(rs.Fields.Item(i).Name);
+                        for (int i = 0; i < rs.Fields.Count; i++) dt.Columns.Add(B1TuneUp.Utils.SapUiSafe.SafeFieldName(rs, i));
                         while (!rs.EoF)
                         {
                             var row = dt.NewRow();
-                            for (int i = 0; i < rs.Fields.Count; i++) row[i] = rs.Fields.Item(i).Value?.ToString();
+                            for (int i = 0; i < rs.Fields.Count; i++) row[i] = B1TuneUp.Utils.SapUiSafe.SafeField(rs, i);
                             dt.Rows.Add(row);
                             rs.MoveNext();
                         }

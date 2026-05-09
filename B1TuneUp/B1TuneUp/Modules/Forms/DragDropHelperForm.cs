@@ -2,6 +2,7 @@ using System;
 using System.Windows.Forms;
 using SAPbouiCOM;
 using B1TuneUp.Core;
+using B1TuneUp.Utils;
 
 namespace B1TuneUp.Modules.Forms
 {
@@ -43,11 +44,11 @@ namespace B1TuneUp.Modules.Forms
                 {
                     try
                     {
-                        var itSrc = frm.Items.Item(src);
-                        var itTgt = frm.Items.Item(tgt);
+                        var itSrc = SapUiSafe.TryGetItem(frm, src);
+                        var itTgt = SapUiSafe.TryGetItem(frm, tgt);
                         string val = "";
-                        if (itSrc.Specific is SAPbouiCOM.EditText et) val = et.Value;
-                        if (itTgt.Specific is SAPbouiCOM.EditText ett) ett.Value = val;
+                        if (SapUiSafe.TryGetSpecific<SAPbouiCOM.EditText>(itSrc) is SAPbouiCOM.EditText et) val = et.Value;
+                        if (SapUiSafe.TryGetSpecific<SAPbouiCOM.EditText>(itTgt) is SAPbouiCOM.EditText ett) ett.Value = val;
                     }
                     catch { }
                 });

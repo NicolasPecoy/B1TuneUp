@@ -220,7 +220,7 @@ namespace B1TuneUp.Modules.Forms
             {
                 for (int i = 0; i < _b1Form.Items.Count; i++)
                 {
-                    var it = _b1Form.Items.Item(i + 1);
+                    var it = SapUiSafe.TryGetItem(_b1Form, i + 1);
                     string id = it.UniqueID;
                     var p = new Panel();
                     p.Left = it.Left; p.Top = it.Top; p.Width = it.Width; p.Height = it.Height;
@@ -235,14 +235,13 @@ namespace B1TuneUp.Modules.Forms
                     try { meta.FromPane = it.FromPane; meta.ToPane = it.ToPane; } catch { }
                     try
                     {
-                        if (it.Specific is SAPbouiCOM.StaticText st) meta.Label = st.Caption;
-                        else if (it.Specific is SAPbouiCOM.Button btn) meta.Label = btn.Caption;
+                        if (SapUiSafe.TryGetSpecific<SAPbouiCOM.StaticText>(it) is SAPbouiCOM.StaticText st) meta.Label = st.Caption;
+                        else if (SapUiSafe.TryGetSpecific<SAPbouiCOM.Button>(it) is SAPbouiCOM.Button btn) meta.Label = btn.Caption;
                     }
                     catch { }
                     try
                     {
-                        var prop = it.Specific.GetType().GetProperty("DataBind");
-                        if (prop != null) meta.DataBind = prop.GetValue(it.Specific)?.ToString();
+                        meta.DataBind = SapUiSafe.SafeSpecificProperty(it, "DataBind");
                     }
                     catch { }
                     _meta[id] = meta;
@@ -424,7 +423,7 @@ namespace B1TuneUp.Modules.Forms
                     var r = new Rectangle(kv.Value.Left, kv.Value.Top, kv.Value.Width, kv.Value.Height);
                     if (_b1Form.Items.Exists(id))
                     {
-                        var it = _b1Form.Items.Item(id);
+                        var it = SapUiSafe.TryGetItem(_b1Form, id);
                         it.Left = r.Left; it.Top = r.Top; it.Width = r.Width; it.Height = r.Height;
                         // apply extra metadata where possible
                         try
@@ -434,15 +433,14 @@ namespace B1TuneUp.Modules.Forms
                                 it.FromPane = m.FromPane; it.ToPane = m.ToPane;
                                 try
                                 {
-                                    if (it.Specific is SAPbouiCOM.StaticText st) st.Caption = m.Label;
-                                    else if (it.Specific is SAPbouiCOM.Button btn) btn.Caption = m.Label;
-                                    else if (it.Specific is SAPbouiCOM.EditText et && !string.IsNullOrEmpty(m.Label)) et.Value = m.Label;
+                                    if (SapUiSafe.TryGetSpecific<SAPbouiCOM.StaticText>(it) is SAPbouiCOM.StaticText st) st.Caption = m.Label;
+                                    else if (SapUiSafe.TryGetSpecific<SAPbouiCOM.Button>(it) is SAPbouiCOM.Button btn) btn.Caption = m.Label;
+                                    else if (SapUiSafe.TryGetSpecific<SAPbouiCOM.EditText>(it) is SAPbouiCOM.EditText et && !string.IsNullOrEmpty(m.Label)) et.Value = m.Label;
                                 }
                                 catch { }
                                 try
                                 {
-                                    var prop = it.Specific.GetType().GetProperty("DataBind");
-                                    if (prop != null && !string.IsNullOrEmpty(m.DataBind)) prop.SetValue(it.Specific, m.DataBind);
+                                    if (!string.IsNullOrEmpty(m.DataBind)) SapUiSafe.TrySetSpecificProperty(it, "DataBind", m.DataBind);
                                 }
                                 catch { }
                             }
@@ -478,20 +476,19 @@ namespace B1TuneUp.Modules.Forms
                     // persist extra properties if available
                     try
                     {
-                        var b1It = _b1Form.Items.Item(kv.Key);
+                        var b1It = SapUiSafe.TryGetItem(_b1Form, kv.Key);
                         var pf = doc.CreateAttribute("fromPane"); pf.Value = b1It.FromPane.ToString(); it.Attributes.Append(pf);
                         var pt = doc.CreateAttribute("toPane"); pt.Value = b1It.ToPane.ToString(); it.Attributes.Append(pt);
                         var lbl = doc.CreateAttribute("label");
                         string labelVal = "";
                         try
                         {
-                            if (b1It.Specific is SAPbouiCOM.StaticText st) labelVal = st.Caption;
-                            else if (b1It.Specific is SAPbouiCOM.Button btn) labelVal = btn.Caption;
-                            else if (b1It.Specific is SAPbouiCOM.EditText et) labelVal = et.Value ?? "";
+                            if (SapUiSafe.TryGetSpecific<SAPbouiCOM.StaticText>(b1It) is SAPbouiCOM.StaticText st) labelVal = st.Caption;
+                            else if (SapUiSafe.TryGetSpecific<SAPbouiCOM.Button>(b1It) is SAPbouiCOM.Button btn) labelVal = btn.Caption;
+                            else if (SapUiSafe.TryGetSpecific<SAPbouiCOM.EditText>(b1It) is SAPbouiCOM.EditText et) labelVal = et.Value ?? "";
                             else
                             {
-                                var prop = b1It.Specific.GetType().GetProperty("Caption");
-                                if (prop != null) labelVal = prop.GetValue(b1It.Specific)?.ToString() ?? "";
+                                labelVal = SapUiSafe.SafeSpecificProperty(b1It, "Caption");
                             }
                         }
                         catch { }
@@ -501,8 +498,7 @@ namespace B1TuneUp.Modules.Forms
                         string bindVal = "";
                         try
                         {
-                            var prop = b1It.Specific.GetType().GetProperty("DataBind");
-                            if (prop != null) bindVal = prop.GetValue(b1It.Specific)?.ToString() ?? "";
+                            bindVal = SapUiSafe.SafeSpecificProperty(b1It, "DataBind");
                         }
                         catch { }
                         bind.Value = bindVal;
@@ -529,7 +525,7 @@ namespace B1TuneUp.Modules.Forms
                 {
                     try
                     {
-                        var it = _b1Form.Items.Item(id);
+                        var it = SapUiSafe.TryGetItem(_b1Form, id);
                         var ci = new ClipboardItem()
                         {
                             BaseId = id,
@@ -541,8 +537,8 @@ namespace B1TuneUp.Modules.Forms
                             ToPane = 0
                         };
                         try { ci.FromPane = it.FromPane; ci.ToPane = it.ToPane; } catch { }
-                        try { if (it.Specific is SAPbouiCOM.StaticText st) ci.Label = st.Caption; else if (it.Specific is SAPbouiCOM.Button btn) ci.Label = btn.Caption; else if (it.Specific is SAPbouiCOM.EditText et) ci.Label = et.Value ?? ""; } catch { }
-                        try { var prop = it.Specific.GetType().GetProperty("DataBind"); if (prop != null) ci.DataBind = prop.GetValue(it.Specific)?.ToString() ?? ""; } catch { }
+                        try { if (SapUiSafe.TryGetSpecific<SAPbouiCOM.StaticText>(it) is SAPbouiCOM.StaticText st) ci.Label = st.Caption; else if (SapUiSafe.TryGetSpecific<SAPbouiCOM.Button>(it) is SAPbouiCOM.Button btn) ci.Label = btn.Caption; else if (SapUiSafe.TryGetSpecific<SAPbouiCOM.EditText>(it) is SAPbouiCOM.EditText et) ci.Label = et.Value ?? ""; } catch { }
+                        try { ci.DataBind = SapUiSafe.SafeSpecificProperty(it, "DataBind"); } catch { }
                         _clipboard.Add(ci);
                     }
                     catch
@@ -572,13 +568,13 @@ namespace B1TuneUp.Modules.Forms
                         {
                             if (!string.IsNullOrEmpty(ci.Label))
                             {
-                                if (newItem.Specific is SAPbouiCOM.StaticText st) st.Caption = ci.Label;
-                                else if (newItem.Specific is SAPbouiCOM.Button btn) btn.Caption = ci.Label;
-                                else if (newItem.Specific is SAPbouiCOM.EditText et) et.Value = ci.Label;
+                                if (SapUiSafe.TryGetSpecific<SAPbouiCOM.StaticText>(newItem) is SAPbouiCOM.StaticText st) st.Caption = ci.Label;
+                                else if (SapUiSafe.TryGetSpecific<SAPbouiCOM.Button>(newItem) is SAPbouiCOM.Button btn) btn.Caption = ci.Label;
+                                else if (SapUiSafe.TryGetSpecific<SAPbouiCOM.EditText>(newItem) is SAPbouiCOM.EditText et) et.Value = ci.Label;
                             }
                         }
                         catch { }
-                        try { var prop = newItem.Specific.GetType().GetProperty("DataBind"); if (prop != null && !string.IsNullOrEmpty(ci.DataBind)) prop.SetValue(newItem.Specific, ci.DataBind); } catch { }
+                        try { if (!string.IsNullOrEmpty(ci.DataBind)) SapUiSafe.TrySetSpecificProperty(newItem, "DataBind", ci.DataBind); } catch { }
 
                         // update meta
                         var meta = new PanelMeta() { FromPane = ci.FromPane, ToPane = ci.ToPane, Label = ci.Label, DataBind = ci.DataBind };

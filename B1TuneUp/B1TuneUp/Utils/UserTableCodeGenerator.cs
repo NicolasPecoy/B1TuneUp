@@ -37,7 +37,7 @@ namespace B1TuneUp.Utils
                 bool exists = rs.RecordCount > 0;
                 if (exists)
                 {
-                    if (int.TryParse(rs.Fields.Item(0).Value?.ToString(), out int current) && current >= 1)
+                    if (int.TryParse(B1TuneUp.Utils.SapUiSafe.SafeField(rs, 0), out int current) && current >= 1)
                     {
                         nextValue = current + 1;
                     }

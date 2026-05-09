@@ -45,7 +45,7 @@ namespace B1TuneUp.Modules
                 refreshItem.Top = 5;
                 refreshItem.Width = 110;
                 refreshItem.Height = 18;
-                ((SAPbouiCOM.Button)refreshItem.Specific).Caption = "Refrescar todo";
+                SapUiSafe.TrySetCaption(refreshItem, "Refrescar todo");
             }
             catch { }
         }
@@ -71,13 +71,13 @@ namespace B1TuneUp.Modules
                     var widget = new DashboardWidget
                     {
                         InternalId = Guid.NewGuid().ToString("N").Substring(0, 6),
-                        Type = rs.Fields.Item("U_WidgetType").Value.ToString(),
-                        Title = rs.Fields.Item("U_Title").Value.ToString(),
-                        Query = rs.Fields.Item("U_Query").Value.ToString(),
-                        Width = SafeInt(rs.Fields.Item("U_Width")?.Value, 320),
-                        Height = SafeInt(rs.Fields.Item("U_Height")?.Value, 220),
-                        MaxRows = Math.Max(1, SafeInt(rs.Fields.Item("U_MaxRows")?.Value, 6)),
-                        RenderMode = rs.Fields.Item("U_RenderMode")?.Value.ToString()
+                        Type = SapUiSafe.SafeField(rs, "U_WidgetType"),
+                        Title = SapUiSafe.SafeField(rs, "U_Title"),
+                        Query = SapUiSafe.SafeField(rs, "U_Query"),
+                        Width = SafeInt(B1TuneUp.Utils.SapUiSafe.SafeFieldValue(rs, "U_Width"), 320),
+                        Height = SafeInt(B1TuneUp.Utils.SapUiSafe.SafeFieldValue(rs, "U_Height"), 220),
+                        MaxRows = Math.Max(1, SafeInt(B1TuneUp.Utils.SapUiSafe.SafeFieldValue(rs, "U_MaxRows"), 6)),
+                        RenderMode = SapUiSafe.SafeField(rs, "U_RenderMode")
                     };
 
                     if (widgetCount > 0 && (left + widget.Width + 10) > oForm.Width - 40)
@@ -121,14 +121,14 @@ namespace B1TuneUp.Modules
                 titleItem.Top = top + 6;
                 titleItem.Width = widget.Width - 12;
                 titleItem.Height = 16;
-                ((StaticText)titleItem.Specific).Caption = widget.Title;
+                SapUiSafe.TrySetCaption(titleItem, widget.Title);
 
                 Item refreshItem = oForm.Items.Add($"ref_{widget.InternalId}", BoFormItemTypes.it_BUTTON);
                 refreshItem.Left = left + widget.Width - 38;
                 refreshItem.Top = top + 4;
                 refreshItem.Width = 28;
                 refreshItem.Height = 18;
-                ((SAPbouiCOM.Button)refreshItem.Specific).Caption = "↻";
+                SapUiSafe.TrySetCaption(refreshItem, "↻");
 
                 widget.ParentForm = oForm;
                 widget.Container = frameItem;
@@ -152,7 +152,7 @@ namespace B1TuneUp.Modules
                     valueItem.Top = top + 26;
                     valueItem.Width = widget.Width - 12;
                     valueItem.Height = widget.Height - 32;
-                    ((StaticText)valueItem.Specific).Caption = "Cargando...";
+                    SapUiSafe.TrySetCaption(valueItem, "Cargando...");
                     widget.ValueItemId = valueId;
                 }
 
@@ -197,7 +197,7 @@ namespace B1TuneUp.Modules
                 string summary = rs.RecordCount == 0 ? "Sin datos" : $"{rs.RecordCount} registro(s)";
                 if (rs.RecordCount > 0 && rs.Fields.Count > 0)
                 {
-                    string firstValue = rs.Fields.Item(0).Value?.ToString();
+                    string firstValue = B1TuneUp.Utils.SapUiSafe.SafeField(rs, 0);
                     if (!string.IsNullOrEmpty(firstValue))
                     {
                         summary = $"{firstValue}\n({rs.RecordCount} registro(s))";
@@ -206,7 +206,8 @@ namespace B1TuneUp.Modules
 
                 if (!string.IsNullOrEmpty(widget.ValueItemId))
                 {
-                    StaticText text = (StaticText)widget.ParentForm.Items.Item(widget.ValueItemId).Specific;
+                    StaticText text = SapUiSafe.TryGetSpecific<StaticText>(widget.ParentForm, widget.ValueItemId);
+                    if (text == null) return;
                     text.Caption = summary;
                 }
             }
@@ -220,7 +221,8 @@ namespace B1TuneUp.Modules
         {
             try
             {
-                Grid grid = (Grid)widget.ParentForm.Items.Item(widget.GridItemId).Specific;
+                Grid grid = SapUiSafe.TryGetSpecific<Grid>(widget.ParentForm, widget.GridItemId);
+                if (grid == null) return;
                 var dt = grid.DataTable;
                 string limitedQuery = ApplyQueryLimit(widget.Query, widget.MaxRows);
                 dt.ExecuteQuery(limitedQuery);

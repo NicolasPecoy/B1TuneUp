@@ -26,12 +26,12 @@ namespace B1TuneUp.Modules
                 {
                     list.Add(new MenuConfigEntry
                     {
-                        DocEntry = Convert.ToInt32(rs.Fields.Item(0).Value),
-                        ParentId = rs.Fields.Item(1).Value?.ToString() ?? string.Empty,
-                        MenuId = rs.Fields.Item(2).Value?.ToString() ?? string.Empty,
-                        Caption = rs.Fields.Item(3).Value?.ToString() ?? string.Empty,
-                        Position = Convert.ToInt32(rs.Fields.Item(4).Value),
-                        Action = rs.Fields.Item(5).Value?.ToString() ?? string.Empty
+                        DocEntry = Convert.ToInt32(B1TuneUp.Utils.SapUiSafe.SafeFieldValue(rs, 0)),
+                        ParentId = B1TuneUp.Utils.SapUiSafe.SafeField(rs, 1),
+                        MenuId = B1TuneUp.Utils.SapUiSafe.SafeField(rs, 2),
+                        Caption = B1TuneUp.Utils.SapUiSafe.SafeField(rs, 3),
+                        Position = Convert.ToInt32(B1TuneUp.Utils.SapUiSafe.SafeFieldValue(rs, 4)),
+                        Action = B1TuneUp.Utils.SapUiSafe.SafeField(rs, 5)
                     });
                     rs.MoveNext();
                 }

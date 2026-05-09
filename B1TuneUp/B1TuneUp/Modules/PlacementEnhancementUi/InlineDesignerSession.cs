@@ -58,7 +58,7 @@ namespace B1TuneUp.Modules.PlacementEnhancementUi
             var items = new ObservableCollection<InlineDesignerItem>();
             for (int i = 0; i < form.Items.Count; i++)
             {
-                var sapItem = form.Items.Item(i + 1);
+                var sapItem = SapUiSafe.TryGetItem(form, i + 1);
                 var item = new InlineDesignerItem
                 {
                     ItemId = sapItem.UniqueID,
@@ -146,7 +146,7 @@ namespace B1TuneUp.Modules.PlacementEnhancementUi
                 try
                 {
                     if (!Form.Items.Exists(item.ItemId)) continue;
-                    var sapItem = Form.Items.Item(item.ItemId);
+                    var sapItem = SapUiSafe.TryGetItem(Form, item.ItemId);
                     item.Left = sapItem.Left;
                     item.Top = sapItem.Top;
                     item.Width = Math.Max(10, sapItem.Width);
@@ -165,7 +165,7 @@ namespace B1TuneUp.Modules.PlacementEnhancementUi
             try
             {
                 if (!Form.Items.Exists(item.ItemId)) return;
-                var sapItem = Form.Items.Item(item.ItemId);
+                var sapItem = SapUiSafe.TryGetItem(Form, item.ItemId);
                 sapItem.Left = Round(item.Left);
                 sapItem.Top = Round(item.Top);
                 sapItem.Width = Round(Math.Max(10, item.Width));
@@ -320,11 +320,7 @@ namespace B1TuneUp.Modules.PlacementEnhancementUi
         {
             try
             {
-                if (item?.Specific is EditText et) return et.Value ?? item.UniqueID;
-                if (item?.Specific is StaticText st) return st.Caption ?? item.UniqueID;
-                if (item?.Specific is Button btn) return btn.Caption ?? item.UniqueID;
-                var prop = item?.Specific?.GetType().GetProperty("Caption");
-                if (prop != null) return prop.GetValue(item.Specific)?.ToString() ?? item.UniqueID;
+                return SapUiSafe.SafeCaption(item);
             }
             catch { }
             return item?.UniqueID ?? "(item)";
@@ -334,12 +330,7 @@ namespace B1TuneUp.Modules.PlacementEnhancementUi
         {
             try
             {
-                var prop = item?.Specific?.GetType().GetProperty("DataBind");
-                if (prop != null)
-                {
-                    var val = prop.GetValue(item.Specific);
-                    if (val != null) return val.ToString();
-                }
+                return SapUiSafe.SafeSpecificProperty(item, "DataBind");
             }
             catch { }
             return string.Empty;

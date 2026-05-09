@@ -180,7 +180,7 @@ namespace B1TuneUp.Modules
                     rs.DoQuery(sql);
                     while (!rs.EoF)
                     {
-                        string group = SafeString(() => rs.Fields.Item(0).Value.ToString());
+                        string group = SafeString(() => B1TuneUp.Utils.SapUiSafe.SafeField(rs, 0));
                         if (!string.IsNullOrWhiteSpace(group) && !context.GroupCodes.Any(existing => string.Equals(existing, group, StringComparison.OrdinalIgnoreCase)))
                         {
                             context.GroupCodes.Add(group);

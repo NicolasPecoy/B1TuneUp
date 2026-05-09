@@ -1,4 +1,4 @@
-ï»¿using B1TuneUp.Core;
+using B1TuneUp.Core;
 using B1TuneUp.Modules;
 using B1TuneUp.Utils;
 using SAPbobsCOM;
@@ -47,7 +47,7 @@ namespace B1TuneUp.Modules
             matrixItem.Width = 970;
             matrixItem.Height = 350;
 
-            SAPbouiCOM.Grid matrix = (SAPbouiCOM.Grid)matrixItem.Specific;
+            SAPbouiCOM.Grid matrix = SapUiSafe.TryGetSpecific<SAPbouiCOM.Grid>(matrixItem);
 
             // Add columns to the matrix via the grid datatable
             matrix.DataTable.Columns.Add("FormType", SAPbouiCOM.BoFieldsType.ft_AlphaNumeric);
@@ -79,42 +79,42 @@ namespace B1TuneUp.Modules
             addButton.Left = 10;
             addButton.Width = 80;
             addButton.Height = 25;
-            ((SAPbouiCOM.Button)addButton.Specific).Caption = "Add";
+            SapUiSafe.TrySetCaption(addButton, "Add");
 
             Item editButton = oForm.Items.Add("BtnEdit", BoFormItemTypes.it_BUTTON);
             editButton.Top = 370;
             editButton.Left = 100;
             editButton.Width = 80;
             editButton.Height = 25;
-            ((SAPbouiCOM.Button)editButton.Specific).Caption = "Edit";
+            SapUiSafe.TrySetCaption(editButton, "Edit");
 
             Item deleteButton = oForm.Items.Add("BtnDelete", BoFormItemTypes.it_BUTTON);
             deleteButton.Top = 370;
             deleteButton.Left = 190;
             deleteButton.Width = 80;
             deleteButton.Height = 25;
-            ((SAPbouiCOM.Button)deleteButton.Specific).Caption = "Delete";
+            SapUiSafe.TrySetCaption(deleteButton, "Delete");
 
             Item testButton = oForm.Items.Add("BtnTest", BoFormItemTypes.it_BUTTON);
             testButton.Top = 370;
             testButton.Left = 280;
             testButton.Width = 80;
             testButton.Height = 25;
-            ((SAPbouiCOM.Button)testButton.Specific).Caption = "Test";
+            SapUiSafe.TrySetCaption(testButton, "Test");
 
             Item activateButton = oForm.Items.Add("BtnActivate", BoFormItemTypes.it_BUTTON);
             activateButton.Top = 370;
             activateButton.Left = 370;
             activateButton.Width = 80;
             activateButton.Height = 25;
-            ((SAPbouiCOM.Button)activateButton.Specific).Caption = "Activate";
+            SapUiSafe.TrySetCaption(activateButton, "Activate");
 
             Item closeButton = oForm.Items.Add("BtnClose", BoFormItemTypes.it_BUTTON);
             closeButton.Top = 370;
             closeButton.Left = 900;
             closeButton.Width = 80;
             closeButton.Height = 25;
-            ((SAPbouiCOM.Button)closeButton.Specific).Caption = "Close";
+            SapUiSafe.TrySetCaption(closeButton, "Close");
 
             // Validation execution options
             Item execLabel = oForm.Items.Add("LblExec", BoFormItemTypes.it_STATIC);
@@ -122,21 +122,21 @@ namespace B1TuneUp.Modules
             execLabel.Left = 10;
             execLabel.Width = 200;
             execLabel.Height = 20;
-            ((SAPbouiCOM.StaticText)execLabel.Specific).Caption = "Validation Execution:";
+            SapUiSafe.TrySetCaption(execLabel, "Validation Execution:");
 
             Item execTypeLabel = oForm.Items.Add("LblExecType", BoFormItemTypes.it_STATIC);
             execTypeLabel.Top = 440;
             execTypeLabel.Left = 10;
             execTypeLabel.Width = 150;
             execTypeLabel.Height = 20;
-            ((SAPbouiCOM.StaticText)execTypeLabel.Specific).Caption = "Execution Type:";
+            SapUiSafe.TrySetCaption(execTypeLabel, "Execution Type:");
 
             Item execTypeCombo = oForm.Items.Add("CmbExecType", BoFormItemTypes.it_COMBO_BOX);
             execTypeCombo.Top = 440;
             execTypeCombo.Left = 170;
             execTypeCombo.Width = 150;
             execTypeCombo.Height = 20;
-            SAPbouiCOM.ComboBox cmbExecType = (SAPbouiCOM.ComboBox)execTypeCombo.Specific;
+            SAPbouiCOM.ComboBox cmbExecType = SapUiSafe.TryGetSpecific<SAPbouiCOM.ComboBox>(execTypeCombo);
             cmbExecType.ValidValues.Add("SAVE", "On Save");
             cmbExecType.ValidValues.Add("CHANGE", "On Change");
             cmbExecType.ValidValues.Add("CLICK", "On Click");
@@ -148,14 +148,14 @@ namespace B1TuneUp.Modules
             severityLabel.Left = 340;
             severityLabel.Width = 100;
             severityLabel.Height = 20;
-            ((SAPbouiCOM.StaticText)severityLabel.Specific).Caption = "Severity:";
+            SapUiSafe.TrySetCaption(severityLabel, "Severity:");
 
             Item severityCombo = oForm.Items.Add("CmbSeverity", BoFormItemTypes.it_COMBO_BOX);
             severityCombo.Top = 440;
             severityCombo.Left = 450;
             severityCombo.Width = 120;
             severityCombo.Height = 20;
-            SAPbouiCOM.ComboBox cmbSeverity = (SAPbouiCOM.ComboBox)severityCombo.Specific;
+            SAPbouiCOM.ComboBox cmbSeverity = SapUiSafe.TryGetSpecific<SAPbouiCOM.ComboBox>(severityCombo);
             cmbSeverity.ValidValues.Add("ERROR", "Error (Block)");
             cmbSeverity.ValidValues.Add("WARNING", "Warning (Allow Continue)");
             cmbSeverity.ValidValues.Add("INFO", "Information");
@@ -166,7 +166,7 @@ namespace B1TuneUp.Modules
             validationButton.Left = 600;
             validationButton.Width = 100;
             validationButton.Height = 25;
-            ((SAPbouiCOM.Button)validationButton.Specific).Caption = "Validate Now";
+            SapUiSafe.TrySetCaption(validationButton, "Validate Now");
 
             // User-specific validation options
             Item userLabel = oForm.Items.Add("LblUser", BoFormItemTypes.it_STATIC);
@@ -174,21 +174,21 @@ namespace B1TuneUp.Modules
             userLabel.Left = 10;
             userLabel.Width = 200;
             userLabel.Height = 20;
-            ((SAPbouiCOM.StaticText)userLabel.Specific).Caption = "User-Specific Validation:";
+            SapUiSafe.TrySetCaption(userLabel, "User-Specific Validation:");
 
             Item userSpecLabel = oForm.Items.Add("LblUserSpec", BoFormItemTypes.it_STATIC);
             userSpecLabel.Top = 510;
             userSpecLabel.Left = 10;
             userSpecLabel.Width = 150;
             userSpecLabel.Height = 20;
-            ((SAPbouiCOM.StaticText)userSpecLabel.Specific).Caption = "Apply to User:";
+            SapUiSafe.TrySetCaption(userSpecLabel, "Apply to User:");
 
             Item userCombo = oForm.Items.Add("CmbUser", BoFormItemTypes.it_COMBO_BOX);
             userCombo.Top = 510;
             userCombo.Left = 170;
             userCombo.Width = 150;
             userCombo.Height = 20;
-            SAPbouiCOM.ComboBox cmbUser = (SAPbouiCOM.ComboBox)userCombo.Specific;
+            SAPbouiCOM.ComboBox cmbUser = SapUiSafe.TryGetSpecific<SAPbouiCOM.ComboBox>(userCombo);
             LoadUsersIntoCombo(cmbUser);
             cmbUser.ValidValues.Add("", "All Users");
             cmbUser.Select(0);
@@ -198,14 +198,14 @@ namespace B1TuneUp.Modules
             groupLabel.Left = 340;
             groupLabel.Width = 100;
             groupLabel.Height = 20;
-            ((SAPbouiCOM.StaticText)groupLabel.Specific).Caption = "User Group:";
+            SapUiSafe.TrySetCaption(groupLabel, "User Group:");
 
             Item groupCombo = oForm.Items.Add("CmbGroup", BoFormItemTypes.it_COMBO_BOX);
             groupCombo.Top = 510;
             groupCombo.Left = 450;
             groupCombo.Width = 150;
             groupCombo.Height = 20;
-            SAPbouiCOM.ComboBox cmbGroup = (SAPbouiCOM.ComboBox)groupCombo.Specific;
+            SAPbouiCOM.ComboBox cmbGroup = SapUiSafe.TryGetSpecific<SAPbouiCOM.ComboBox>(groupCombo);
             LoadUserGroupsIntoCombo(cmbGroup);
             cmbGroup.ValidValues.Add("", "All Groups");
             cmbGroup.Select(0);
@@ -232,14 +232,14 @@ namespace B1TuneUp.Modules
                     matrix.DataTable.Rows.Add();
                     int rowIndex = matrix.DataTable.Rows.Count - 1;
 
-                    matrix.DataTable.SetValue("FormType", rowIndex, rs.Fields.Item("U_FormType").Value);
-                    matrix.DataTable.SetValue("ItemName", rowIndex, rs.Fields.Item("U_ItemName").Value);
-                    matrix.DataTable.SetValue("Event", rowIndex, rs.Fields.Item("U_Event").Value);
-                    matrix.DataTable.SetValue("Condition", rowIndex, rs.Fields.Item("U_Condition").Value);
-                    matrix.DataTable.SetValue("Action", rowIndex, rs.Fields.Item("U_Action").Value);
-                    matrix.DataTable.SetValue("Active", rowIndex, rs.Fields.Item("U_Active").Value);
-                    try { matrix.DataTable.SetValue("Severity", rowIndex, rs.Fields.Item("U_Severity").Value); } catch { }
-                    try { matrix.DataTable.SetValue("Message", rowIndex, rs.Fields.Item("U_Message").Value); } catch { }
+                    matrix.DataTable.SetValue("FormType", rowIndex, B1TuneUp.Utils.SapUiSafe.SafeFieldValue(rs, "U_FormType"));
+                    matrix.DataTable.SetValue("ItemName", rowIndex, B1TuneUp.Utils.SapUiSafe.SafeFieldValue(rs, "U_ItemName"));
+                    matrix.DataTable.SetValue("Event", rowIndex, B1TuneUp.Utils.SapUiSafe.SafeFieldValue(rs, "U_Event"));
+                    matrix.DataTable.SetValue("Condition", rowIndex, B1TuneUp.Utils.SapUiSafe.SafeFieldValue(rs, "U_Condition"));
+                    matrix.DataTable.SetValue("Action", rowIndex, B1TuneUp.Utils.SapUiSafe.SafeFieldValue(rs, "U_Action"));
+                    matrix.DataTable.SetValue("Active", rowIndex, B1TuneUp.Utils.SapUiSafe.SafeFieldValue(rs, "U_Active"));
+                    try { matrix.DataTable.SetValue("Severity", rowIndex, B1TuneUp.Utils.SapUiSafe.SafeFieldValue(rs, "U_Severity")); } catch { }
+                    try { matrix.DataTable.SetValue("Message", rowIndex, B1TuneUp.Utils.SapUiSafe.SafeFieldValue(rs, "U_Message")); } catch { }
 
                     rs.MoveNext();
                 }
@@ -265,8 +265,8 @@ namespace B1TuneUp.Modules
 
                 while (!rs.EoF)
                 {
-                    string userCode = rs.Fields.Item("UserCode").Value.ToString();
-                    string userName = rs.Fields.Item("UserName").Value.ToString();
+                    string userCode = B1TuneUp.Utils.SapUiSafe.SafeField(rs, "UserCode");
+                    string userName = B1TuneUp.Utils.SapUiSafe.SafeField(rs, "UserName");
                     combo.ValidValues.Add(userCode, $"{userName} ({userCode})");
                     rs.MoveNext();
                 }
@@ -292,8 +292,8 @@ namespace B1TuneUp.Modules
 
                 while (!rs.EoF)
                 {
-                    string groupCode = rs.Fields.Item("GroupCode").Value.ToString();
-                    string groupName = rs.Fields.Item("GroupName").Value.ToString();
+                    string groupCode = B1TuneUp.Utils.SapUiSafe.SafeField(rs, "GroupCode");
+                    string groupName = B1TuneUp.Utils.SapUiSafe.SafeField(rs, "GroupName");
                     combo.ValidValues.Add(groupCode, $"{groupName} ({groupCode})");
                     rs.MoveNext();
                 }
@@ -338,49 +338,49 @@ namespace B1TuneUp.Modules
             formTypeLabel.Left = 20;
             formTypeLabel.Width = 100;
             formTypeLabel.Height = 20;
-            ((SAPbouiCOM.StaticText)formTypeLabel.Specific).Caption = "Form Type:";
+            SapUiSafe.TrySetCaption(formTypeLabel, "Form Type:");
 
             Item itemNameLabel = oForm.Items.Add("LblItemName", BoFormItemTypes.it_STATIC);
             itemNameLabel.Top = 50;
             itemNameLabel.Left = 20;
             itemNameLabel.Width = 100;
             itemNameLabel.Height = 20;
-            ((SAPbouiCOM.StaticText)itemNameLabel.Specific).Caption = "Item/Field Name:";
+            SapUiSafe.TrySetCaption(itemNameLabel, "Item/Field Name:");
 
             Item eventLabel = oForm.Items.Add("LblEvent", BoFormItemTypes.it_STATIC);
             eventLabel.Top = 80;
             eventLabel.Left = 20;
             eventLabel.Width = 100;
             eventLabel.Height = 20;
-            ((SAPbouiCOM.StaticText)eventLabel.Specific).Caption = "Event:";
+            SapUiSafe.TrySetCaption(eventLabel, "Event:");
 
             Item conditionLabel = oForm.Items.Add("LblCondition", BoFormItemTypes.it_STATIC);
             conditionLabel.Top = 110;
             conditionLabel.Left = 20;
             conditionLabel.Width = 100;
             conditionLabel.Height = 20;
-            ((SAPbouiCOM.StaticText)conditionLabel.Specific).Caption = "Condition (SQL):";
+            SapUiSafe.TrySetCaption(conditionLabel, "Condition (SQL):");
 
             Item actionLabel = oForm.Items.Add("LblAction", BoFormItemTypes.it_STATIC);
             actionLabel.Top = 200;
             actionLabel.Left = 20;
             actionLabel.Width = 100;
             actionLabel.Height = 20;
-            ((SAPbouiCOM.StaticText)actionLabel.Specific).Caption = "Action (Macro):";
+            SapUiSafe.TrySetCaption(actionLabel, "Action (Macro):");
 
             Item severityLabel = oForm.Items.Add("LblSeverity", BoFormItemTypes.it_STATIC);
             severityLabel.Top = 360;
             severityLabel.Left = 20;
             severityLabel.Width = 100;
             severityLabel.Height = 20;
-            ((SAPbouiCOM.StaticText)severityLabel.Specific).Caption = "Severity:";
+            SapUiSafe.TrySetCaption(severityLabel, "Severity:");
 
             Item activeLabel = oForm.Items.Add("LblActive", BoFormItemTypes.it_STATIC);
             activeLabel.Top = 390;
             activeLabel.Left = 20;
             activeLabel.Width = 100;
             activeLabel.Height = 20;
-            ((SAPbouiCOM.StaticText)activeLabel.Specific).Caption = "Active:";
+            SapUiSafe.TrySetCaption(activeLabel, "Active:");
 
             // Input fields
             Item formTypeEdit = oForm.Items.Add("EdtFormType", BoFormItemTypes.it_EDIT);
@@ -391,7 +391,7 @@ namespace B1TuneUp.Modules
             // Set to current form type if available
             try
             {
-                ((SAPbouiCOM.EditText)formTypeEdit.Specific).Value = B1App.Instance.Application.Forms.ActiveForm.TypeEx;
+                SapUiSafe.TrySetEditValue(formTypeEdit, SapUiSafe.TryGetActiveForm()?.TypeEx ?? string.Empty);
             }
             catch { }
 
@@ -406,7 +406,7 @@ namespace B1TuneUp.Modules
             eventCombo.Left = 130;
             eventCombo.Width = 150;
             eventCombo.Height = 20;
-            SAPbouiCOM.ComboBox cmbEvent = (SAPbouiCOM.ComboBox)eventCombo.Specific;
+            SAPbouiCOM.ComboBox cmbEvent = SapUiSafe.TryGetSpecific<SAPbouiCOM.ComboBox>(eventCombo);
             cmbEvent.ValidValues.Add("DATA_ADD_BEFORE", "Before Data Add");
             cmbEvent.ValidValues.Add("DATA_UPDATE_BEFORE", "Before Data Update");
             cmbEvent.ValidValues.Add("ITEM_PRESSED", "Item Pressed");
@@ -434,7 +434,7 @@ namespace B1TuneUp.Modules
             severityCombo.Left = 130;
             severityCombo.Width = 150;
             severityCombo.Height = 20;
-            SAPbouiCOM.ComboBox cmbSeverity = (SAPbouiCOM.ComboBox)severityCombo.Specific;
+            SAPbouiCOM.ComboBox cmbSeverity = SapUiSafe.TryGetSpecific<SAPbouiCOM.ComboBox>(severityCombo);
             cmbSeverity.ValidValues.Add("ERROR", "Error (Block)");
             cmbSeverity.ValidValues.Add("WARNING", "Warning (Allow Continue)");
             cmbSeverity.ValidValues.Add("INFO", "Information");
@@ -445,7 +445,7 @@ namespace B1TuneUp.Modules
             activeCombo.Left = 130;
             activeCombo.Width = 150;
             activeCombo.Height = 20;
-            ComboBox cmbActive = (ComboBox)activeCombo.Specific;
+            ComboBox cmbActive = SapUiSafe.TryGetSpecific<ComboBox>(activeCombo);
             cmbActive.ValidValues.Add("Y", "Yes");
             cmbActive.ValidValues.Add("N", "No");
             cmbActive.Select(0);
@@ -456,34 +456,34 @@ namespace B1TuneUp.Modules
             saveButton.Left = 20;
             saveButton.Width = 80;
             saveButton.Height = 25;
-            ((SAPbouiCOM.Button)saveButton.Specific).Caption = "Save";
+            SapUiSafe.TrySetCaption(saveButton, "Save");
 
             Item testButton = oForm.Items.Add("BtnTest", BoFormItemTypes.it_BUTTON);
             testButton.Top = 430;
             testButton.Left = 110;
             testButton.Width = 80;
             testButton.Height = 25;
-            ((SAPbouiCOM.Button)testButton.Specific).Caption = "Test";
+            SapUiSafe.TrySetCaption(testButton, "Test");
 
             Item cancelButton = oForm.Items.Add("BtnCancel", BoFormItemTypes.it_BUTTON);
             cancelButton.Top = 430;
             cancelButton.Left = 200;
             cancelButton.Width = 80;
             cancelButton.Height = 25;
-            ((SAPbouiCOM.Button)cancelButton.Specific).Caption = "Cancel";
+            SapUiSafe.TrySetCaption(cancelButton, "Cancel");
         }
 
         private static void SaveValidationRule(SAPbouiCOM.Form oForm, SAPbouiCOM.Form parentForm)
         {
             try
             {
-                string formType = ((SAPbouiCOM.EditText)oForm.Items.Item("EdtFormType").Specific).Value;
-                string itemName = ((SAPbouiCOM.EditText)oForm.Items.Item("EdtItemName").Specific).Value;
-                string eventName = ((SAPbouiCOM.ComboBox)oForm.Items.Item("CmbEvent").Specific).Selected.Value;
-                string condition = ((SAPbouiCOM.EditText)oForm.Items.Item("EdtCondition").Specific).Value;
-                string action = ((SAPbouiCOM.EditText)oForm.Items.Item("EdtAction").Specific).Value;
-                string severity = ((SAPbouiCOM.ComboBox)oForm.Items.Item("CmbSeverity").Specific).Selected.Value;
-                string active = ((SAPbouiCOM.ComboBox)oForm.Items.Item("CmbActive").Specific).Selected.Value;
+                string formType = GetEditValue(oForm, "EdtFormType");
+                string itemName = GetEditValue(oForm, "EdtItemName");
+                string eventName = GetComboValue(oForm, "CmbEvent");
+                string condition = GetEditValue(oForm, "EdtCondition");
+                string action = GetEditValue(oForm, "EdtAction");
+                string severity = GetComboValue(oForm, "CmbSeverity");
+                string active = GetComboValue(oForm, "CmbActive");
 
                 // Validate required fields
                 if (string.IsNullOrEmpty(formType) || string.IsNullOrEmpty(condition))
@@ -505,7 +505,7 @@ namespace B1TuneUp.Modules
                 oForm.Close();
 
                 // Refresh the parent form
-                Grid matrix = (Grid)parentForm.Items.Item("ValidationMatrix").Specific;
+                Grid matrix = SapUiSafe.TryGetSpecific<Grid>(parentForm, "ValidationMatrix");
                 LoadValidationRules(matrix);
 
                 ComObjectManager.Release(rs);
@@ -520,7 +520,7 @@ namespace B1TuneUp.Modules
         {
             try
             {
-                string condition = ((SAPbouiCOM.EditText)oForm.Items.Item("EdtCondition").Specific).Value;
+                string condition = GetEditValue(oForm, "EdtCondition");
 
                 if (string.IsNullOrEmpty(condition))
                 {
@@ -544,7 +544,8 @@ namespace B1TuneUp.Modules
         {
             try
             {
-                Grid matrix = (Grid)parentForm.Items.Item("ValidationMatrix").Specific;
+                Grid matrix = SapUiSafe.TryGetSpecific<Grid>(parentForm, "ValidationMatrix");
+                if (matrix == null) return;
                 if (matrix.Rows.SelectedRows.Count > 0)
                 {
                     int selectedRow = matrix.Rows.SelectedRows.Item(0);
@@ -609,49 +610,49 @@ namespace B1TuneUp.Modules
                 formTypeLabel.Left = 20;
                 formTypeLabel.Width = 100;
                 formTypeLabel.Height = 20;
-                ((SAPbouiCOM.StaticText)formTypeLabel.Specific).Caption = "Form Type:";
+                SapUiSafe.TrySetCaption(formTypeLabel, "Form Type:");
 
                 Item itemNameLabel = oForm.Items.Add("LblItemName", BoFormItemTypes.it_STATIC);
                 itemNameLabel.Top = 50;
                 itemNameLabel.Left = 20;
                 itemNameLabel.Width = 100;
                 itemNameLabel.Height = 20;
-                ((SAPbouiCOM.StaticText)itemNameLabel.Specific).Caption = "Item/Field Name:";
+                SapUiSafe.TrySetCaption(itemNameLabel, "Item/Field Name:");
 
                 Item eventLabel = oForm.Items.Add("LblEvent", BoFormItemTypes.it_STATIC);
                 eventLabel.Top = 80;
                 eventLabel.Left = 20;
                 eventLabel.Width = 100;
                 eventLabel.Height = 20;
-                ((SAPbouiCOM.StaticText)eventLabel.Specific).Caption = "Event:";
+                SapUiSafe.TrySetCaption(eventLabel, "Event:");
 
                 Item conditionLabel = oForm.Items.Add("LblCondition", BoFormItemTypes.it_STATIC);
                 conditionLabel.Top = 110;
                 conditionLabel.Left = 20;
                 conditionLabel.Width = 100;
                 conditionLabel.Height = 20;
-                ((SAPbouiCOM.StaticText)conditionLabel.Specific).Caption = "Condition (SQL):";
+                SapUiSafe.TrySetCaption(conditionLabel, "Condition (SQL):");
 
                 Item actionLabel = oForm.Items.Add("LblAction", BoFormItemTypes.it_STATIC);
                 actionLabel.Top = 200;
                 actionLabel.Left = 20;
                 actionLabel.Width = 100;
                 actionLabel.Height = 20;
-                ((SAPbouiCOM.StaticText)actionLabel.Specific).Caption = "Action (Macro):";
+                SapUiSafe.TrySetCaption(actionLabel, "Action (Macro):");
 
                 Item severityLabel = oForm.Items.Add("LblSeverity", BoFormItemTypes.it_STATIC);
                 severityLabel.Top = 360;
                 severityLabel.Left = 20;
                 severityLabel.Width = 100;
                 severityLabel.Height = 20;
-                ((SAPbouiCOM.StaticText)severityLabel.Specific).Caption = "Severity:";
+                SapUiSafe.TrySetCaption(severityLabel, "Severity:");
 
                 Item activeLabel = oForm.Items.Add("LblActive", BoFormItemTypes.it_STATIC);
                 activeLabel.Top = 390;
                 activeLabel.Left = 20;
                 activeLabel.Width = 100;
                 activeLabel.Height = 20;
-                ((SAPbouiCOM.StaticText)activeLabel.Specific).Caption = "Active:";
+                SapUiSafe.TrySetCaption(activeLabel, "Active:");
 
                 // Input fields
                 Item formTypeEdit = oForm.Items.Add("EdtFormType", BoFormItemTypes.it_EDIT);
@@ -660,7 +661,7 @@ namespace B1TuneUp.Modules
                 formTypeEdit.Width = 150;
                 formTypeEdit.Height = 20;
                 formTypeEdit.Enabled = false; // Can't change form type
-                ((SAPbouiCOM.EditText)formTypeEdit.Specific).Value = rs.Fields.Item("U_FormType").Value.ToString();
+                SapUiSafe.TrySetEditValue(formTypeEdit, B1TuneUp.Utils.SapUiSafe.SafeField(rs, "U_FormType"));
 
                 Item itemNameEdit = oForm.Items.Add("EdtItemName", BoFormItemTypes.it_EDIT);
                 itemNameEdit.Top = 50;
@@ -668,14 +669,14 @@ namespace B1TuneUp.Modules
                 itemNameEdit.Width = 150;
                 itemNameEdit.Height = 20;
                 itemNameEdit.Enabled = false; // Can't change item name
-                ((SAPbouiCOM.EditText)itemNameEdit.Specific).Value = rs.Fields.Item("U_ItemName").Value.ToString();
+                SapUiSafe.TrySetEditValue(itemNameEdit, B1TuneUp.Utils.SapUiSafe.SafeField(rs, "U_ItemName"));
 
                 Item eventCombo = oForm.Items.Add("CmbEvent", BoFormItemTypes.it_COMBO_BOX);
                 eventCombo.Top = 80;
                 eventCombo.Left = 130;
                 eventCombo.Width = 150;
                 eventCombo.Height = 20;
-                SAPbouiCOM.ComboBox cmbEvent = (SAPbouiCOM.ComboBox)eventCombo.Specific;
+                SAPbouiCOM.ComboBox cmbEvent = SapUiSafe.TryGetSpecific<SAPbouiCOM.ComboBox>(eventCombo);
                 cmbEvent.ValidValues.Add("DATA_ADD_BEFORE", "Before Data Add");
                 cmbEvent.ValidValues.Add("DATA_UPDATE_BEFORE", "Before Data Update");
                 cmbEvent.ValidValues.Add("ITEM_PRESSED", "Item Pressed");
@@ -683,7 +684,7 @@ namespace B1TuneUp.Modules
                 cmbEvent.ValidValues.Add("COMBO_SELECT", "Combo Select");
                 cmbEvent.ValidValues.Add("EDIT_VALIDATE", "Edit Validate");
 
-                string eventValue = rs.Fields.Item("U_Event").Value.ToString();
+                string eventValue = B1TuneUp.Utils.SapUiSafe.SafeField(rs, "U_Event");
                 for (int i = 0; i < cmbEvent.ValidValues.Count; i++)
                 {
                     if (cmbEvent.ValidValues.Item(i).Value == eventValue)
@@ -699,26 +700,26 @@ namespace B1TuneUp.Modules
                 conditionEdit.Width = 760;
                 conditionEdit.Height = 80;
                 // Set condition value
-                ((SAPbouiCOM.EditText)conditionEdit.Specific).Value = rs.Fields.Item("U_Condition").Value.ToString();
+                SapUiSafe.TrySetEditValue(conditionEdit, B1TuneUp.Utils.SapUiSafe.SafeField(rs, "U_Condition"));
 
                 Item actionEdit = oForm.Items.Add("EdtAction", BoFormItemTypes.it_EDIT);
                 actionEdit.Top = 200;
                 actionEdit.Left = 20;
                 actionEdit.Width = 760;
                 actionEdit.Height = 150;
-                ((SAPbouiCOM.EditText)actionEdit.Specific).Value = rs.Fields.Item("U_Action").Value.ToString();
+                SapUiSafe.TrySetEditValue(actionEdit, B1TuneUp.Utils.SapUiSafe.SafeField(rs, "U_Action"));
 
                 Item severityCombo = oForm.Items.Add("CmbSeverity", BoFormItemTypes.it_COMBO_BOX);
                 severityCombo.Top = 360;
                 severityCombo.Left = 130;
                 severityCombo.Width = 150;
                 severityCombo.Height = 20;
-                ComboBox cmbSeverity = (ComboBox)severityCombo.Specific;
+                ComboBox cmbSeverity = SapUiSafe.TryGetSpecific<ComboBox>(severityCombo);
                 cmbSeverity.ValidValues.Add("ERROR", "Error (Block)");
                 cmbSeverity.ValidValues.Add("WARNING", "Warning (Allow Continue)");
                 cmbSeverity.ValidValues.Add("INFO", "Information");
 
-                string severityValue = rs.Fields.Item("U_Severity").Value.ToString();
+                string severityValue = B1TuneUp.Utils.SapUiSafe.SafeField(rs, "U_Severity");
                 for (int i = 0; i < cmbSeverity.ValidValues.Count; i++)
                 {
                     if (cmbSeverity.ValidValues.Item(i).Value == severityValue)
@@ -733,11 +734,11 @@ namespace B1TuneUp.Modules
                 activeCombo.Left = 130;
                 activeCombo.Width = 150;
                 activeCombo.Height = 20;
-                ComboBox cmbActive = (ComboBox)activeCombo.Specific;
+                ComboBox cmbActive = SapUiSafe.TryGetSpecific<ComboBox>(activeCombo);
                 cmbActive.ValidValues.Add("Y", "Yes");
                 cmbActive.ValidValues.Add("N", "No");
 
-                string activeValue = rs.Fields.Item("U_Active").Value.ToString();
+                string activeValue = B1TuneUp.Utils.SapUiSafe.SafeField(rs, "U_Active");
                 for (int i = 0; i < cmbActive.ValidValues.Count; i++)
                 {
                     if (cmbActive.ValidValues.Item(i).Value == activeValue)
@@ -753,21 +754,21 @@ namespace B1TuneUp.Modules
                 updateButton.Left = 20;
                 updateButton.Width = 80;
                 updateButton.Height = 25;
-                ((SAPbouiCOM.Button)updateButton.Specific).Caption = "Update";
+                SapUiSafe.TrySetCaption(updateButton, "Update");
 
                 Item testButton = oForm.Items.Add("BtnTest", BoFormItemTypes.it_BUTTON);
                 testButton.Top = 430;
                 testButton.Left = 110;
                 testButton.Width = 80;
                 testButton.Height = 25;
-                ((SAPbouiCOM.Button)testButton.Specific).Caption = "Test";
+                SapUiSafe.TrySetCaption(testButton, "Test");
 
                 Item cancelButton = oForm.Items.Add("BtnCancel", BoFormItemTypes.it_BUTTON);
                 cancelButton.Top = 430;
                 cancelButton.Left = 200;
                 cancelButton.Width = 80;
                 cancelButton.Height = 25;
-                ((SAPbouiCOM.Button)cancelButton.Specific).Caption = "Cancel";
+                SapUiSafe.TrySetCaption(cancelButton, "Cancel");
             }
 
             ComObjectManager.Release(rs);
@@ -777,11 +778,11 @@ namespace B1TuneUp.Modules
         {
             try
             {
-                string newEvent = ((SAPbouiCOM.ComboBox)oForm.Items.Item("CmbEvent").Specific).Selected.Value;
-                string condition = ((SAPbouiCOM.EditText)oForm.Items.Item("EdtCondition").Specific).Value;
-                string action = ((SAPbouiCOM.EditText)oForm.Items.Item("EdtAction").Specific).Value;
-                string severity = ((SAPbouiCOM.ComboBox)oForm.Items.Item("CmbSeverity").Specific).Selected.Value;
-                string active = ((SAPbouiCOM.ComboBox)oForm.Items.Item("CmbActive").Specific).Selected.Value;
+                string newEvent = GetComboValue(oForm, "CmbEvent");
+                string condition = GetEditValue(oForm, "EdtCondition");
+                string action = GetEditValue(oForm, "EdtAction");
+                string severity = GetComboValue(oForm, "CmbSeverity");
+                string active = GetComboValue(oForm, "CmbActive");
 
                 // Update the validation rule
                 Recordset rs = (Recordset)B1App.Instance.Company.GetBusinessObject(BoObjectTypes.BoRecordset);
@@ -798,7 +799,7 @@ namespace B1TuneUp.Modules
                 oForm.Close();
 
                 // Refresh the parent form
-                Grid matrix = (Grid)parentForm.Items.Item("ValidationMatrix").Specific;
+                Grid matrix = SapUiSafe.TryGetSpecific<Grid>(parentForm, "ValidationMatrix");
                 LoadValidationRules(matrix);
 
                 ComObjectManager.Release(rs);
@@ -813,7 +814,8 @@ namespace B1TuneUp.Modules
         {
             try
             {
-                Grid matrix = (Grid)parentForm.Items.Item("ValidationMatrix").Specific;
+                Grid matrix = SapUiSafe.TryGetSpecific<Grid>(parentForm, "ValidationMatrix");
+                if (matrix == null) return;
                 if (matrix.Rows.SelectedRows.Count > 0)
                 {
                     int selectedRow = matrix.Rows.SelectedRows.Item(0);
@@ -854,7 +856,8 @@ namespace B1TuneUp.Modules
         {
             try
             {
-                Grid matrix = (Grid)parentForm.Items.Item("ValidationMatrix").Specific;
+                Grid matrix = SapUiSafe.TryGetSpecific<Grid>(parentForm, "ValidationMatrix");
+                if (matrix == null) return;
                 if (matrix.Rows.SelectedRows.Count > 0)
                 {
                     int selectedRow = matrix.Rows.SelectedRows.Item(0);
@@ -890,7 +893,8 @@ namespace B1TuneUp.Modules
         {
             try
             {
-                Grid matrix = (Grid)parentForm.Items.Item("ValidationMatrix").Specific;
+                Grid matrix = SapUiSafe.TryGetSpecific<Grid>(parentForm, "ValidationMatrix");
+                if (matrix == null) return;
                 if (matrix.Rows.SelectedRows.Count > 0)
                 {
                     int selectedRow = matrix.Rows.SelectedRows.Item(0);
@@ -933,7 +937,7 @@ namespace B1TuneUp.Modules
         {
             try
             {
-                Form activeForm = B1App.Instance.Application.Forms.ActiveForm;
+                Form activeForm = SapUiSafe.TryGetActiveForm();
                 if (activeForm == null)
                 {
                     B1App.Instance.Application.SetStatusBarMessage("No active form found", BoMessageTime.bmt_Short, true);
@@ -995,7 +999,7 @@ namespace B1TuneUp.Modules
                         switch (severity.ToUpperInvariant())
                         {
                             case "ERROR":
-                                ShowMessage(processedMessage, "ValidaciÃ³n");
+                                ShowMessage(processedMessage, "Validación");
                                 allValid = false;
                                 break;
                             case "WARNING":
@@ -1008,7 +1012,7 @@ namespace B1TuneUp.Modules
                             default: // INFO
                                 if (!string.IsNullOrEmpty(processedMessage))
                                 {
-                                    ShowMessage(processedMessage, "InformaciÃ³n");
+                                    ShowMessage(processedMessage, "Información");
                                 }
                                 break;
                         }
@@ -1088,7 +1092,8 @@ namespace B1TuneUp.Modules
                 // If form is null, use the active form
                 if (form == null)
                 {
-                    form = B1App.Instance.Application.Forms.ActiveForm;
+                    form = SapUiSafe.TryGetActiveForm();
+                    if (form == null) return false;
                 }
 
                 // Process variables in the condition (e.g., replace $[CardCode] with actual value)
@@ -1115,7 +1120,7 @@ namespace B1TuneUp.Modules
                 bool result = false;
                 if (!rs.EoF)
                 {
-                    result = Convert.ToInt32(rs.Fields.Item(0).Value) == 1;
+                    result = Convert.ToInt32(SapUiSafe.SafeField(rs, 0)) == 1;
                 }
 
                 ComObjectManager.Release(rs);
@@ -1163,7 +1168,7 @@ namespace B1TuneUp.Modules
 
         private static string ReadField(Recordset rs, string fieldName)
         {
-            try { return rs.Fields.Item(fieldName).Value?.ToString() ?? string.Empty; }
+            try { return B1TuneUp.Utils.SapUiSafe.SafeField(rs, fieldName); }
             catch { return string.Empty; }
         }
 
@@ -1261,7 +1266,7 @@ namespace B1TuneUp.Modules
                     rs.DoQuery(sql);
                     while (!rs.EoF)
                     {
-                        string code = rs.Fields.Item(0).Value?.ToString();
+                        string code = B1TuneUp.Utils.SapUiSafe.SafeField(rs, 0);
                         if (!string.IsNullOrEmpty(code)) ctx.GroupCodes.Add(code);
                         rs.MoveNext();
                     }
@@ -1293,17 +1298,16 @@ namespace B1TuneUp.Modules
             {
                 // Simplified field value extraction
                 // In a real implementation, this would handle various field types and locations
-                if (form.Items.Exists(fieldName))
+                Item item = SapUiSafe.TryGetItem(form, fieldName);
+                if (item != null)
                 {
-                    Item item = form.Items.Item(fieldName);
                     if (item.Type == BoFormItemTypes.it_EDIT || item.Type == BoFormItemTypes.it_EXTEDIT)
                     {
-                        return ((EditText)item.Specific).Value;
+                        return SapUiSafe.TryGetSpecific<EditText>(item)?.Value ?? string.Empty;
                     }
                     else if (item.Type == BoFormItemTypes.it_COMBO_BOX)
                     {
-                        ComboBox comboBox = (ComboBox)item.Specific;
-                        return comboBox.Selected != null ? comboBox.Selected.Value : "";
+                        return SapUiSafe.SafeComboValue(SapUiSafe.TryGetSpecific<ComboBox>(item));
                     }
                 }
 
@@ -1314,6 +1318,16 @@ namespace B1TuneUp.Modules
             {
                 return "";
             }
+        }
+
+        private static string GetEditValue(SAPbouiCOM.Form form, string itemId)
+        {
+            return SapUiSafe.TryGetSpecific<EditText>(form, itemId)?.Value ?? string.Empty;
+        }
+
+        private static string GetComboValue(SAPbouiCOM.Form form, string itemId)
+        {
+            return SapUiSafe.SafeComboValue(SapUiSafe.TryGetSpecific<ComboBox>(form, itemId));
         }
     }
 }

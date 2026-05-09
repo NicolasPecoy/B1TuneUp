@@ -8,6 +8,7 @@ using B1TuneUp.Modules.PlacementEnhancementUi;
 using B1TuneUp.Modules.RichTextEditorUi;
 using B1TuneUp.Modules.BarcodeScannerUi;
 using B1TuneUp.Modules.AutomationDashboardUi;
+using B1TuneUp.Utils;
 
 namespace B1TuneUp.Modules
 {
@@ -17,7 +18,7 @@ namespace B1TuneUp.Modules
         {
             try
             {
-                if (form == null) form = B1App.Instance.Application.Forms.ActiveForm;
+                if (form == null) form = SapUiSafe.TryGetActiveForm();
                 // Enable basic drag and drop between fields by opening a small helper form that captures drag source and target
                 DragDropHelperLauncher.Show();
                 PlacementEnhancementLauncher.Show();
@@ -32,14 +33,14 @@ namespace B1TuneUp.Modules
         {
             try
             {
-                if (form == null) form = B1App.Instance.Application.Forms.ActiveForm;
+                if (form == null) form = SapUiSafe.TryGetActiveForm();
                 string initial = "";
                 try
                 {
-                    if (form.Items.Exists(itemId))
+                    var it = SapUiSafe.TryGetItem(form, itemId);
+                    if (it != null)
                     {
-                        var it = form.Items.Item(itemId);
-                        if (it.Specific is SAPbouiCOM.EditText et) initial = et.Value ?? "";
+                        if (SapUiSafe.TryGetSpecific<SAPbouiCOM.EditText>(it) is SAPbouiCOM.EditText et) initial = et.Value ?? "";
                     }
                 }
                 catch { }
@@ -56,14 +57,14 @@ namespace B1TuneUp.Modules
         {
             try
             {
-                if (form == null) form = B1App.Instance.Application.Forms.ActiveForm;
+                if (form == null) form = SapUiSafe.TryGetActiveForm();
                 // Attempt to get SQL from grid's underlying DataTable if possible
                 string sql = "";
                 try
                 {
-                    if (form.Items.Exists(gridId))
+                    var grid = SapUiSafe.TryGetSpecific<SAPbouiCOM.Grid>(form, gridId);
+                    if (grid != null)
                     {
-                        var grid = (SAPbouiCOM.Grid)form.Items.Item(gridId).Specific;
                         // If grid has an associated DataTable with a query, use it (best-effort)
                         // We'll fall back to asking user via dialog
                         sql = "";
@@ -84,7 +85,7 @@ namespace B1TuneUp.Modules
         {
             try
             {
-                if (form == null) form = B1App.Instance.Application.Forms.ActiveForm;
+                if (form == null) form = SapUiSafe.TryGetActiveForm();
                 BarcodeScannerUi.BarcodeScannerLauncher.Show(targetItemId);
             }
             catch (Exception ex)
@@ -109,7 +110,7 @@ namespace B1TuneUp.Modules
         {
             try
             {
-                if (form == null) form = B1App.Instance.Application.Forms.ActiveForm;
+                if (form == null) form = SapUiSafe.TryGetActiveForm();
                 var d = new Forms.DesignSurfaceForm(form);
                 d.Show();
             }

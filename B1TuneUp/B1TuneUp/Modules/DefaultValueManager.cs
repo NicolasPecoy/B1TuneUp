@@ -1,4 +1,4 @@
-Ôªøusing System;
+using System;
 using System.Windows.Forms;
 using SAPbouiCOM;
 using SAPbobsCOM;
@@ -21,6 +21,7 @@ namespace B1TuneUp.Modules
 
         private static void ApplyDefaults(SAPbouiCOM.Form oForm, string itemId, bool onLoad)
         {
+            if (oForm == null) return;
             Recordset rs = (Recordset)B1App.Instance.Company.GetBusinessObject(BoObjectTypes.BoRecordset);
             Recordset rsVal = (Recordset)B1App.Instance.Company.GetBusinessObject(BoObjectTypes.BoRecordset);
             try
@@ -55,7 +56,7 @@ namespace B1TuneUp.Modules
                     string colId = SafeField(rs, "U_ColID");
                     string query = SafeField(rs, "U_Query");
 
-                    // Procesar la consulta para reemplazar variables din√°micas
+                    // Procesar la consulta para reemplazar variables din·micas
                     string processedQuery = ProcessQueryVariables(query, oForm, true);
 
                     // Ejecutar consulta y obtener valor
@@ -63,33 +64,44 @@ namespace B1TuneUp.Modules
 
                     try
                     {
-                        if (!string.IsNullOrEmpty(colId) && oForm.Items.Item(targetItem).Type == BoFormItemTypes.it_MATRIX)
+                        Item target = SapUiSafe.TryGetItem(oForm, targetItem);
+                        if (target == null)
                         {
-                            Matrix m = (Matrix)oForm.Items.Item(targetItem).Specific;
+                            rs.MoveNext();
+                            continue;
+                        }
+
+                        if (!string.IsNullOrEmpty(colId) && target.Type == BoFormItemTypes.it_MATRIX)
+                        {
+                            Matrix m = SapUiSafe.TryGetSpecific<Matrix>(target);
+                            if (m == null)
+                            {
+                                rs.MoveNext();
+                                continue;
+                            }
                             int row = m.GetNextSelectedRow(0, BoOrderType.ot_SelectionOrder);
                             if (row < 1) row = 1;
-                            ((EditText)m.Columns.Item(colId).Cells.Item(row).Specific).Value = value;
+                            SapUiSafe.TrySetMatrixCell(m, colId, row, value);
                         }
                         else
                         {
-                            Item item = oForm.Items.Item(targetItem);
-                            if (item.Specific is EditText et)
+                            if (SapUiSafe.TryGetSpecific<EditText>(target) is EditText et)
                             {
                                 et.Value = value;
                             }
-                            else if (item.Specific is SAPbouiCOM.ComboBox cb)
+                            else if (SapUiSafe.TryGetSpecific<SAPbouiCOM.ComboBox>(target) is SAPbouiCOM.ComboBox cb)
                             {
                                 try { cb.Select(value, BoSearchKey.psk_ByValue); } catch { }
                             }
-                            else if (item.Specific is SAPbouiCOM.Button btn)
+                            else if (SapUiSafe.TryGetSpecific<SAPbouiCOM.Button>(target) is SAPbouiCOM.Button btn)
                             {
                                 btn.Caption = value;
                             }
-                            else if (item.Specific is SAPbouiCOM.CheckBox chk)
+                            else if (SapUiSafe.TryGetSpecific<SAPbouiCOM.CheckBox>(target) is SAPbouiCOM.CheckBox chk)
                             {
                                 chk.Checked = value.ToUpper() == "Y" || value.ToUpper() == "TRUE" || value == "1";
                             }
-                            else if (item.Specific is StaticText lbl)
+                            else if (SapUiSafe.TryGetSpecific<StaticText>(target) is StaticText lbl)
                             {
                                 lbl.Caption = value;
                             }
@@ -121,7 +133,7 @@ namespace B1TuneUp.Modules
                 rs.DoQuery(query);
                 if (rs.RecordCount > 0)
                 {
-                    return rs.Fields.Item(0).Value != null ? rs.Fields.Item(0).Value.ToString() : string.Empty;
+                    return B1TuneUp.Utils.SapUiSafe.SafeFieldValue(rs, 0) != null ? B1TuneUp.Utils.SapUiSafe.SafeField(rs, 0) : string.Empty;
                 }
             }
             catch (Exception ex)
@@ -133,7 +145,7 @@ namespace B1TuneUp.Modules
 
         private static string ProcessQueryVariables(string query, SAPbouiCOM.Form oForm, bool escapeForSql)
         {
-            // Reemplaza variables din√°micas como $[FieldName] con valores del formulario actual
+            // Reemplaza variables din·micas como $[FieldName] con valores del formulario actual
             string processedQuery = query;
 
             // Busca patrones $[FieldName] o $[Form.Field] en la consulta
@@ -156,7 +168,7 @@ namespace B1TuneUp.Modules
                     }
                     processedQuery = processedQuery.Replace(fullTag, fieldValue);
 
-                    // Avanzar posici√≥n m√°s all√° del lugar donde hicimos el reemplazo
+                    // Avanzar posiciÛn m·s all· del lugar donde hicimos el reemplazo
                     searchStart = startIndex + fieldValue.Length;
                 }
                 else
@@ -174,43 +186,35 @@ namespace B1TuneUp.Modules
         {
             try
             {
-                // Si el campo est√° en formato ItemID.ColumnID (para matrices)
+                // Si el campo est· en formato ItemID.ColumnID (para matrices)
                 if (fieldRef.Contains("."))
                 {
                     string[] parts = fieldRef.Split('.');
                     string itemId = parts[0];
                     string colId = parts[1];
 
-                    Item item = oForm.Items.Item(itemId);
-                    if (item.Type == BoFormItemTypes.it_MATRIX)
+                    Item item = SapUiSafe.TryGetItem(oForm, itemId);
+                    if (item != null && item.Type == BoFormItemTypes.it_MATRIX)
                     {
-                        Matrix matrix = (Matrix)item.Specific;
+                        Matrix matrix = SapUiSafe.TryGetSpecific<Matrix>(item);
+                        if (matrix == null) return string.Empty;
                         int row = matrix.GetNextSelectedRow(0, BoOrderType.ot_SelectionOrder);
                         if (row < 1) row = 1;
-                        return ((EditText)matrix.Columns.Item(colId).Cells.Item(row).Specific).Value ?? "";
+                        return SapUiSafe.SafeMatrixCell(matrix, colId, row);
                     }
                 }
                 else
                 {
                     // Campo normal
-                    Item item = oForm.Items.Item(fieldRef);
-                    if (item.Specific is EditText et)
-                    {
-                        return et.Value ?? "";
-                    }
-                    else if (item.Specific is SAPbouiCOM.ComboBox cb)
-                    {
-                        return cb.Selected?.Value ?? "";
-                    }
-                    else if (item.Specific is SAPbouiCOM.CheckBox chk)
-                    {
-                        return chk.Checked ? "Y" : "N";
-                    }
+                    Item item = SapUiSafe.TryGetItem(oForm, fieldRef);
+                    string value = SapUiSafe.SafeItemValue(item);
+                    if (item != null && item.Type == BoFormItemTypes.it_CHECK_BOX && string.IsNullOrEmpty(value)) return "N";
+                    return value;
                 }
             }
             catch
             {
-                // Si hay error al obtener el valor, retornar cadena vac√≠a
+                // Si hay error al obtener el valor, retornar cadena vacÌa
             }
 
             return "";
@@ -218,8 +222,7 @@ namespace B1TuneUp.Modules
 
         private static string SafeField(Recordset rs, string field)
         {
-            try { return rs.Fields.Item(field).Value?.ToString() ?? string.Empty; }
-            catch { return string.Empty; }
+            return SapUiSafe.SafeField(rs, field);
         }
 
         private static string EscapeSqlValue(string value)

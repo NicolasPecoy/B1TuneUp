@@ -51,14 +51,14 @@ namespace B1TuneUp.Modules
                 {
                     list.Add(new FormTemplateDefinition
                     {
-                        DocEntry = ConvertToInt(rs.Fields.Item(0).Value),
-                        Name = Convert.ToString(rs.Fields.Item(1).Value),
-                        Description = Convert.ToString(rs.Fields.Item(2).Value),
-                        FormType = Convert.ToString(rs.Fields.Item(3).Value),
-                        SerializedData = Convert.ToString(rs.Fields.Item(4).Value),
-                        CreatedBy = Convert.ToString(rs.Fields.Item(5).Value),
-                        CreatedAt = ConvertToDate(rs.Fields.Item(6).Value),
-                        UpdatedAt = ConvertToDate(rs.Fields.Item(7).Value)
+                        DocEntry = ConvertToInt(B1TuneUp.Utils.SapUiSafe.SafeFieldValue(rs, 0)),
+                        Name = B1TuneUp.Utils.SapUiSafe.SafeField(rs, 1),
+                        Description = B1TuneUp.Utils.SapUiSafe.SafeField(rs, 2),
+                        FormType = B1TuneUp.Utils.SapUiSafe.SafeField(rs, 3),
+                        SerializedData = B1TuneUp.Utils.SapUiSafe.SafeField(rs, 4),
+                        CreatedBy = B1TuneUp.Utils.SapUiSafe.SafeField(rs, 5),
+                        CreatedAt = ConvertToDate(B1TuneUp.Utils.SapUiSafe.SafeFieldValue(rs, 6)),
+                        UpdatedAt = ConvertToDate(B1TuneUp.Utils.SapUiSafe.SafeFieldValue(rs, 7))
                     });
                     rs.MoveNext();
                 }
@@ -117,14 +117,14 @@ namespace B1TuneUp.Modules
                 rs.DoQuery(selectSql);
                 if (!rs.EoF)
                 {
-                    template.DocEntry = ConvertToInt(rs.Fields.Item(0).Value);
-                    template.Name = Convert.ToString(rs.Fields.Item(1).Value);
-                    template.Description = Convert.ToString(rs.Fields.Item(2).Value);
-                    template.FormType = Convert.ToString(rs.Fields.Item(3).Value);
-                    template.SerializedData = Convert.ToString(rs.Fields.Item(4).Value);
-                    template.CreatedBy = Convert.ToString(rs.Fields.Item(5).Value);
-                    template.CreatedAt = ConvertToDate(rs.Fields.Item(6).Value);
-                    template.UpdatedAt = ConvertToDate(rs.Fields.Item(7).Value);
+                    template.DocEntry = ConvertToInt(B1TuneUp.Utils.SapUiSafe.SafeFieldValue(rs, 0));
+                    template.Name = B1TuneUp.Utils.SapUiSafe.SafeField(rs, 1);
+                    template.Description = B1TuneUp.Utils.SapUiSafe.SafeField(rs, 2);
+                    template.FormType = B1TuneUp.Utils.SapUiSafe.SafeField(rs, 3);
+                    template.SerializedData = B1TuneUp.Utils.SapUiSafe.SafeField(rs, 4);
+                    template.CreatedBy = B1TuneUp.Utils.SapUiSafe.SafeField(rs, 5);
+                    template.CreatedAt = ConvertToDate(B1TuneUp.Utils.SapUiSafe.SafeFieldValue(rs, 6));
+                    template.UpdatedAt = ConvertToDate(B1TuneUp.Utils.SapUiSafe.SafeFieldValue(rs, 7));
                 }
             }
             finally

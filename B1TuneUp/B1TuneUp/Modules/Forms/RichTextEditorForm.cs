@@ -2,6 +2,7 @@ using System;
 using System.Windows.Forms;
 using SAPbouiCOM;
 using B1TuneUp.Core;
+using B1TuneUp.Utils;
 
 namespace B1TuneUp.Modules.Forms
 {
@@ -51,8 +52,8 @@ namespace B1TuneUp.Modules.Forms
             {
                 if (_parentForm != null && _parentForm.Items.Exists(_itemId))
                 {
-                    var it = _parentForm.Items.Item(_itemId);
-                    if (it.Specific is SAPbouiCOM.EditText et)
+                    var it = SapUiSafe.TryGetItem(_parentForm, _itemId);
+                    if (SapUiSafe.TryGetSpecific<SAPbouiCOM.EditText>(it) is SAPbouiCOM.EditText et)
                     {
                         et.Value = _txt.Text;
                         B1App.Instance.Application.SetStatusBarMessage("Texto guardado en el campo.", BoMessageTime.bmt_Short, false);

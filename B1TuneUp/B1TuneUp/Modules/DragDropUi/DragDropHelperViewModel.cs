@@ -4,6 +4,7 @@ using System.Runtime.CompilerServices;
 using SAPbouiCOM;
 using B1TuneUp.Core;
 using B1TuneUp.Modules.IntegrationUi;
+using B1TuneUp.Utils;
 
 namespace B1TuneUp.Modules.DragDropUi
 {
@@ -64,7 +65,7 @@ namespace B1TuneUp.Modules.DragDropUi
         {
             try
             {
-                var form = B1App.Instance?.Application?.Forms?.ActiveForm;
+                var form = SapUiSafe.TryGetActiveForm();
                 if (form == null)
                 {
                     StatusMessage = "No hay formulario activo en SAP Business One.";
@@ -76,23 +77,24 @@ namespace B1TuneUp.Modules.DragDropUi
                 {
                     try
                     {
-                        if (!sapForm.Items.Exists(src) || !sapForm.Items.Exists(tgt)) return;
-                        var sourceItem = sapForm.Items.Item(src);
-                        var targetItem = sapForm.Items.Item(tgt);
+                        var sourceItem = SapUiSafe.TryGetItem(sapForm, src);
+                        var targetItem = SapUiSafe.TryGetItem(sapForm, tgt);
+                        if (sourceItem == null || targetItem == null) return;
                         string value = string.Empty;
-                        if (sourceItem.Specific is EditText editText)
+                        if (SapUiSafe.TryGetSpecific<EditText>(sourceItem) is EditText editText)
                         {
                             value = editText.Value ?? string.Empty;
                         }
-                        else if (sourceItem.Specific is ComboBox comboBox)
+                        else if (SapUiSafe.TryGetSpecific<ComboBox>(sourceItem) is ComboBox comboBox)
                         {
-                            value = comboBox.Selected?.Value ?? comboBox.Selected?.Description ?? string.Empty;
+                            value = SapUiSafe.SafeComboValue(comboBox);
+                            if (string.IsNullOrEmpty(value)) value = comboBox.Selected?.Description ?? string.Empty;
                         }
-                        if (targetItem.Specific is EditText targetEdit)
+                        if (SapUiSafe.TryGetSpecific<EditText>(targetItem) is EditText targetEdit)
                         {
                             targetEdit.Value = value;
                         }
-                        else if (targetItem.Specific is ComboBox targetCombo && !string.IsNullOrEmpty(value))
+                        else if (SapUiSafe.TryGetSpecific<ComboBox>(targetItem) is ComboBox targetCombo && !string.IsNullOrEmpty(value))
                         {
                             targetCombo.Select(value, BoSearchKey.psk_ByValue);
                         }

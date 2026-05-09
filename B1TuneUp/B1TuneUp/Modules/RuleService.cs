@@ -38,14 +38,14 @@ namespace B1TuneUp.Modules
         {
             return new B1Rule
             {
-                ID = Convert.ToString(rs.Fields.Item(0).Value),
-                Name = Convert.ToString(rs.Fields.Item(1).Value),
-                FormType = Convert.ToString(rs.Fields.Item(2).Value),
-                Type = ParseRuleType(Convert.ToString(rs.Fields.Item(3).Value)),
-                EventType = Convert.ToString(rs.Fields.Item(4).Value),
-                BeforeAction = string.Equals(Convert.ToString(rs.Fields.Item(5).Value), "Y", StringComparison.OrdinalIgnoreCase),
-                Condition = Convert.ToString(rs.Fields.Item(6).Value),
-                Action = Convert.ToString(rs.Fields.Item(7).Value)
+                ID = B1TuneUp.Utils.SapUiSafe.SafeField(rs, 0),
+                Name = B1TuneUp.Utils.SapUiSafe.SafeField(rs, 1),
+                FormType = B1TuneUp.Utils.SapUiSafe.SafeField(rs, 2),
+                Type = ParseRuleType(B1TuneUp.Utils.SapUiSafe.SafeField(rs, 3)),
+                EventType = B1TuneUp.Utils.SapUiSafe.SafeField(rs, 4),
+                BeforeAction = string.Equals(B1TuneUp.Utils.SapUiSafe.SafeField(rs, 5), "Y", StringComparison.OrdinalIgnoreCase),
+                Condition = B1TuneUp.Utils.SapUiSafe.SafeField(rs, 6),
+                Action = B1TuneUp.Utils.SapUiSafe.SafeField(rs, 7)
             };
         }
 
@@ -145,7 +145,7 @@ namespace B1TuneUp.Modules
                 rs.DoQuery(sql);
                 while (!rs.EoF)
                 {
-                    var val = Convert.ToString(rs.Fields.Item(0).Value);
+                    var val = B1TuneUp.Utils.SapUiSafe.SafeField(rs, 0);
                     if (!string.IsNullOrEmpty(val)) list.Add(val);
                     rs.MoveNext();
                 }

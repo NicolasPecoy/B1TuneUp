@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Timers;
 using SAPbobsCOM;
 using B1TuneUp.Core;
@@ -36,10 +36,10 @@ namespace B1TuneUp.Modules
                 rs.DoQuery(sql);
                 while (!rs.EoF)
                 {
-                    string docEntry = rs.Fields.Item("Code").Value.ToString();
-                    string action = rs.Fields.Item("U_Action").Value.ToString();
-                    int interval = (int)rs.Fields.Item("U_Interval").Value;
-                    DateTime lastRun = (DateTime)rs.Fields.Item("U_LastRun").Value;
+                    string docEntry = B1TuneUp.Utils.SapUiSafe.SafeField(rs, "Code");
+                    string action = B1TuneUp.Utils.SapUiSafe.SafeField(rs, "U_Action");
+                    int interval = (int)B1TuneUp.Utils.SapUiSafe.SafeFieldValue(rs, "U_Interval");
+                    DateTime lastRun = (DateTime)B1TuneUp.Utils.SapUiSafe.SafeFieldValue(rs, "U_LastRun");
 
                     if ((DateTime.Now - lastRun).TotalMinutes >= interval)
                     {

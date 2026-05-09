@@ -40,13 +40,13 @@ namespace B1TuneUp.Modules
                 {
                     list.Add(new ReportTemplateDefinition
                     {
-                        DocEntry = ToInt(rs.Fields.Item(0).Value),
-                        Name = Convert.ToString(rs.Fields.Item(1).Value),
-                        Description = Convert.ToString(rs.Fields.Item(2).Value),
-                        DataBase64 = Convert.ToString(rs.Fields.Item(3).Value),
-                        Parameters = Convert.ToString(rs.Fields.Item(4).Value),
-                        CreatedAt = ToDate(rs.Fields.Item(5).Value),
-                        UpdatedAt = ToDate(rs.Fields.Item(6).Value)
+                        DocEntry = ToInt(B1TuneUp.Utils.SapUiSafe.SafeFieldValue(rs, 0)),
+                        Name = B1TuneUp.Utils.SapUiSafe.SafeField(rs, 1),
+                        Description = B1TuneUp.Utils.SapUiSafe.SafeField(rs, 2),
+                        DataBase64 = B1TuneUp.Utils.SapUiSafe.SafeField(rs, 3),
+                        Parameters = B1TuneUp.Utils.SapUiSafe.SafeField(rs, 4),
+                        CreatedAt = ToDate(B1TuneUp.Utils.SapUiSafe.SafeFieldValue(rs, 5)),
+                        UpdatedAt = ToDate(B1TuneUp.Utils.SapUiSafe.SafeFieldValue(rs, 6))
                     });
                     rs.MoveNext();
                 }
@@ -103,13 +103,13 @@ namespace B1TuneUp.Modules
                 rs.DoQuery(selectSql);
                 if (!rs.EoF)
                 {
-                    report.DocEntry = ToInt(rs.Fields.Item(0).Value);
-                    report.Name = Convert.ToString(rs.Fields.Item(1).Value);
-                    report.Description = Convert.ToString(rs.Fields.Item(2).Value);
-                    report.DataBase64 = Convert.ToString(rs.Fields.Item(3).Value);
-                    report.Parameters = Convert.ToString(rs.Fields.Item(4).Value);
-                    report.CreatedAt = ToDate(rs.Fields.Item(5).Value);
-                    report.UpdatedAt = ToDate(rs.Fields.Item(6).Value);
+                    report.DocEntry = ToInt(B1TuneUp.Utils.SapUiSafe.SafeFieldValue(rs, 0));
+                    report.Name = B1TuneUp.Utils.SapUiSafe.SafeField(rs, 1);
+                    report.Description = B1TuneUp.Utils.SapUiSafe.SafeField(rs, 2);
+                    report.DataBase64 = B1TuneUp.Utils.SapUiSafe.SafeField(rs, 3);
+                    report.Parameters = B1TuneUp.Utils.SapUiSafe.SafeField(rs, 4);
+                    report.CreatedAt = ToDate(B1TuneUp.Utils.SapUiSafe.SafeFieldValue(rs, 5));
+                    report.UpdatedAt = ToDate(B1TuneUp.Utils.SapUiSafe.SafeFieldValue(rs, 6));
                 }
             }
             finally

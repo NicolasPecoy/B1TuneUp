@@ -47,7 +47,7 @@ namespace B1TuneUp.Modules
             matrixItem.Width = 770;
             matrixItem.Height = 350;
 
-            SAPbouiCOM.Grid matrix = (SAPbouiCOM.Grid)matrixItem.Specific;
+            SAPbouiCOM.Grid matrix = SapUiSafe.TryGetSpecific<SAPbouiCOM.Grid>(matrixItem);
 
             // Use a DataTable as the grid datasource and add columns there
             SAPbouiCOM.DataTable dt = null;
@@ -84,35 +84,35 @@ namespace B1TuneUp.Modules
             refreshButton.Left = 10;
             refreshButton.Width = 100;
             refreshButton.Height = 25;
-            ((SAPbouiCOM.Button)refreshButton.Specific).Caption = "Refresh Rates";
+            SapUiSafe.TrySetCaption(refreshButton, "Refresh Rates");
 
             Item updateButton = oForm.Items.Add("BtnUpdate", BoFormItemTypes.it_BUTTON);
             updateButton.Top = 370;
             updateButton.Left = 120;
             updateButton.Width = 100;
             updateButton.Height = 25;
-            ((SAPbouiCOM.Button)updateButton.Specific).Caption = "Update SAP";
+            SapUiSafe.TrySetCaption(updateButton, "Update SAP");
 
             Item addManualButton = oForm.Items.Add("BtnAddManual", BoFormItemTypes.it_BUTTON);
             addManualButton.Top = 370;
             addManualButton.Left = 230;
             addManualButton.Width = 120;
             addManualButton.Height = 25;
-            ((SAPbouiCOM.Button)addManualButton.Specific).Caption = "Add Manual Rate";
+            SapUiSafe.TrySetCaption(addManualButton, "Add Manual Rate");
 
             Item scheduleButton = oForm.Items.Add("BtnSchedule", BoFormItemTypes.it_BUTTON);
             scheduleButton.Top = 370;
             scheduleButton.Left = 360;
             scheduleButton.Width = 100;
             scheduleButton.Height = 25;
-            ((SAPbouiCOM.Button)scheduleButton.Specific).Caption = "Schedule";
+            SapUiSafe.TrySetCaption(scheduleButton, "Schedule");
 
             Item closeButton = oForm.Items.Add("BtnClose", BoFormItemTypes.it_BUTTON);
             closeButton.Top = 370;
             closeButton.Left = 680;
             closeButton.Width = 80;
             closeButton.Height = 25;
-            ((SAPbouiCOM.Button)closeButton.Specific).Caption = "Close";
+            SapUiSafe.TrySetCaption(closeButton, "Close");
 
             // Configuration section
             Item configLabel = oForm.Items.Add("LblConfig", BoFormItemTypes.it_STATIC);
@@ -120,21 +120,21 @@ namespace B1TuneUp.Modules
             configLabel.Left = 10;
             configLabel.Width = 200;
             configLabel.Height = 20;
-            ((SAPbouiCOM.StaticText)configLabel.Specific).Caption = "Configuration:";
+            SapUiSafe.TrySetCaption(configLabel, "Configuration:");
 
             Item sourceLabel = oForm.Items.Add("LblSource", BoFormItemTypes.it_STATIC);
             sourceLabel.Top = 440;
             sourceLabel.Left = 10;
             sourceLabel.Width = 100;
             sourceLabel.Height = 20;
-            ((SAPbouiCOM.StaticText)sourceLabel.Specific).Caption = "Data Source:";
+            SapUiSafe.TrySetCaption(sourceLabel, "Data Source:");
 
             Item sourceCombo = oForm.Items.Add("CmbSource", BoFormItemTypes.it_COMBO_BOX);
             sourceCombo.Top = 440;
             sourceCombo.Left = 120;
             sourceCombo.Width = 150;
             sourceCombo.Height = 20;
-            SAPbouiCOM.ComboBox cmbSource = (SAPbouiCOM.ComboBox)sourceCombo.Specific;
+            SAPbouiCOM.ComboBox cmbSource = SapUiSafe.TryGetSpecific<SAPbouiCOM.ComboBox>(sourceCombo);
             cmbSource.ValidValues.Add("ECB", "European Central Bank");
             cmbSource.ValidValues.Add("FIXER", "Fixer.io");
             cmbSource.ValidValues.Add("MANUAL", "Manual Input");
@@ -145,21 +145,21 @@ namespace B1TuneUp.Modules
             baseCurrencyLabel.Left = 290;
             baseCurrencyLabel.Width = 100;
             baseCurrencyLabel.Height = 20;
-            ((SAPbouiCOM.StaticText)baseCurrencyLabel.Specific).Caption = "Base Currency:";
+            SapUiSafe.TrySetCaption(baseCurrencyLabel, "Base Currency:");
 
             Item baseCurrencyEdit = oForm.Items.Add("EdtBase", BoFormItemTypes.it_EDIT);
             baseCurrencyEdit.Top = 440;
             baseCurrencyEdit.Left = 390;
             baseCurrencyEdit.Width = 80;
             baseCurrencyEdit.Height = 20;
-            ((SAPbouiCOM.EditText)baseCurrencyEdit.Specific).Value = "EUR"; // Default to EUR
+            SapUiSafe.TrySetEditValue(baseCurrencyEdit, "EUR"); // Default to EUR
 
             Item apiKeyLabel = oForm.Items.Add("LblAPI", BoFormItemTypes.it_STATIC);
             apiKeyLabel.Top = 470;
             apiKeyLabel.Left = 10;
             apiKeyLabel.Width = 100;
             apiKeyLabel.Height = 20;
-            ((SAPbouiCOM.StaticText)apiKeyLabel.Specific).Caption = "API Key (if needed):";
+            SapUiSafe.TrySetCaption(apiKeyLabel, "API Key (if needed):");
 
             Item apiKeyEdit = oForm.Items.Add("EdtAPI", BoFormItemTypes.it_EDIT);
             apiKeyEdit.Top = 470;
@@ -172,7 +172,7 @@ namespace B1TuneUp.Modules
             saveConfigButton.Left = 340;
             saveConfigButton.Width = 100;
             saveConfigButton.Height = 25;
-            ((SAPbouiCOM.Button)saveConfigButton.Specific).Caption = "Save Config";
+            SapUiSafe.TrySetCaption(saveConfigButton, "Save Config");
 
             // Load existing exchange rates
             LoadExchangeRates(matrix);
@@ -196,12 +196,12 @@ namespace B1TuneUp.Modules
                     matrix.DataTable.Rows.Add();
                     int rowIndex = matrix.DataTable.Rows.Count - 1;
 
-                    matrix.DataTable.SetValue("FromCurrency", rowIndex, rs.Fields.Item("U_FromCurr").Value);
-                    matrix.DataTable.SetValue("ToCurrency", rowIndex, rs.Fields.Item("U_ToCurr").Value);
-                    matrix.DataTable.SetValue("Rate", rowIndex, rs.Fields.Item("U_Rate").Value);
-                    matrix.DataTable.SetValue("LastUpdate", rowIndex, rs.Fields.Item("U_LastUpdate").Value);
-                    matrix.DataTable.SetValue("Source", rowIndex, rs.Fields.Item("U_Source").Value);
-                    matrix.DataTable.SetValue("Active", rowIndex, rs.Fields.Item("U_Active").Value);
+                    matrix.DataTable.SetValue("FromCurrency", rowIndex, B1TuneUp.Utils.SapUiSafe.SafeFieldValue(rs, "U_FromCurr"));
+                    matrix.DataTable.SetValue("ToCurrency", rowIndex, B1TuneUp.Utils.SapUiSafe.SafeFieldValue(rs, "U_ToCurr"));
+                    matrix.DataTable.SetValue("Rate", rowIndex, B1TuneUp.Utils.SapUiSafe.SafeFieldValue(rs, "U_Rate"));
+                    matrix.DataTable.SetValue("LastUpdate", rowIndex, B1TuneUp.Utils.SapUiSafe.SafeFieldValue(rs, "U_LastUpdate"));
+                    matrix.DataTable.SetValue("Source", rowIndex, B1TuneUp.Utils.SapUiSafe.SafeFieldValue(rs, "U_Source"));
+                    matrix.DataTable.SetValue("Active", rowIndex, B1TuneUp.Utils.SapUiSafe.SafeFieldValue(rs, "U_Active"));
 
                     rs.MoveNext();
                 }
@@ -227,7 +227,7 @@ namespace B1TuneUp.Modules
                     "SELECT U_Value FROM [@BTUN_TBOX] WHERE U_Code = 'EXCH_SOURCE'";
 
                 rs.DoQuery(configSql);
-                string dataSource = rs.RecordCount > 0 ? rs.Fields.Item("U_Value").Value.ToString() : "ECB";
+                string dataSource = rs.RecordCount > 0 ? B1TuneUp.Utils.SapUiSafe.SafeField(rs, "U_Value") : "ECB";
                 ComObjectManager.Release(rs);
 
                 // Get currencies to update
@@ -242,7 +242,8 @@ namespace B1TuneUp.Modules
                     UpdateDatabaseWithRates(rates);
 
                     // Reload the grid
-                    SAPbouiCOM.Grid matrix = (SAPbouiCOM.Grid)oForm.Items.Item("ExchgMatrix").Specific;
+                    SAPbouiCOM.Grid matrix = SapUiSafe.TryGetSpecific<SAPbouiCOM.Grid>(oForm, "ExchgMatrix");
+                    if (matrix == null) return;
                     LoadExchangeRates(matrix);
 
                     B1App.Instance.Application.SetStatusBarMessage("Exchange rates updated successfully", BoMessageTime.bmt_Short, false);
@@ -272,7 +273,7 @@ namespace B1TuneUp.Modules
 
                 while (!rs.EoF)
                 {
-                    string currency = rs.Fields.Item("CurrencyCode").Value.ToString();
+                    string currency = B1TuneUp.Utils.SapUiSafe.SafeField(rs, "CurrencyCode");
                     if (!string.IsNullOrEmpty(currency))
                     {
                         currencies.Add(currency);
@@ -385,9 +386,9 @@ namespace B1TuneUp.Modules
 
                 while (!rs.EoF)
                 {
-                    string fromCurr = rs.Fields.Item("U_FromCurr").Value.ToString();
-                    string toCurr = rs.Fields.Item("U_ToCurr").Value.ToString();
-                    double rate = Convert.ToDouble(rs.Fields.Item("U_Rate").Value);
+                    string fromCurr = B1TuneUp.Utils.SapUiSafe.SafeField(rs, "U_FromCurr");
+                    string toCurr = B1TuneUp.Utils.SapUiSafe.SafeField(rs, "U_ToCurr");
+                    double rate = Convert.ToDouble(B1TuneUp.Utils.SapUiSafe.SafeFieldValue(rs, "U_Rate"));
 
                     rates[$"{fromCurr}-{toCurr}"] = rate;
 
@@ -438,7 +439,7 @@ namespace B1TuneUp.Modules
                         int cnt = 0;
                         if (!checkRs.EoF)
                         {
-                            try { cnt = Convert.ToInt32(checkRs.Fields.Item("CNT").Value); } catch { cnt = 0; }
+                            try { cnt = Convert.ToInt32(B1TuneUp.Utils.SapUiSafe.SafeFieldValue(checkRs, "CNT")); } catch { cnt = 0; }
                         }
 
                         if (cnt == 0)
@@ -479,9 +480,9 @@ namespace B1TuneUp.Modules
 
                 while (!rs.EoF)
                 {
-                    string fromCurrency = rs.Fields.Item("U_FromCurr").Value.ToString();
-                    string toCurrency = rs.Fields.Item("U_ToCurr").Value.ToString();
-                    double rate = Convert.ToDouble(rs.Fields.Item("U_Rate").Value);
+                    string fromCurrency = B1TuneUp.Utils.SapUiSafe.SafeField(rs, "U_FromCurr");
+                    string toCurrency = B1TuneUp.Utils.SapUiSafe.SafeField(rs, "U_ToCurr");
+                    double rate = Convert.ToDouble(B1TuneUp.Utils.SapUiSafe.SafeFieldValue(rs, "U_Rate"));
 
                     // Update SAP's currency rate
                     bool success = UpdateSAPCurrencyRate(fromCurrency, toCurrency, rate);
@@ -556,28 +557,28 @@ namespace B1TuneUp.Modules
             fromLabel.Left = 20;
             fromLabel.Width = 100;
             fromLabel.Height = 20;
-            ((SAPbouiCOM.StaticText)fromLabel.Specific).Caption = "From Currency:";
+            SapUiSafe.TrySetCaption(fromLabel, "From Currency:");
 
             Item toLabel = manForm.Items.Add("LblTo", BoFormItemTypes.it_STATIC);
             toLabel.Top = 50;
             toLabel.Left = 20;
             toLabel.Width = 100;
             toLabel.Height = 20;
-            ((SAPbouiCOM.StaticText)toLabel.Specific).Caption = "To Currency:";
+            SapUiSafe.TrySetCaption(toLabel, "To Currency:");
 
             Item rateLabel = manForm.Items.Add("LblRate", BoFormItemTypes.it_STATIC);
             rateLabel.Top = 80;
             rateLabel.Left = 20;
             rateLabel.Width = 100;
             rateLabel.Height = 20;
-            ((SAPbouiCOM.StaticText)rateLabel.Specific).Caption = "Rate:";
+            SapUiSafe.TrySetCaption(rateLabel, "Rate:");
 
             Item descLabel = manForm.Items.Add("LblDesc", BoFormItemTypes.it_STATIC);
             descLabel.Top = 110;
             descLabel.Left = 20;
             descLabel.Width = 100;
             descLabel.Height = 20;
-            ((SAPbouiCOM.StaticText)descLabel.Specific).Caption = "Description:";
+            SapUiSafe.TrySetCaption(descLabel, "Description:");
 
             // Input fields
             Item fromCombo = manForm.Items.Add("CmbFrom", BoFormItemTypes.it_COMBO_BOX);
@@ -585,14 +586,14 @@ namespace B1TuneUp.Modules
             fromCombo.Left = 130;
             fromCombo.Width = 100;
             fromCombo.Height = 20;
-            SAPbouiCOM.ComboBox cmbFrom = (SAPbouiCOM.ComboBox)fromCombo.Specific;
+            SAPbouiCOM.ComboBox cmbFrom = SapUiSafe.TryGetSpecific<SAPbouiCOM.ComboBox>(fromCombo);
 
             Item toCombo = manForm.Items.Add("CmbTo", BoFormItemTypes.it_COMBO_BOX);
             toCombo.Top = 50;
             toCombo.Left = 130;
             toCombo.Width = 100;
             toCombo.Height = 20;
-            SAPbouiCOM.ComboBox cmbTo = (SAPbouiCOM.ComboBox)toCombo.Specific;
+            SAPbouiCOM.ComboBox cmbTo = SapUiSafe.TryGetSpecific<SAPbouiCOM.ComboBox>(toCombo);
 
             Item rateEdit = manForm.Items.Add("EdtRate", BoFormItemTypes.it_EDIT);
             rateEdit.Top = 80;
@@ -616,14 +617,14 @@ namespace B1TuneUp.Modules
             saveButton.Left = 20;
             saveButton.Width = 80;
             saveButton.Height = 25;
-            ((SAPbouiCOM.Button)saveButton.Specific).Caption = "Save";
+            SapUiSafe.TrySetCaption(saveButton, "Save");
 
             Item cancelButton = manForm.Items.Add("BtnCancel", BoFormItemTypes.it_BUTTON);
             cancelButton.Top = 150;
             cancelButton.Left = 110;
             cancelButton.Width = 80;
             cancelButton.Height = 25;
-            ((SAPbouiCOM.Button)cancelButton.Specific).Caption = "Cancel";
+            SapUiSafe.TrySetCaption(cancelButton, "Cancel");
         }
 
         private static void LoadCurrenciesIntoCombo(SAPbouiCOM.ComboBox combo)
@@ -639,7 +640,7 @@ namespace B1TuneUp.Modules
 
                 while (!rs.EoF)
                 {
-                    string currency = rs.Fields.Item("CurrencyCode").Value.ToString();
+                    string currency = B1TuneUp.Utils.SapUiSafe.SafeField(rs, "CurrencyCode");
                     if (!string.IsNullOrEmpty(currency))
                     {
                         combo.ValidValues.Add(currency, currency);
@@ -664,10 +665,10 @@ namespace B1TuneUp.Modules
         {
             try
             {
-                string fromCurrency = ((SAPbouiCOM.ComboBox)manForm.Items.Item("CmbFrom").Specific).Selected.Value;
-                string toCurrency = ((SAPbouiCOM.ComboBox)manForm.Items.Item("CmbTo").Specific).Selected.Value;
-                string rateStr = ((SAPbouiCOM.EditText)manForm.Items.Item("EdtRate").Specific).Value;
-                string description = ((SAPbouiCOM.EditText)manForm.Items.Item("EdtDesc").Specific).Value;
+                string fromCurrency = SapUiSafe.SafeComboValue(SapUiSafe.TryGetSpecific<SAPbouiCOM.ComboBox>(manForm, "CmbFrom"));
+                string toCurrency = SapUiSafe.SafeComboValue(SapUiSafe.TryGetSpecific<SAPbouiCOM.ComboBox>(manForm, "CmbTo"));
+                string rateStr = SapUiSafe.TryGetSpecific<SAPbouiCOM.EditText>(manForm, "EdtRate")?.Value ?? string.Empty;
+                string description = SapUiSafe.TryGetSpecific<SAPbouiCOM.EditText>(manForm, "EdtDesc")?.Value ?? string.Empty;
 
                 if (string.IsNullOrEmpty(rateStr))
                 {
@@ -697,7 +698,8 @@ namespace B1TuneUp.Modules
                 manForm.Close();
 
                 // Refresh parent form
-                Grid matrix = (Grid)parentForm.Items.Item("ExchgMatrix").Specific;
+                Grid matrix = SapUiSafe.TryGetSpecific<Grid>(parentForm, "ExchgMatrix");
+                if (matrix == null) return;
                 LoadExchangeRates(matrix);
 
                 ComObjectManager.Release(rs);
@@ -783,7 +785,7 @@ namespace B1TuneUp.Modules
                     "SELECT U_Value FROM [@BTUN_TBOX] WHERE U_Code = 'EXCH_SOURCE'";
 
                 rs.DoQuery(configSql);
-                string dataSource = rs.RecordCount > 0 ? rs.Fields.Item("U_Value").Value.ToString() : "ECB";
+                string dataSource = rs.RecordCount > 0 ? B1TuneUp.Utils.SapUiSafe.SafeField(rs, "U_Value") : "ECB";
                 ComObjectManager.Release(rs);
 
                 // Get currencies to update

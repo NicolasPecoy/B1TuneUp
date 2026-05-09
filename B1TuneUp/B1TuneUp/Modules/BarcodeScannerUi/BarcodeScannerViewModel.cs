@@ -4,6 +4,7 @@ using System.Runtime.CompilerServices;
 using SAPbouiCOM;
 using B1TuneUp.Core;
 using B1TuneUp.Modules.IntegrationUi;
+using B1TuneUp.Utils;
 
 namespace B1TuneUp.Modules.BarcodeScannerUi
 {
@@ -59,19 +60,19 @@ namespace B1TuneUp.Modules.BarcodeScannerUi
         {
             try
             {
-                var form = B1App.Instance?.Application?.Forms?.ActiveForm;
+                var form = SapUiSafe.TryGetActiveForm();
                 if (form == null)
                 {
                     StatusMessage = "No hay formulario activo.";
                     return;
                 }
-                if (!form.Items.Exists(TargetItemId))
+                var item = SapUiSafe.TryGetItem(form, TargetItemId);
+                if (item == null)
                 {
                     StatusMessage = $"El item {TargetItemId} no existe.";
                     return;
                 }
-                var item = form.Items.Item(TargetItemId);
-                if (item.Specific is EditText editText)
+                if (SapUiSafe.TryGetSpecific<EditText>(item) is EditText editText)
                 {
                     editText.Value = ScannedValue ?? string.Empty;
                     StatusMessage = "Valor insertado en el campo.";

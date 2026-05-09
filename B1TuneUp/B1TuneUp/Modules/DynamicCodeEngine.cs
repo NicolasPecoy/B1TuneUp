@@ -1,4 +1,4 @@
-Ôªøusing System;
+using System;
 using System.CodeDom.Compiler;
 using System.Reflection;
 using Microsoft.CSharp;
@@ -24,13 +24,13 @@ namespace B1TuneUp.Modules
                 rs.DoQuery(sql);
                 if (rs.RecordCount > 0)
                 {
-                    string source = rs.Fields.Item(0).Value.ToString();
+                    string source = B1TuneUp.Utils.SapUiSafe.SafeField(rs, 0);
                     Execute(source, oForm);
                 }
             }
             catch (Exception ex)
             {
-                B1App.Instance.Application.SetStatusBarMessage($"Error cargando c√≥digo din√°mico {codeName}: {ex.Message}", BoMessageTime.bmt_Short, true);
+                B1App.Instance.Application.SetStatusBarMessage($"Error cargando cÛdigo din·mico {codeName}: {ex.Message}", BoMessageTime.bmt_Short, true);
             }
             finally
             {
@@ -43,7 +43,7 @@ namespace B1TuneUp.Modules
             CSharpCodeProvider provider = new CSharpCodeProvider();
             CompilerParameters parameters = new CompilerParameters();
 
-            // Referencias b√°sicas necesarias
+            // Referencias b·sicas necesarias
             parameters.ReferencedAssemblies.Add("System.dll");
             parameters.ReferencedAssemblies.Add("System.Core.dll");
             parameters.ReferencedAssemblies.Add("System.Data.dll");
@@ -75,10 +75,10 @@ namespace B1TuneUp.Modules
 
             if (results.Errors.HasErrors)
             {
-                string errors = "Errores de compilaci√≥n C#:\n";
+                string errors = "Errores de compilaciÛn C#:\n";
                 foreach (CompilerError err in results.Errors)
                 {
-                    errors += $"L√≠nea {err.Line}: {err.ErrorText}\n";
+                    errors += $"LÌnea {err.Line}: {err.ErrorText}\n";
                 }
                 B1App.Instance.Application.MessageBox(errors);
                 return;

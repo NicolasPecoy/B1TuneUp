@@ -29,23 +29,25 @@ namespace B1TuneUp.Modules
         /// </summary>
         public static void AddQuickCopyButtons(Form oForm)
         {
+            if (oForm == null) return;
             Recordset rs = (Recordset)B1App.Instance.Company.GetBusinessObject(BoObjectTypes.BoRecordset);
             try
             {
+                string safeFormType = (oForm.TypeEx ?? string.Empty).Replace("'", "''");
                 string sql = B1App.Instance.IsHana
-                    ? $"SELECT * FROM \"@BTUN_QCOPY\" WHERE \"U_SrcFormType\" = '{oForm.TypeEx}' AND \"U_Active\" = 'Y' ORDER BY \"Code\""
-                    : $"SELECT * FROM [@BTUN_QCOPY] WHERE [U_SrcFormType] = '{oForm.TypeEx}' AND [U_Active] = 'Y' ORDER BY [Code]";
+                    ? $"SELECT * FROM \"@BTUN_QCOPY\" WHERE \"U_SrcFormType\" = '{safeFormType}' AND \"U_Active\" = 'Y' ORDER BY \"Code\""
+                    : $"SELECT * FROM [@BTUN_QCOPY] WHERE [U_SrcFormType] = '{safeFormType}' AND [U_Active] = 'Y' ORDER BY [Code]";
 
                 rs.DoQuery(sql);
                 int idx = 0;
 
                 while (!rs.EoF)
                 {
-                    string docEntry  = rs.Fields.Item("Code").Value.ToString();
-                    string srcObj    = rs.Fields.Item("U_SrcObjType").Value.ToString();
-                    string tgtObj    = rs.Fields.Item("U_TgtObjType").Value.ToString();
-                    string btnLabel  = rs.Fields.Item("U_BtnLabel").Value.ToString();
-                    string postMacro = rs.Fields.Item("U_PostMacro").Value.ToString();
+                    string docEntry  = SapUiSafe.SafeField(rs, "Code");
+                    string srcObj    = SapUiSafe.SafeField(rs, "U_SrcObjType");
+                    string tgtObj    = SapUiSafe.SafeField(rs, "U_TgtObjType");
+                    string btnLabel  = SapUiSafe.SafeField(rs, "U_BtnLabel");
+                    string postMacro = SapUiSafe.SafeField(rs, "U_PostMacro");
 
                     string btnUID = BtnPrefix + docEntry.PadLeft(4, '0');
 
@@ -60,7 +62,8 @@ namespace B1TuneUp.Modules
                             btn.Height   = 19;
                             btn.FromPane = 1;
                             btn.ToPane   = 1;
-                            ((SAPbouiCOM.Button)btn.Specific).Caption = btnLabel;
+                            var button = SapUiSafe.TryGetSpecific<SAPbouiCOM.Button>(btn);
+                            if (button != null) button.Caption = btnLabel;
                         }
 
                         _btnMap[oForm.UniqueID + "|" + btnUID] = (srcObj, tgtObj, postMacro);
@@ -238,8 +241,7 @@ namespace B1TuneUp.Modules
 
         private static bool ItemExists(Form oForm, string itemUID)
         {
-            try { var _ = oForm.Items.Item(itemUID); return true; }
-            catch { return false; }
+            return SapUiSafe.TryGetItem(oForm, itemUID) != null;
         }
 
         private static bool IsMarketingDocumentType(BoObjectTypes type)

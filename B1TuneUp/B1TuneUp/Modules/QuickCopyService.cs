@@ -26,13 +26,13 @@ namespace B1TuneUp.Modules
                 {
                     list.Add(new QuickCopyEntry
                     {
-                        DocEntry = Convert.ToInt32(rs.Fields.Item(0).Value),
-                        SourceFormType = rs.Fields.Item(1).Value?.ToString() ?? string.Empty,
-                        SourceObjectType = rs.Fields.Item(2).Value?.ToString() ?? string.Empty,
-                        TargetObjectType = rs.Fields.Item(3).Value?.ToString() ?? string.Empty,
-                        ButtonLabel = rs.Fields.Item(4).Value?.ToString() ?? string.Empty,
-                        PostMacro = rs.Fields.Item(5).Value?.ToString() ?? string.Empty,
-                        Active = (rs.Fields.Item(6).Value?.ToString() ?? "Y").Equals("Y", StringComparison.OrdinalIgnoreCase)
+                        DocEntry = Convert.ToInt32(B1TuneUp.Utils.SapUiSafe.SafeFieldValue(rs, 0)),
+                        SourceFormType = B1TuneUp.Utils.SapUiSafe.SafeField(rs, 1),
+                        SourceObjectType = B1TuneUp.Utils.SapUiSafe.SafeField(rs, 2),
+                        TargetObjectType = B1TuneUp.Utils.SapUiSafe.SafeField(rs, 3),
+                        ButtonLabel = B1TuneUp.Utils.SapUiSafe.SafeField(rs, 4),
+                        PostMacro = B1TuneUp.Utils.SapUiSafe.SafeField(rs, 5),
+                        Active = (B1TuneUp.Utils.SapUiSafe.SafeField(rs, 6) ?? "Y").Equals("Y", StringComparison.OrdinalIgnoreCase)
                     });
                     rs.MoveNext();
                 }

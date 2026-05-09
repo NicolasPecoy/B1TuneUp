@@ -46,7 +46,7 @@ namespace B1TuneUp.Modules
             matrixItem.Width = 970;
             matrixItem.Height = 300;
 
-            SAPbouiCOM.Grid matrix = (SAPbouiCOM.Grid)matrixItem.Specific;
+            SAPbouiCOM.Grid matrix = SapUiSafe.TryGetSpecific<SAPbouiCOM.Grid>(matrixItem);
 
             // Add columns to the matrix via the grid datatable
             matrix.DataTable.Columns.Add("Name", SAPbouiCOM.BoFieldsType.ft_AlphaNumeric);
@@ -71,49 +71,49 @@ namespace B1TuneUp.Modules
             addButton.Left = 10;
             addButton.Width = 80;
             addButton.Height = 25;
-            ((SAPbouiCOM.Button)addButton.Specific).Caption = "Add";
+            SapUiSafe.TrySetCaption(addButton, "Add");
 
             Item editButton = oForm.Items.Add("BtnEdit", BoFormItemTypes.it_BUTTON);
             editButton.Top = 320;
             editButton.Left = 100;
             editButton.Width = 80;
             editButton.Height = 25;
-            ((SAPbouiCOM.Button)editButton.Specific).Caption = "Edit";
+            SapUiSafe.TrySetCaption(editButton, "Edit");
 
             Item deleteButton = oForm.Items.Add("BtnDelete", BoFormItemTypes.it_BUTTON);
             deleteButton.Top = 320;
             deleteButton.Left = 190;
             deleteButton.Width = 80;
             deleteButton.Height = 25;
-            ((SAPbouiCOM.Button)deleteButton.Specific).Caption = "Delete";
+            SapUiSafe.TrySetCaption(deleteButton, "Delete");
 
             Item executeButton = oForm.Items.Add("BtnExecute", BoFormItemTypes.it_BUTTON);
             executeButton.Top = 320;
             executeButton.Left = 280;
             executeButton.Width = 100;
             executeButton.Height = 25;
-            ((SAPbouiCOM.Button)executeButton.Specific).Caption = "Execute Now";
+            SapUiSafe.TrySetCaption(executeButton, "Execute Now");
 
             Item previewButton = oForm.Items.Add("BtnPreview", BoFormItemTypes.it_BUTTON);
             previewButton.Top = 320;
             previewButton.Left = 390;
             previewButton.Width = 100;
             previewButton.Height = 25;
-            ((SAPbouiCOM.Button)previewButton.Specific).Caption = "Preview";
+            SapUiSafe.TrySetCaption(previewButton, "Preview");
 
             Item activateButton = oForm.Items.Add("BtnActivate", BoFormItemTypes.it_BUTTON);
             activateButton.Top = 320;
             activateButton.Left = 500;
             activateButton.Width = 100;
             activateButton.Height = 25;
-            ((SAPbouiCOM.Button)activateButton.Specific).Caption = "Toggle Active";
+            SapUiSafe.TrySetCaption(activateButton, "Toggle Active");
 
             Item closeButton = oForm.Items.Add("BtnClose", BoFormItemTypes.it_BUTTON);
             closeButton.Top = 320;
             closeButton.Left = 900;
             closeButton.Width = 80;
             closeButton.Height = 25;
-            ((SAPbouiCOM.Button)closeButton.Specific).Caption = "Close";
+            SapUiSafe.TrySetCaption(closeButton, "Close");
 
             // Document processing options
             Item processLabel = oForm.Items.Add("LblProcess", BoFormItemTypes.it_STATIC);
@@ -121,21 +121,21 @@ namespace B1TuneUp.Modules
             processLabel.Left = 10;
             processLabel.Width = 200;
             processLabel.Height = 20;
-            ((SAPbouiCOM.StaticText)processLabel.Specific).Caption = "Document Processing:";
+            SapUiSafe.TrySetCaption(processLabel, "Document Processing:");
 
             Item docTypeLabel = oForm.Items.Add("LblDocType", BoFormItemTypes.it_STATIC);
             docTypeLabel.Top = 390;
             docTypeLabel.Left = 10;
             docTypeLabel.Width = 100;
             docTypeLabel.Height = 20;
-            ((SAPbouiCOM.StaticText)docTypeLabel.Specific).Caption = "Document Type:";
+            SapUiSafe.TrySetCaption(docTypeLabel, "Document Type:");
 
             Item docTypeCombo = oForm.Items.Add("CmbDocType", BoFormItemTypes.it_COMBO_BOX);
             docTypeCombo.Top = 390;
             docTypeCombo.Left = 120;
             docTypeCombo.Width = 150;
             docTypeCombo.Height = 20;
-            SAPbouiCOM.ComboBox cmbDocType = (SAPbouiCOM.ComboBox)docTypeCombo.Specific;
+            SAPbouiCOM.ComboBox cmbDocType = SapUiSafe.TryGetSpecific<SAPbouiCOM.ComboBox>(docTypeCombo);
             cmbDocType.ValidValues.Add("17", "Sales Invoice (17)");
             cmbDocType.ValidValues.Add("13", "Sales Order (13)");
             cmbDocType.ValidValues.Add("14", "Delivery (14)");
@@ -150,14 +150,14 @@ namespace B1TuneUp.Modules
             actionTypeLabel.Left = 290;
             actionTypeLabel.Width = 100;
             actionTypeLabel.Height = 20;
-            ((SAPbouiCOM.StaticText)actionTypeLabel.Specific).Caption = "Action Type:";
+            SapUiSafe.TrySetCaption(actionTypeLabel, "Action Type:");
 
             Item actionTypeCombo = oForm.Items.Add("CmbActionType", BoFormItemTypes.it_COMBO_BOX);
             actionTypeCombo.Top = 390;
             actionTypeCombo.Left = 400;
             actionTypeCombo.Width = 150;
             actionTypeCombo.Height = 20;
-            SAPbouiCOM.ComboBox cmbActionType = (SAPbouiCOM.ComboBox)actionTypeCombo.Specific;
+            SAPbouiCOM.ComboBox cmbActionType = SapUiSafe.TryGetSpecific<SAPbouiCOM.ComboBox>(actionTypeCombo);
             cmbActionType.ValidValues.Add("EMAIL", "Email");
             cmbActionType.ValidValues.Add("PRINT", "Print");
             cmbActionType.ValidValues.Add("SAVE", "Save to Folder");
@@ -170,14 +170,14 @@ namespace B1TuneUp.Modules
             triggerLabel.Left = 10;
             triggerLabel.Width = 100;
             triggerLabel.Height = 20;
-            ((SAPbouiCOM.StaticText)triggerLabel.Specific).Caption = "Trigger Event:";
+            SapUiSafe.TrySetCaption(triggerLabel, "Trigger Event:");
 
             Item triggerCombo = oForm.Items.Add("CmbTrigger", BoFormItemTypes.it_COMBO_BOX);
             triggerCombo.Top = 420;
             triggerCombo.Left = 120;
             triggerCombo.Width = 150;
             triggerCombo.Height = 20;
-            SAPbouiCOM.ComboBox cmbTrigger = (SAPbouiCOM.ComboBox)triggerCombo.Specific;
+            SAPbouiCOM.ComboBox cmbTrigger = SapUiSafe.TryGetSpecific<SAPbouiCOM.ComboBox>(triggerCombo);
             cmbTrigger.ValidValues.Add("DOC_ADD", "Document Added");
             cmbTrigger.ValidValues.Add("DOC_UPDATE", "Document Updated");
             cmbTrigger.ValidValues.Add("DOC_APPROVE", "Document Approved");
@@ -190,7 +190,7 @@ namespace B1TuneUp.Modules
             processButton.Left = 300;
             processButton.Width = 120;
             processButton.Height = 25;
-            ((SAPbouiCOM.Button)processButton.Specific).Caption = "Process Documents";
+            SapUiSafe.TrySetCaption(processButton, "Process Documents");
 
             // Batch processing section
             Item batchLabel = oForm.Items.Add("LblBatch", BoFormItemTypes.it_STATIC);
@@ -198,42 +198,42 @@ namespace B1TuneUp.Modules
             batchLabel.Left = 10;
             batchLabel.Width = 200;
             batchLabel.Height = 20;
-            ((SAPbouiCOM.StaticText)batchLabel.Specific).Caption = "Batch Processing:";
+            SapUiSafe.TrySetCaption(batchLabel, "Batch Processing:");
 
             Item dateFromLabel = oForm.Items.Add("LblDateFrom", BoFormItemTypes.it_STATIC);
             dateFromLabel.Top = 490;
             dateFromLabel.Left = 10;
             dateFromLabel.Width = 80;
             dateFromLabel.Height = 20;
-            ((SAPbouiCOM.StaticText)dateFromLabel.Specific).Caption = "Date From:";
+            SapUiSafe.TrySetCaption(dateFromLabel, "Date From:");
 
             Item dateFromEdit = oForm.Items.Add("EdtDateFrom", BoFormItemTypes.it_EDIT);
             dateFromEdit.Top = 490;
             dateFromEdit.Left = 100;
             dateFromEdit.Width = 100;
             dateFromEdit.Height = 20;
-            ((SAPbouiCOM.EditText)dateFromEdit.Specific).Value = DateTime.Today.AddDays(-7).ToString("yyyyMMdd"); // Default to 7 days ago
+            SapUiSafe.TrySetEditValue(dateFromEdit, DateTime.Today.AddDays(-7).ToString("yyyyMMdd")); // Default to 7 days ago
 
             Item dateToLabel = oForm.Items.Add("LblDateTo", BoFormItemTypes.it_STATIC);
             dateToLabel.Top = 490;
             dateToLabel.Left = 220;
             dateToLabel.Width = 80;
             dateToLabel.Height = 20;
-            ((SAPbouiCOM.StaticText)dateToLabel.Specific).Caption = "Date To:";
+            SapUiSafe.TrySetCaption(dateToLabel, "Date To:");
 
             Item dateToEdit = oForm.Items.Add("EdtDateTo", BoFormItemTypes.it_EDIT);
             dateToEdit.Top = 490;
             dateToEdit.Left = 310;
             dateToEdit.Width = 100;
             dateToEdit.Height = 20;
-            ((SAPbouiCOM.EditText)dateToEdit.Specific).Value = DateTime.Today.ToString("yyyyMMdd"); // Default to today
+            SapUiSafe.TrySetEditValue(dateToEdit, DateTime.Today.ToString("yyyyMMdd")); // Default to today
 
             Item batchProcessButton = oForm.Items.Add("BtnBatchProcess", BoFormItemTypes.it_BUTTON);
             batchProcessButton.Top = 485;
             batchProcessButton.Left = 430;
             batchProcessButton.Width = 120;
             batchProcessButton.Height = 25;
-            ((SAPbouiCOM.Button)batchProcessButton.Specific).Caption = "Batch Process";
+            SapUiSafe.TrySetCaption(batchProcessButton, "Batch Process");
 
             // Load existing print delivery configurations
             LoadPrintDeliveryConfigs(matrix);
@@ -257,11 +257,11 @@ namespace B1TuneUp.Modules
                     matrix.DataTable.Rows.Add();
                     int rowIndex = matrix.DataTable.Rows.Count - 1;
 
-                    matrix.DataTable.SetValue("Name", rowIndex, rs.Fields.Item("U_Name").Value);
-                    matrix.DataTable.SetValue("DocType", rowIndex, rs.Fields.Item("U_DocType").Value);
-                    matrix.DataTable.SetValue("Trigger", rowIndex, rs.Fields.Item("U_Trigger").Value);
-                    matrix.DataTable.SetValue("Action", rowIndex, rs.Fields.Item("U_Action").Value);
-                    matrix.DataTable.SetValue("Active", rowIndex, rs.Fields.Item("U_Active").Value);
+                    matrix.DataTable.SetValue("Name", rowIndex, B1TuneUp.Utils.SapUiSafe.SafeFieldValue(rs, "U_Name"));
+                    matrix.DataTable.SetValue("DocType", rowIndex, B1TuneUp.Utils.SapUiSafe.SafeFieldValue(rs, "U_DocType"));
+                    matrix.DataTable.SetValue("Trigger", rowIndex, B1TuneUp.Utils.SapUiSafe.SafeFieldValue(rs, "U_Trigger"));
+                    matrix.DataTable.SetValue("Action", rowIndex, B1TuneUp.Utils.SapUiSafe.SafeFieldValue(rs, "U_Action"));
+                    matrix.DataTable.SetValue("Active", rowIndex, B1TuneUp.Utils.SapUiSafe.SafeFieldValue(rs, "U_Active"));
 
                     rs.MoveNext();
                 }
@@ -306,77 +306,77 @@ namespace B1TuneUp.Modules
             nameLabel.Left = 20;
             nameLabel.Width = 150;
             nameLabel.Height = 20;
-            ((SAPbouiCOM.StaticText)nameLabel.Specific).Caption = "Configuration Name:";
+            SapUiSafe.TrySetCaption(nameLabel, "Configuration Name:");
 
             Item docTypeLabel = oForm.Items.Add("LblDocType", BoFormItemTypes.it_STATIC);
             docTypeLabel.Top = 50;
             docTypeLabel.Left = 20;
             docTypeLabel.Width = 150;
             docTypeLabel.Height = 20;
-            ((SAPbouiCOM.StaticText)docTypeLabel.Specific).Caption = "Document Type:";
+            SapUiSafe.TrySetCaption(docTypeLabel, "Document Type:");
 
             Item triggerLabel = oForm.Items.Add("LblTrigger", BoFormItemTypes.it_STATIC);
             triggerLabel.Top = 80;
             triggerLabel.Left = 20;
             triggerLabel.Width = 150;
             triggerLabel.Height = 20;
-            ((SAPbouiCOM.StaticText)triggerLabel.Specific).Caption = "Trigger Event:";
+            SapUiSafe.TrySetCaption(triggerLabel, "Trigger Event:");
 
             Item actionLabel = oForm.Items.Add("LblAction", BoFormItemTypes.it_STATIC);
             actionLabel.Top = 110;
             actionLabel.Left = 20;
             actionLabel.Width = 150;
             actionLabel.Height = 20;
-            ((SAPbouiCOM.StaticText)actionLabel.Specific).Caption = "Action to Perform:";
+            SapUiSafe.TrySetCaption(actionLabel, "Action to Perform:");
 
             Item emailConfigLabel = oForm.Items.Add("LblEmailConfig", BoFormItemTypes.it_STATIC);
             emailConfigLabel.Top = 140;
             emailConfigLabel.Left = 20;
             emailConfigLabel.Width = 150;
             emailConfigLabel.Height = 20;
-            ((SAPbouiCOM.StaticText)emailConfigLabel.Specific).Caption = "Email Configuration:";
+            SapUiSafe.TrySetCaption(emailConfigLabel, "Email Configuration:");
 
             Item subjectLabel = oForm.Items.Add("LblSubject", BoFormItemTypes.it_STATIC);
             subjectLabel.Top = 170;
             subjectLabel.Left = 20;
             subjectLabel.Width = 150;
             subjectLabel.Height = 20;
-            ((SAPbouiCOM.StaticText)subjectLabel.Specific).Caption = "Email Subject:";
+            SapUiSafe.TrySetCaption(subjectLabel, "Email Subject:");
 
             Item bodyLabel = oForm.Items.Add("LblBody", BoFormItemTypes.it_STATIC);
             bodyLabel.Top = 200;
             bodyLabel.Left = 20;
             bodyLabel.Width = 150;
             bodyLabel.Height = 20;
-            ((SAPbouiCOM.StaticText)bodyLabel.Specific).Caption = "Email Body:";
+            SapUiSafe.TrySetCaption(bodyLabel, "Email Body:");
 
             Item attachmentLabel = oForm.Items.Add("LblAttachment", BoFormItemTypes.it_STATIC);
             attachmentLabel.Top = 350;
             attachmentLabel.Left = 20;
             attachmentLabel.Width = 150;
             attachmentLabel.Height = 20;
-            ((SAPbouiCOM.StaticText)attachmentLabel.Specific).Caption = "Attachment Settings:";
+            SapUiSafe.TrySetCaption(attachmentLabel, "Attachment Settings:");
 
             Item printConfigLabel = oForm.Items.Add("LblPrintConfig", BoFormItemTypes.it_STATIC);
             printConfigLabel.Top = 420;
             printConfigLabel.Left = 20;
             printConfigLabel.Width = 150;
             printConfigLabel.Height = 20;
-            ((SAPbouiCOM.StaticText)printConfigLabel.Specific).Caption = "Print Configuration:";
+            SapUiSafe.TrySetCaption(printConfigLabel, "Print Configuration:");
 
             Item saveConfigLabel = oForm.Items.Add("LblSaveConfig", BoFormItemTypes.it_STATIC);
             saveConfigLabel.Top = 490;
             saveConfigLabel.Left = 20;
             saveConfigLabel.Width = 150;
             saveConfigLabel.Height = 20;
-            ((SAPbouiCOM.StaticText)saveConfigLabel.Specific).Caption = "Save Configuration:";
+            SapUiSafe.TrySetCaption(saveConfigLabel, "Save Configuration:");
 
             Item activeLabel = oForm.Items.Add("LblActive", BoFormItemTypes.it_STATIC);
             activeLabel.Top = 560;
             activeLabel.Left = 20;
             activeLabel.Width = 150;
             activeLabel.Height = 20;
-            ((SAPbouiCOM.StaticText)activeLabel.Specific).Caption = "Active:";
+            SapUiSafe.TrySetCaption(activeLabel, "Active:");
 
             // Input fields
             Item nameEdit = oForm.Items.Add("EdtName", BoFormItemTypes.it_EDIT);
@@ -390,7 +390,7 @@ namespace B1TuneUp.Modules
             docTypeCombo.Left = 180;
             docTypeCombo.Width = 150;
             docTypeCombo.Height = 20;
-            ComboBox cmbDocType = (ComboBox)docTypeCombo.Specific;
+            ComboBox cmbDocType = SapUiSafe.TryGetSpecific<ComboBox>(docTypeCombo);
             cmbDocType.ValidValues.Add("17", "Sales Invoice (17)");
             cmbDocType.ValidValues.Add("13", "Sales Order (13)");
             cmbDocType.ValidValues.Add("14", "Delivery (14)");
@@ -405,7 +405,7 @@ namespace B1TuneUp.Modules
             triggerCombo.Left = 180;
             triggerCombo.Width = 150;
             triggerCombo.Height = 20;
-            ComboBox cmbTrigger = (ComboBox)triggerCombo.Specific;
+            ComboBox cmbTrigger = SapUiSafe.TryGetSpecific<ComboBox>(triggerCombo);
             cmbTrigger.ValidValues.Add("DOC_ADD", "Document Added");
             cmbTrigger.ValidValues.Add("DOC_UPDATE", "Document Updated");
             cmbTrigger.ValidValues.Add("DOC_APPROVE", "Document Approved");
@@ -418,7 +418,7 @@ namespace B1TuneUp.Modules
             actionCombo.Left = 180;
             actionCombo.Width = 150;
             actionCombo.Height = 20;
-            ComboBox cmbAction = (ComboBox)actionCombo.Specific;
+            ComboBox cmbAction = SapUiSafe.TryGetSpecific<ComboBox>(actionCombo);
             cmbAction.ValidValues.Add("EMAIL", "Email");
             cmbAction.ValidValues.Add("PRINT", "Print");
             cmbAction.ValidValues.Add("SAVE", "Save to Folder");
@@ -431,7 +431,7 @@ namespace B1TuneUp.Modules
             subjectEdit.Left = 20;
             subjectEdit.Width = 760;
             subjectEdit.Height = 20;
-            ((SAPbouiCOM.EditText)subjectEdit.Specific).Value = "[[CardName]] - [[DocNum]] from [[Company Name]]";
+            SapUiSafe.TrySetEditValue(subjectEdit, "[[CardName]] - [[DocNum]] from [[Company Name]]");
 
             Item bodyEdit = oForm.Items.Add("EdtBody", BoFormItemTypes.it_EDIT);
             bodyEdit.Top = 200;
@@ -441,11 +441,11 @@ namespace B1TuneUp.Modules
             try
             {
                 // Some SDKs don't expose MultiLineEdit; use EditText value directly
-                ((SAPbouiCOM.EditText)bodyEdit.Specific).Value =
-                "Dear [[CardName]],\n\n" +
-                "Please find attached your [[Document Type]] #[[DocNum]] dated [[DocDate]].\n\n" +
-                "Total amount: [[DocTotal]]\n\n" +
-                "Best regards,\n[[Company Name]]";
+                SapUiSafe.TrySetEditValue(bodyEdit,
+                    "Dear [[CardName]],\n\n" +
+                    "Please find attached your [[Document Type]] #[[DocNum]] dated [[DocDate]].\n\n" +
+                    "Total amount: [[DocTotal]]\n\n" +
+                    "Best regards,\n[[Company Name]]");
             }
             catch { }
 
@@ -454,7 +454,7 @@ namespace B1TuneUp.Modules
             attachmentCombo.Left = 180;
             attachmentCombo.Width = 150;
             attachmentCombo.Height = 20;
-            ComboBox cmbAttachment = (ComboBox)attachmentCombo.Specific;
+            ComboBox cmbAttachment = SapUiSafe.TryGetSpecific<ComboBox>(attachmentCombo);
             cmbAttachment.ValidValues.Add("PDF", "PDF Document");
             cmbAttachment.ValidValues.Add("EXCEL", "Excel Export");
             cmbAttachment.ValidValues.Add("WORD", "Word Document");
@@ -466,21 +466,21 @@ namespace B1TuneUp.Modules
             printSetupEdit.Left = 180;
             printSetupEdit.Width = 250;
             printSetupEdit.Height = 20;
-            ((SAPbouiCOM.EditText)printSetupEdit.Specific).Value = "Default Printer";
+            SapUiSafe.TrySetEditValue(printSetupEdit, "Default Printer");
 
             Item savePathEdit = oForm.Items.Add("EdtSavePath", BoFormItemTypes.it_EDIT);
             savePathEdit.Top = 490;
             savePathEdit.Left = 180;
             savePathEdit.Width = 250;
             savePathEdit.Height = 20;
-            ((SAPbouiCOM.EditText)savePathEdit.Specific).Value = @"C:\B1Exports\PrintDelivery";
+            SapUiSafe.TrySetEditValue(savePathEdit, @"C:\B1Exports\PrintDelivery");
 
             Item activeCombo = oForm.Items.Add("CmbActive", BoFormItemTypes.it_COMBO_BOX);
             activeCombo.Top = 560;
             activeCombo.Left = 180;
             activeCombo.Width = 150;
             activeCombo.Height = 20;
-            ComboBox cmbActive = (ComboBox)activeCombo.Specific;
+            ComboBox cmbActive = SapUiSafe.TryGetSpecific<ComboBox>(activeCombo);
             cmbActive.ValidValues.Add("Y", "Yes");
             cmbActive.ValidValues.Add("N", "No");
             cmbActive.Select(0); // Default to Yes
@@ -491,37 +491,37 @@ namespace B1TuneUp.Modules
             saveButton.Left = 20;
             saveButton.Width = 80;
             saveButton.Height = 25;
-            ((SAPbouiCOM.Button)saveButton.Specific).Caption = "Save";
+            SapUiSafe.TrySetCaption(saveButton, "Save");
 
             Item testButton = oForm.Items.Add("BtnTest", BoFormItemTypes.it_BUTTON);
             testButton.Top = 600;
             testButton.Left = 110;
             testButton.Width = 80;
             testButton.Height = 25;
-            ((SAPbouiCOM.Button)testButton.Specific).Caption = "Test";
+            SapUiSafe.TrySetCaption(testButton, "Test");
 
             Item cancelButton = oForm.Items.Add("BtnCancel", BoFormItemTypes.it_BUTTON);
             cancelButton.Top = 600;
             cancelButton.Left = 200;
             cancelButton.Width = 80;
             cancelButton.Height = 25;
-            ((SAPbouiCOM.Button)cancelButton.Specific).Caption = "Cancel";
+            SapUiSafe.TrySetCaption(cancelButton, "Cancel");
         }
 
         private static void SavePrintDeliveryConfig(SAPbouiCOM.Form oForm, SAPbouiCOM.Form parentForm)
         {
             try
             {
-                string name = ((EditText)oForm.Items.Item("EdtName").Specific).Value;
-                string docType = ((ComboBox)oForm.Items.Item("CmbDocType").Specific).Selected.Value;
-                string trigger = ((ComboBox)oForm.Items.Item("CmbTrigger").Specific).Selected.Value;
-                string action = ((ComboBox)oForm.Items.Item("CmbAction").Specific).Selected.Value;
-                string subject = ((EditText)oForm.Items.Item("EdtSubject").Specific).Value;
-                string body = ((SAPbouiCOM.EditText)oForm.Items.Item("EdtBody").Specific).Value;
-                string attachment = ((ComboBox)oForm.Items.Item("CmbAttachment").Specific).Selected.Value;
-                string printSetup = ((EditText)oForm.Items.Item("EdtPrintSetup").Specific).Value;
-                string savePath = ((EditText)oForm.Items.Item("EdtSavePath").Specific).Value;
-                string active = ((ComboBox)oForm.Items.Item("CmbActive").Specific).Selected.Value;
+                string name = SapUiSafe.TryGetSpecific<EditText>(oForm, "EdtName")?.Value ?? string.Empty;
+                string docType = SapUiSafe.SafeComboValue(SapUiSafe.TryGetSpecific<ComboBox>(oForm, "CmbDocType"));
+                string trigger = SapUiSafe.SafeComboValue(SapUiSafe.TryGetSpecific<ComboBox>(oForm, "CmbTrigger"));
+                string action = SapUiSafe.SafeComboValue(SapUiSafe.TryGetSpecific<ComboBox>(oForm, "CmbAction"));
+                string subject = SapUiSafe.TryGetSpecific<EditText>(oForm, "EdtSubject")?.Value ?? string.Empty;
+                string body = SapUiSafe.TryGetSpecific<SAPbouiCOM.EditText>(oForm, "EdtBody")?.Value ?? string.Empty;
+                string attachment = SapUiSafe.SafeComboValue(SapUiSafe.TryGetSpecific<ComboBox>(oForm, "CmbAttachment"));
+                string printSetup = SapUiSafe.TryGetSpecific<EditText>(oForm, "EdtPrintSetup")?.Value ?? string.Empty;
+                string savePath = SapUiSafe.TryGetSpecific<EditText>(oForm, "EdtSavePath")?.Value ?? string.Empty;
+                string active = SapUiSafe.SafeComboValue(SapUiSafe.TryGetSpecific<ComboBox>(oForm, "CmbActive"));
 
                 // Validate required fields
                 if (string.IsNullOrEmpty(name))
@@ -545,7 +545,7 @@ namespace B1TuneUp.Modules
                 oForm.Close();
 
                 // Refresh the parent form
-                Grid matrix = (Grid)parentForm.Items.Item("PDMatrx").Specific;
+                Grid matrix = SapUiSafe.TryGetSpecific<Grid>(parentForm, "PDMatrx");
                 LoadPrintDeliveryConfigs(matrix);
 
                 ComObjectManager.Release(rs);
@@ -577,7 +577,7 @@ namespace B1TuneUp.Modules
         {
             try
             {
-                Grid matrix = (Grid)parentForm.Items.Item("PDMatrx").Specific;
+                Grid matrix = SapUiSafe.TryGetSpecific<Grid>(parentForm, "PDMatrx");
                 if (matrix.Rows.SelectedRows.Count > 0)
                 {
                     int selectedRow = matrix.Rows.SelectedRows.Item(0, SAPbouiCOM.BoOrderType.ot_SelectionOrder);
@@ -641,70 +641,70 @@ namespace B1TuneUp.Modules
                 nameLabel.Left = 20;
                 nameLabel.Width = 150;
                 nameLabel.Height = 20;
-                ((SAPbouiCOM.StaticText)nameLabel.Specific).Caption = "Configuration Name:";
+                SapUiSafe.TrySetCaption(nameLabel, "Configuration Name:");
 
                 Item docTypeLabel = oForm.Items.Add("LblDocType", BoFormItemTypes.it_STATIC);
                 docTypeLabel.Top = 50;
                 docTypeLabel.Left = 20;
                 docTypeLabel.Width = 150;
                 docTypeLabel.Height = 20;
-                ((SAPbouiCOM.StaticText)docTypeLabel.Specific).Caption = "Document Type:";
+                SapUiSafe.TrySetCaption(docTypeLabel, "Document Type:");
 
                 Item triggerLabel = oForm.Items.Add("LblTrigger", BoFormItemTypes.it_STATIC);
                 triggerLabel.Top = 80;
                 triggerLabel.Left = 20;
                 triggerLabel.Width = 150;
                 triggerLabel.Height = 20;
-                ((SAPbouiCOM.StaticText)triggerLabel.Specific).Caption = "Trigger Event:";
+                SapUiSafe.TrySetCaption(triggerLabel, "Trigger Event:");
 
                 Item actionLabel = oForm.Items.Add("LblAction", BoFormItemTypes.it_STATIC);
                 actionLabel.Top = 110;
                 actionLabel.Left = 20;
                 actionLabel.Width = 150;
                 actionLabel.Height = 20;
-                ((SAPbouiCOM.StaticText)actionLabel.Specific).Caption = "Action to Perform:";
+                SapUiSafe.TrySetCaption(actionLabel, "Action to Perform:");
 
                 Item subjectLabel = oForm.Items.Add("LblSubject", BoFormItemTypes.it_STATIC);
                 subjectLabel.Top = 140;
                 subjectLabel.Left = 20;
                 subjectLabel.Width = 150;
                 subjectLabel.Height = 20;
-                ((SAPbouiCOM.StaticText)subjectLabel.Specific).Caption = "Email Subject:";
+                SapUiSafe.TrySetCaption(subjectLabel, "Email Subject:");
 
                 Item bodyLabel = oForm.Items.Add("LblBody", BoFormItemTypes.it_STATIC);
                 bodyLabel.Top = 170;
                 bodyLabel.Left = 20;
                 bodyLabel.Width = 150;
                 bodyLabel.Height = 20;
-                ((SAPbouiCOM.StaticText)bodyLabel.Specific).Caption = "Email Body:";
+                SapUiSafe.TrySetCaption(bodyLabel, "Email Body:");
 
                 Item attachmentLabel = oForm.Items.Add("LblAttachment", BoFormItemTypes.it_STATIC);
                 attachmentLabel.Top = 320;
                 attachmentLabel.Left = 20;
                 attachmentLabel.Width = 150;
                 attachmentLabel.Height = 20;
-                ((SAPbouiCOM.StaticText)attachmentLabel.Specific).Caption = "Attachment Settings:";
+                SapUiSafe.TrySetCaption(attachmentLabel, "Attachment Settings:");
 
                 Item printConfigLabel = oForm.Items.Add("LblPrintConfig", BoFormItemTypes.it_STATIC);
                 printConfigLabel.Top = 390;
                 printConfigLabel.Left = 20;
                 printConfigLabel.Width = 150;
                 printConfigLabel.Height = 20;
-                ((SAPbouiCOM.StaticText)printConfigLabel.Specific).Caption = "Print Configuration:";
+                SapUiSafe.TrySetCaption(printConfigLabel, "Print Configuration:");
 
                 Item saveConfigLabel = oForm.Items.Add("LblSaveConfig", BoFormItemTypes.it_STATIC);
                 saveConfigLabel.Top = 420;
                 saveConfigLabel.Left = 20;
                 saveConfigLabel.Width = 150;
                 saveConfigLabel.Height = 20;
-                ((SAPbouiCOM.StaticText)saveConfigLabel.Specific).Caption = "Save Configuration:";
+                SapUiSafe.TrySetCaption(saveConfigLabel, "Save Configuration:");
 
                 Item activeLabel = oForm.Items.Add("LblActive", BoFormItemTypes.it_STATIC);
                 activeLabel.Top = 450;
                 activeLabel.Left = 20;
                 activeLabel.Width = 150;
                 activeLabel.Height = 20;
-                ((SAPbouiCOM.StaticText)activeLabel.Specific).Caption = "Active:";
+                SapUiSafe.TrySetCaption(activeLabel, "Active:");
 
                 // Input fields
                 Item nameEdit = oForm.Items.Add("EdtName", BoFormItemTypes.it_EDIT);
@@ -713,14 +713,14 @@ namespace B1TuneUp.Modules
                 nameEdit.Width = 250;
                 nameEdit.Height = 20;
                 nameEdit.Enabled = false; // Can't change config name
-                ((SAPbouiCOM.EditText)nameEdit.Specific).Value = rs.Fields.Item("U_Name").Value.ToString();
+                SapUiSafe.TrySetEditValue(nameEdit, B1TuneUp.Utils.SapUiSafe.SafeField(rs, "U_Name"));
 
                 Item docTypeCombo = oForm.Items.Add("CmbDocType", BoFormItemTypes.it_COMBO_BOX);
                 docTypeCombo.Top = 50;
                 docTypeCombo.Left = 180;
                 docTypeCombo.Width = 150;
                 docTypeCombo.Height = 20;
-                ComboBox cmbDocType = (ComboBox)docTypeCombo.Specific;
+                ComboBox cmbDocType = SapUiSafe.TryGetSpecific<ComboBox>(docTypeCombo);
                 cmbDocType.ValidValues.Add("17", "Sales Invoice (17)");
                 cmbDocType.ValidValues.Add("13", "Sales Order (13)");
                 cmbDocType.ValidValues.Add("14", "Delivery (14)");
@@ -729,7 +729,7 @@ namespace B1TuneUp.Modules
                 cmbDocType.ValidValues.Add("1470000113", "Purchase Order (1470000113)");
                 cmbDocType.ValidValues.Add("150", "Incoming Payment (150)");
 
-                string docType = rs.Fields.Item("U_DocType").Value.ToString();
+                string docType = B1TuneUp.Utils.SapUiSafe.SafeField(rs, "U_DocType");
                 for (int i = 0; i < cmbDocType.ValidValues.Count; i++)
                 {
                     if (cmbDocType.ValidValues.Item(i).Value == docType)
@@ -744,14 +744,14 @@ namespace B1TuneUp.Modules
                 triggerCombo.Left = 180;
                 triggerCombo.Width = 150;
                 triggerCombo.Height = 20;
-                ComboBox cmbTrigger = (ComboBox)triggerCombo.Specific;
+                ComboBox cmbTrigger = SapUiSafe.TryGetSpecific<ComboBox>(triggerCombo);
                 cmbTrigger.ValidValues.Add("DOC_ADD", "Document Added");
                 cmbTrigger.ValidValues.Add("DOC_UPDATE", "Document Updated");
                 cmbTrigger.ValidValues.Add("DOC_APPROVE", "Document Approved");
                 cmbTrigger.ValidValues.Add("MANUAL", "Manual Trigger");
                 cmbTrigger.ValidValues.Add("SCHEDULED", "Scheduled");
 
-                string trigger = rs.Fields.Item("U_Trigger").Value.ToString();
+                string trigger = B1TuneUp.Utils.SapUiSafe.SafeField(rs, "U_Trigger");
                 for (int i = 0; i < cmbTrigger.ValidValues.Count; i++)
                 {
                     if (cmbTrigger.ValidValues.Item(i).Value == trigger)
@@ -766,14 +766,14 @@ namespace B1TuneUp.Modules
                 actionCombo.Left = 180;
                 actionCombo.Width = 150;
                 actionCombo.Height = 20;
-                ComboBox cmbAction = (ComboBox)actionCombo.Specific;
+                ComboBox cmbAction = SapUiSafe.TryGetSpecific<ComboBox>(actionCombo);
                 cmbAction.ValidValues.Add("EMAIL", "Email");
                 cmbAction.ValidValues.Add("PRINT", "Print");
                 cmbAction.ValidValues.Add("SAVE", "Save to Folder");
                 cmbAction.ValidValues.Add("FTP", "Upload to FTP");
                 cmbAction.ValidValues.Add("SHAREPOINT", "SharePoint Upload");
 
-                string action = rs.Fields.Item("U_Action").Value.ToString();
+                string action = B1TuneUp.Utils.SapUiSafe.SafeField(rs, "U_Action");
                 for (int i = 0; i < cmbAction.ValidValues.Count; i++)
                 {
                     if (cmbAction.ValidValues.Item(i).Value == action)
@@ -788,7 +788,7 @@ namespace B1TuneUp.Modules
                 subjectEdit.Left = 180;
                 subjectEdit.Width = 250;
                 subjectEdit.Height = 20;
-                ((SAPbouiCOM.EditText)subjectEdit.Specific).Value = rs.Fields.Item("U_EmailSubject").Value.ToString();
+                SapUiSafe.TrySetEditValue(subjectEdit, B1TuneUp.Utils.SapUiSafe.SafeField(rs, "U_EmailSubject"));
 
                 Item bodyEdit = oForm.Items.Add("EdtBody", BoFormItemTypes.it_EDIT);
                 bodyEdit.Top = 170;
@@ -797,7 +797,7 @@ namespace B1TuneUp.Modules
                 bodyEdit.Height = 140;
                 try
                 {
-                    ((SAPbouiCOM.EditText)bodyEdit.Specific).Value = rs.Fields.Item("U_EmailBody").Value.ToString();
+                    SapUiSafe.TrySetEditValue(bodyEdit, B1TuneUp.Utils.SapUiSafe.SafeField(rs, "U_EmailBody"));
                 }
                 catch { }
 
@@ -806,13 +806,13 @@ namespace B1TuneUp.Modules
                 attachmentCombo.Left = 180;
                 attachmentCombo.Width = 150;
                 attachmentCombo.Height = 20;
-                ComboBox cmbAttachment = (ComboBox)attachmentCombo.Specific;
+                ComboBox cmbAttachment = SapUiSafe.TryGetSpecific<ComboBox>(attachmentCombo);
                 cmbAttachment.ValidValues.Add("PDF", "PDF Document");
                 cmbAttachment.ValidValues.Add("EXCEL", "Excel Export");
                 cmbAttachment.ValidValues.Add("WORD", "Word Document");
                 cmbAttachment.ValidValues.Add("ORIGINAL", "Original Format");
 
-                string attachment = rs.Fields.Item("U_AttachmentType").Value.ToString();
+                string attachment = B1TuneUp.Utils.SapUiSafe.SafeField(rs, "U_AttachmentType");
                 for (int i = 0; i < cmbAttachment.ValidValues.Count; i++)
                 {
                     if (cmbAttachment.ValidValues.Item(i).Value == attachment)
@@ -827,25 +827,25 @@ namespace B1TuneUp.Modules
                 printSetupEdit.Left = 180;
                 printSetupEdit.Width = 250;
                 printSetupEdit.Height = 20;
-                ((SAPbouiCOM.EditText)printSetupEdit.Specific).Value = rs.Fields.Item("U_PrintSetup").Value.ToString();
+                SapUiSafe.TrySetEditValue(printSetupEdit, B1TuneUp.Utils.SapUiSafe.SafeField(rs, "U_PrintSetup"));
 
                 Item savePathEdit = oForm.Items.Add("EdtSavePath", BoFormItemTypes.it_EDIT);
                 savePathEdit.Top = 420;
                 savePathEdit.Left = 180;
                 savePathEdit.Width = 250;
                 savePathEdit.Height = 20;
-                ((SAPbouiCOM.EditText)savePathEdit.Specific).Value = rs.Fields.Item("U_SavePath").Value.ToString();
+                SapUiSafe.TrySetEditValue(savePathEdit, B1TuneUp.Utils.SapUiSafe.SafeField(rs, "U_SavePath"));
 
                 Item activeCombo = oForm.Items.Add("CmbActive", BoFormItemTypes.it_COMBO_BOX);
                 activeCombo.Top = 450;
                 activeCombo.Left = 180;
                 activeCombo.Width = 150;
                 activeCombo.Height = 20;
-                ComboBox cmbActive = (ComboBox)activeCombo.Specific;
+                ComboBox cmbActive = SapUiSafe.TryGetSpecific<ComboBox>(activeCombo);
                 cmbActive.ValidValues.Add("Y", "Yes");
                 cmbActive.ValidValues.Add("N", "No");
 
-                string active = rs.Fields.Item("U_Active").Value.ToString();
+                string active = B1TuneUp.Utils.SapUiSafe.SafeField(rs, "U_Active");
                 for (int i = 0; i < cmbActive.ValidValues.Count; i++)
                 {
                     if (cmbActive.ValidValues.Item(i).Value == active)
@@ -861,21 +861,21 @@ namespace B1TuneUp.Modules
                 updateButton.Left = 20;
                 updateButton.Width = 80;
                 updateButton.Height = 25;
-                ((SAPbouiCOM.Button)updateButton.Specific).Caption = "Update";
+                SapUiSafe.TrySetCaption(updateButton, "Update");
 
                 Item testButton = oForm.Items.Add("BtnTest", BoFormItemTypes.it_BUTTON);
                 testButton.Top = 490;
                 testButton.Left = 110;
                 testButton.Width = 80;
                 testButton.Height = 25;
-                ((SAPbouiCOM.Button)testButton.Specific).Caption = "Test";
+                SapUiSafe.TrySetCaption(testButton, "Test");
 
                 Item cancelButton = oForm.Items.Add("BtnCancel", BoFormItemTypes.it_BUTTON);
                 cancelButton.Top = 490;
                 cancelButton.Left = 200;
                 cancelButton.Width = 80;
                 cancelButton.Height = 25;
-                ((SAPbouiCOM.Button)cancelButton.Specific).Caption = "Cancel";
+                SapUiSafe.TrySetCaption(cancelButton, "Cancel");
             }
 
             ComObjectManager.Release(rs);
@@ -885,15 +885,15 @@ namespace B1TuneUp.Modules
         {
             try
             {
-                string docType = ((ComboBox)oForm.Items.Item("CmbDocType").Specific).Selected.Value;
-                string trigger = ((ComboBox)oForm.Items.Item("CmbTrigger").Specific).Selected.Value;
-                string action = ((ComboBox)oForm.Items.Item("CmbAction").Specific).Selected.Value;
-                string subject = ((EditText)oForm.Items.Item("EdtSubject").Specific).Value;
-                string body = ((SAPbouiCOM.EditText)oForm.Items.Item("EdtBody").Specific).Value;
-                string attachment = ((ComboBox)oForm.Items.Item("CmbAttachment").Specific).Selected.Value;
-                string printSetup = ((EditText)oForm.Items.Item("EdtPrintSetup").Specific).Value;
-                string savePath = ((EditText)oForm.Items.Item("EdtSavePath").Specific).Value;
-                string active = ((ComboBox)oForm.Items.Item("CmbActive").Specific).Selected.Value;
+                string docType = SapUiSafe.SafeComboValue(SapUiSafe.TryGetSpecific<ComboBox>(oForm, "CmbDocType"));
+                string trigger = SapUiSafe.SafeComboValue(SapUiSafe.TryGetSpecific<ComboBox>(oForm, "CmbTrigger"));
+                string action = SapUiSafe.SafeComboValue(SapUiSafe.TryGetSpecific<ComboBox>(oForm, "CmbAction"));
+                string subject = SapUiSafe.TryGetSpecific<EditText>(oForm, "EdtSubject")?.Value ?? string.Empty;
+                string body = SapUiSafe.TryGetSpecific<SAPbouiCOM.EditText>(oForm, "EdtBody")?.Value ?? string.Empty;
+                string attachment = SapUiSafe.SafeComboValue(SapUiSafe.TryGetSpecific<ComboBox>(oForm, "CmbAttachment"));
+                string printSetup = SapUiSafe.TryGetSpecific<EditText>(oForm, "EdtPrintSetup")?.Value ?? string.Empty;
+                string savePath = SapUiSafe.TryGetSpecific<EditText>(oForm, "EdtSavePath")?.Value ?? string.Empty;
+                string active = SapUiSafe.SafeComboValue(SapUiSafe.TryGetSpecific<ComboBox>(oForm, "CmbActive"));
 
                 // Update the configuration
                 Recordset rs = (Recordset)B1App.Instance.Company.GetBusinessObject(BoObjectTypes.BoRecordset);
@@ -910,7 +910,7 @@ namespace B1TuneUp.Modules
                 oForm.Close();
 
                 // Refresh the parent form
-                Grid matrix = (Grid)parentForm.Items.Item("PDMatrx").Specific;
+                Grid matrix = SapUiSafe.TryGetSpecific<Grid>(parentForm, "PDMatrx");
                 LoadPrintDeliveryConfigs(matrix);
 
                 ComObjectManager.Release(rs);
@@ -925,7 +925,7 @@ namespace B1TuneUp.Modules
         {
             try
             {
-                Grid matrix = (Grid)parentForm.Items.Item("PDMatrx").Specific;
+                Grid matrix = SapUiSafe.TryGetSpecific<Grid>(parentForm, "PDMatrx");
                 if (matrix.Rows.SelectedRows.Count > 0)
                 {
                     int selectedRow = matrix.Rows.SelectedRows.Item(0, SAPbouiCOM.BoOrderType.ot_SelectionOrder);
@@ -965,7 +965,7 @@ namespace B1TuneUp.Modules
         {
             try
             {
-                Grid matrix = (Grid)parentForm.Items.Item("PDMatrx").Specific;
+                Grid matrix = SapUiSafe.TryGetSpecific<Grid>(parentForm, "PDMatrx");
                 if (matrix.Rows.SelectedRows.Count > 0)
                 {
                     int selectedRow = matrix.Rows.SelectedRows.Item(0, SAPbouiCOM.BoOrderType.ot_SelectionOrder);
@@ -991,7 +991,7 @@ namespace B1TuneUp.Modules
         {
             try
             {
-                Grid matrix = (Grid)parentForm.Items.Item("PDMatrx").Specific;
+                Grid matrix = SapUiSafe.TryGetSpecific<Grid>(parentForm, "PDMatrx");
                 if (matrix.Rows.SelectedRows.Count > 0)
                 {
                     int selectedRow = matrix.Rows.SelectedRows.Item(0, SAPbouiCOM.BoOrderType.ot_SelectionOrder);
@@ -1018,7 +1018,7 @@ namespace B1TuneUp.Modules
         {
             try
             {
-                Grid matrix = (Grid)parentForm.Items.Item("PDMatrx").Specific;
+                Grid matrix = SapUiSafe.TryGetSpecific<Grid>(parentForm, "PDMatrx");
                 if (matrix.Rows.SelectedRows.Count > 0)
                 {
                     int selectedRow = matrix.Rows.SelectedRows.Item(0);
@@ -1102,13 +1102,13 @@ namespace B1TuneUp.Modules
 
                 if (!rs.EoF)
                 {
-                    string docType = rs.Fields.Item("U_DocType").Value.ToString();
-                    string action = rs.Fields.Item("U_Action").Value.ToString();
-                    string emailSubject = rs.Fields.Item("U_EmailSubject").Value.ToString();
-                    string emailBody = rs.Fields.Item("U_EmailBody").Value.ToString();
-                    string attachmentType = rs.Fields.Item("U_AttachmentType").Value.ToString();
-                    string printSetup = rs.Fields.Item("U_PrintSetup").Value.ToString();
-                    string savePath = rs.Fields.Item("U_SavePath").Value.ToString();
+                    string docType = B1TuneUp.Utils.SapUiSafe.SafeField(rs, "U_DocType");
+                    string action = B1TuneUp.Utils.SapUiSafe.SafeField(rs, "U_Action");
+                    string emailSubject = B1TuneUp.Utils.SapUiSafe.SafeField(rs, "U_EmailSubject");
+                    string emailBody = B1TuneUp.Utils.SapUiSafe.SafeField(rs, "U_EmailBody");
+                    string attachmentType = B1TuneUp.Utils.SapUiSafe.SafeField(rs, "U_AttachmentType");
+                    string printSetup = B1TuneUp.Utils.SapUiSafe.SafeField(rs, "U_PrintSetup");
+                    string savePath = B1TuneUp.Utils.SapUiSafe.SafeField(rs, "U_SavePath");
 
                     // Execute the action based on the configuration
                     switch (action.ToUpper())
@@ -1211,7 +1211,7 @@ namespace B1TuneUp.Modules
 
                 while (!rs.EoF)
                 {
-                    string configName = rs.Fields.Item("U_Name").Value.ToString();
+                    string configName = B1TuneUp.Utils.SapUiSafe.SafeField(rs, "U_Name");
 
                     // Execute the configuration for this document
                     ExecuteDocumentWithConfig(configName, docType, docEntry);

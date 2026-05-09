@@ -48,7 +48,7 @@ namespace B1TuneUp.Modules
             matrixItem.Width = 870;
             matrixItem.Height = 400;
 
-            SAPbouiCOM.Grid matrix = (SAPbouiCOM.Grid)matrixItem.Specific;
+            SAPbouiCOM.Grid matrix = SapUiSafe.TryGetSpecific<SAPbouiCOM.Grid>(matrixItem);
 
             // Ensure datatable columns exist for the grid
             matrix.DataTable.Columns.Add("TemplateName", SAPbouiCOM.BoFieldsType.ft_AlphaNumeric);
@@ -76,35 +76,35 @@ namespace B1TuneUp.Modules
             addButton.Left = 10;
             addButton.Width = 80;
             addButton.Height = 25;
-            ((SAPbouiCOM.Button)addButton.Specific).Caption = "Add";
+            SapUiSafe.TrySetCaption(addButton, "Add");
 
             Item editButton = oForm.Items.Add("BtnEdit", BoFormItemTypes.it_BUTTON);
             editButton.Top = 420;
             editButton.Left = 100;
             editButton.Width = 80;
             editButton.Height = 25;
-            ((SAPbouiCOM.Button)editButton.Specific).Caption = "Edit";
+            SapUiSafe.TrySetCaption(editButton, "Edit");
 
             Item deleteButton = oForm.Items.Add("BtnDelete", BoFormItemTypes.it_BUTTON);
             deleteButton.Top = 420;
             deleteButton.Left = 190;
             deleteButton.Width = 80;
             deleteButton.Height = 25;
-            ((SAPbouiCOM.Button)deleteButton.Specific).Caption = "Delete";
+            SapUiSafe.TrySetCaption(deleteButton, "Delete");
 
             Item executeButton = oForm.Items.Add("BtnExecute", BoFormItemTypes.it_BUTTON);
             executeButton.Top = 420;
             executeButton.Left = 280;
             executeButton.Width = 100;
             executeButton.Height = 25;
-            ((SAPbouiCOM.Button)executeButton.Specific).Caption = "Execute";
+            SapUiSafe.TrySetCaption(executeButton, "Execute");
 
             Item closeButton = oForm.Items.Add("BtnClose", BoFormItemTypes.it_BUTTON);
             closeButton.Top = 420;
             closeButton.Left = 780;
             closeButton.Width = 80;
             closeButton.Height = 25;
-            ((SAPbouiCOM.Button)closeButton.Specific).Caption = "Close";
+            SapUiSafe.TrySetCaption(closeButton, "Close");
 
             // Load existing recurring invoice templates
             LoadRecurringInvoiceTemplates(matrix);
@@ -128,12 +128,12 @@ namespace B1TuneUp.Modules
                     matrix.DataTable.Rows.Add();
                     int rowIndex = matrix.DataTable.Rows.Count - 1;
 
-                    matrix.DataTable.SetValue("TemplateName", rowIndex, rs.Fields.Item("U_Name").Value);
-                    matrix.DataTable.SetValue("Description", rowIndex, rs.Fields.Item("U_Desc").Value);
-                    matrix.DataTable.SetValue("Frequency", rowIndex, rs.Fields.Item("U_Freq").Value);
-                    matrix.DataTable.SetValue("StartDate", rowIndex, rs.Fields.Item("U_StartDate").Value);
-                    matrix.DataTable.SetValue("EndDate", rowIndex, rs.Fields.Item("U_EndDate").Value);
-                    matrix.DataTable.SetValue("Active", rowIndex, rs.Fields.Item("U_Active").Value);
+                    matrix.DataTable.SetValue("TemplateName", rowIndex, B1TuneUp.Utils.SapUiSafe.SafeFieldValue(rs, "U_Name"));
+                    matrix.DataTable.SetValue("Description", rowIndex, B1TuneUp.Utils.SapUiSafe.SafeFieldValue(rs, "U_Desc"));
+                    matrix.DataTable.SetValue("Frequency", rowIndex, B1TuneUp.Utils.SapUiSafe.SafeFieldValue(rs, "U_Freq"));
+                    matrix.DataTable.SetValue("StartDate", rowIndex, B1TuneUp.Utils.SapUiSafe.SafeFieldValue(rs, "U_StartDate"));
+                    matrix.DataTable.SetValue("EndDate", rowIndex, B1TuneUp.Utils.SapUiSafe.SafeFieldValue(rs, "U_EndDate"));
+                    matrix.DataTable.SetValue("Active", rowIndex, B1TuneUp.Utils.SapUiSafe.SafeFieldValue(rs, "U_Active"));
 
                     rs.MoveNext();
                 }
@@ -178,56 +178,56 @@ namespace B1TuneUp.Modules
             nameLabel.Left = 20;
             nameLabel.Width = 100;
             nameLabel.Height = 20;
-            ((SAPbouiCOM.StaticText)nameLabel.Specific).Caption = "Template Name:";
+            SapUiSafe.TrySetCaption(nameLabel, "Template Name:");
 
             Item descLabel = oForm.Items.Add("LblDesc", BoFormItemTypes.it_STATIC);
             descLabel.Top = 50;
             descLabel.Left = 20;
             descLabel.Width = 100;
             descLabel.Height = 20;
-            ((SAPbouiCOM.StaticText)descLabel.Specific).Caption = "Description:";
+            SapUiSafe.TrySetCaption(descLabel, "Description:");
 
             Item freqLabel = oForm.Items.Add("LblFreq", BoFormItemTypes.it_STATIC);
             freqLabel.Top = 80;
             freqLabel.Left = 20;
             freqLabel.Width = 100;
             freqLabel.Height = 20;
-            ((SAPbouiCOM.StaticText)freqLabel.Specific).Caption = "Frequency:";
+            SapUiSafe.TrySetCaption(freqLabel, "Frequency:");
 
             Item startDateLabel = oForm.Items.Add("LblStart", BoFormItemTypes.it_STATIC);
             startDateLabel.Top = 110;
             startDateLabel.Left = 20;
             startDateLabel.Width = 100;
             startDateLabel.Height = 20;
-            ((SAPbouiCOM.StaticText)startDateLabel.Specific).Caption = "Start Date:";
+            SapUiSafe.TrySetCaption(startDateLabel, "Start Date:");
 
             Item endDateLabel = oForm.Items.Add("LblEnd", BoFormItemTypes.it_STATIC);
             endDateLabel.Top = 140;
             endDateLabel.Left = 20;
             endDateLabel.Width = 100;
             endDateLabel.Height = 20;
-            ((SAPbouiCOM.StaticText)endDateLabel.Specific).Caption = "End Date:";
+            SapUiSafe.TrySetCaption(endDateLabel, "End Date:");
 
             Item docTypeLabel = oForm.Items.Add("LblDocType", BoFormItemTypes.it_STATIC);
             docTypeLabel.Top = 170;
             docTypeLabel.Left = 20;
             docTypeLabel.Width = 100;
             docTypeLabel.Height = 20;
-            ((SAPbouiCOM.StaticText)docTypeLabel.Specific).Caption = "Document Type:";
+            SapUiSafe.TrySetCaption(docTypeLabel, "Document Type:");
 
             Item docNumLabel = oForm.Items.Add("LblDocNum", BoFormItemTypes.it_STATIC);
             docNumLabel.Top = 200;
             docNumLabel.Left = 20;
             docNumLabel.Width = 100;
             docNumLabel.Height = 20;
-            ((SAPbouiCOM.StaticText)docNumLabel.Specific).Caption = "Document Number:";
+            SapUiSafe.TrySetCaption(docNumLabel, "Document Number:");
 
             Item activeLabel = oForm.Items.Add("LblActive", BoFormItemTypes.it_STATIC);
             activeLabel.Top = 230;
             activeLabel.Left = 20;
             activeLabel.Width = 100;
             activeLabel.Height = 20;
-            ((SAPbouiCOM.StaticText)activeLabel.Specific).Caption = "Active:";
+            SapUiSafe.TrySetCaption(activeLabel, "Active:");
 
             // Input fields
             Item nameEdit = oForm.Items.Add("EdtName", BoFormItemTypes.it_EDIT);
@@ -247,7 +247,7 @@ namespace B1TuneUp.Modules
             freqCombo.Left = 130;
             freqCombo.Width = 200;
             freqCombo.Height = 20;
-            SAPbouiCOM.ComboBox cmbFreq = (SAPbouiCOM.ComboBox)freqCombo.Specific;
+            SAPbouiCOM.ComboBox cmbFreq = SapUiSafe.TryGetSpecific<SAPbouiCOM.ComboBox>(freqCombo);
             cmbFreq.ValidValues.Add("Daily", "Daily");
             cmbFreq.ValidValues.Add("Weekly", "Weekly");
             cmbFreq.ValidValues.Add("BiWeekly", "Bi-Weekly (Every 2 weeks)");
@@ -263,21 +263,21 @@ namespace B1TuneUp.Modules
             startDateEdit.Left = 130;
             startDateEdit.Width = 200;
             startDateEdit.Height = 20;
-            ((SAPbouiCOM.EditText)startDateEdit.Specific).Value = DateTime.Today.ToString("yyyyMMdd");
+            SapUiSafe.TrySetEditValue(startDateEdit, DateTime.Today.ToString("yyyyMMdd"));
 
             Item endDateEdit = oForm.Items.Add("EdtEnd", BoFormItemTypes.it_EDIT);
             endDateEdit.Top = 140;
             endDateEdit.Left = 130;
             endDateEdit.Width = 200;
             endDateEdit.Height = 20;
-            ((SAPbouiCOM.EditText)endDateEdit.Specific).Value = DateTime.Today.AddYears(1).ToString("yyyyMMdd");
+            SapUiSafe.TrySetEditValue(endDateEdit, DateTime.Today.AddYears(1).ToString("yyyyMMdd"));
 
             Item docTypeCombo = oForm.Items.Add("CmbDocType", BoFormItemTypes.it_COMBO_BOX);
             docTypeCombo.Top = 170;
             docTypeCombo.Left = 130;
             docTypeCombo.Width = 200;
             docTypeCombo.Height = 20;
-            SAPbouiCOM.ComboBox cmbDocType = (SAPbouiCOM.ComboBox)docTypeCombo.Specific;
+            SAPbouiCOM.ComboBox cmbDocType = SapUiSafe.TryGetSpecific<SAPbouiCOM.ComboBox>(docTypeCombo);
             cmbDocType.ValidValues.Add("17", "Sales Invoice");
             cmbDocType.ValidValues.Add("13", "Sales Order");
             cmbDocType.ValidValues.Add("14", "Delivery");
@@ -297,7 +297,7 @@ namespace B1TuneUp.Modules
             activeCombo.Left = 130;
             activeCombo.Width = 200;
             activeCombo.Height = 20;
-            SAPbouiCOM.ComboBox cmbActive = (SAPbouiCOM.ComboBox)activeCombo.Specific;
+            SAPbouiCOM.ComboBox cmbActive = SapUiSafe.TryGetSpecific<SAPbouiCOM.ComboBox>(activeCombo);
             cmbActive.ValidValues.Add("Y", "Yes");
             cmbActive.ValidValues.Add("N", "No");
             cmbActive.Select(0); // Default to Yes
@@ -308,28 +308,28 @@ namespace B1TuneUp.Modules
             saveButton.Left = 20;
             saveButton.Width = 80;
             saveButton.Height = 25;
-            ((SAPbouiCOM.Button)saveButton.Specific).Caption = "Save";
+            SapUiSafe.TrySetCaption(saveButton, "Save");
 
             Item cancelButton = oForm.Items.Add("BtnCancel", BoFormItemTypes.it_BUTTON);
             cancelButton.Top = 270;
             cancelButton.Left = 110;
             cancelButton.Width = 80;
             cancelButton.Height = 25;
-            ((SAPbouiCOM.Button)cancelButton.Specific).Caption = "Cancel";
+            SapUiSafe.TrySetCaption(cancelButton, "Cancel");
         }
 
         private static void SaveRecurringInvoiceTemplate(SAPbouiCOM.Form oForm)
         {
             try
             {
-                string name = ((SAPbouiCOM.EditText)oForm.Items.Item("EdtName").Specific).Value;
-                string desc = ((SAPbouiCOM.EditText)oForm.Items.Item("EdtDesc").Specific).Value;
-                string freq = ((ComboBox)oForm.Items.Item("CmbFreq").Specific).Selected.Value;
-                string startDate = ((EditText)oForm.Items.Item("EdtStart").Specific).Value;
-                string endDate = ((EditText)oForm.Items.Item("EdtEnd").Specific).Value;
-                string docType = ((ComboBox)oForm.Items.Item("CmbDocType").Specific).Selected.Value;
-                string docNum = ((EditText)oForm.Items.Item("EdtDocNum").Specific).Value;
-                string active = ((ComboBox)oForm.Items.Item("CmbActive").Specific).Selected.Value;
+                string name = SapUiSafe.TryGetSpecific<SAPbouiCOM.EditText>(oForm, "EdtName")?.Value ?? string.Empty;
+                string desc = SapUiSafe.TryGetSpecific<SAPbouiCOM.EditText>(oForm, "EdtDesc")?.Value ?? string.Empty;
+                string freq = SapUiSafe.SafeComboValue(SapUiSafe.TryGetSpecific<ComboBox>(oForm, "CmbFreq"));
+                string startDate = SapUiSafe.TryGetSpecific<EditText>(oForm, "EdtStart")?.Value ?? string.Empty;
+                string endDate = SapUiSafe.TryGetSpecific<EditText>(oForm, "EdtEnd")?.Value ?? string.Empty;
+                string docType = SapUiSafe.SafeComboValue(SapUiSafe.TryGetSpecific<ComboBox>(oForm, "CmbDocType"));
+                string docNum = SapUiSafe.TryGetSpecific<EditText>(oForm, "EdtDocNum")?.Value ?? string.Empty;
+                string active = SapUiSafe.SafeComboValue(SapUiSafe.TryGetSpecific<ComboBox>(oForm, "CmbActive"));
 
                 // Validate required fields
                 if (string.IsNullOrEmpty(name))
@@ -392,7 +392,7 @@ namespace B1TuneUp.Modules
         {
             try
             {
-                Grid matrix = (Grid)oForm.Items.Item("RecInvMatrix").Specific;
+                Grid matrix = SapUiSafe.TryGetSpecific<Grid>(oForm, "RecInvMatrix");
                 if (matrix.Rows.SelectedRows.Count > 0)
                 {
                     int selectedRow = matrix.Rows.SelectedRows.Item(0, SAPbouiCOM.BoOrderType.ot_SelectionOrder); // provide OrderType
@@ -456,56 +456,56 @@ namespace B1TuneUp.Modules
                 nameLabel.Left = 20;
                 nameLabel.Width = 100;
                 nameLabel.Height = 20;
-                ((SAPbouiCOM.StaticText)nameLabel.Specific).Caption = "Template Name:";
+                SapUiSafe.TrySetCaption(nameLabel, "Template Name:");
 
                 Item descLabel = oForm.Items.Add("LblDesc", BoFormItemTypes.it_STATIC);
                 descLabel.Top = 50;
                 descLabel.Left = 20;
                 descLabel.Width = 100;
                 descLabel.Height = 20;
-                ((SAPbouiCOM.StaticText)descLabel.Specific).Caption = "Description:";
+                SapUiSafe.TrySetCaption(descLabel, "Description:");
 
                 Item freqLabel = oForm.Items.Add("LblFreq", BoFormItemTypes.it_STATIC);
                 freqLabel.Top = 80;
                 freqLabel.Left = 20;
                 freqLabel.Width = 100;
                 freqLabel.Height = 20;
-                ((SAPbouiCOM.StaticText)freqLabel.Specific).Caption = "Frequency:";
+                SapUiSafe.TrySetCaption(freqLabel, "Frequency:");
 
                 Item startDateLabel = oForm.Items.Add("LblStart", BoFormItemTypes.it_STATIC);
                 startDateLabel.Top = 110;
                 startDateLabel.Left = 20;
                 startDateLabel.Width = 100;
                 startDateLabel.Height = 20;
-                ((SAPbouiCOM.StaticText)startDateLabel.Specific).Caption = "Start Date:";
+                SapUiSafe.TrySetCaption(startDateLabel, "Start Date:");
 
                 Item endDateLabel = oForm.Items.Add("LblEnd", BoFormItemTypes.it_STATIC);
                 endDateLabel.Top = 140;
                 endDateLabel.Left = 20;
                 endDateLabel.Width = 100;
                 endDateLabel.Height = 20;
-                ((SAPbouiCOM.StaticText)endDateLabel.Specific).Caption = "End Date:";
+                SapUiSafe.TrySetCaption(endDateLabel, "End Date:");
 
                 Item docTypeLabel = oForm.Items.Add("LblDocType", BoFormItemTypes.it_STATIC);
                 docTypeLabel.Top = 170;
                 docTypeLabel.Left = 20;
                 docTypeLabel.Width = 100;
                 docTypeLabel.Height = 20;
-                ((SAPbouiCOM.StaticText)docTypeLabel.Specific).Caption = "Document Type:";
+                SapUiSafe.TrySetCaption(docTypeLabel, "Document Type:");
 
                 Item docNumLabel = oForm.Items.Add("LblDocNum", BoFormItemTypes.it_STATIC);
                 docNumLabel.Top = 200;
                 docNumLabel.Left = 20;
                 docNumLabel.Width = 100;
                 docNumLabel.Height = 20;
-                ((SAPbouiCOM.StaticText)docNumLabel.Specific).Caption = "Document Number:";
+                SapUiSafe.TrySetCaption(docNumLabel, "Document Number:");
 
                 Item activeLabel = oForm.Items.Add("LblActive", BoFormItemTypes.it_STATIC);
                 activeLabel.Top = 230;
                 activeLabel.Left = 20;
                 activeLabel.Width = 100;
                 activeLabel.Height = 20;
-                ((SAPbouiCOM.StaticText)activeLabel.Specific).Caption = "Active:";
+                SapUiSafe.TrySetCaption(activeLabel, "Active:");
 
                 // Input fields
                 Item nameEdit = oForm.Items.Add("EdtName", BoFormItemTypes.it_EDIT);
@@ -514,21 +514,21 @@ namespace B1TuneUp.Modules
                 nameEdit.Width = 200;
                 nameEdit.Height = 20;
                 nameEdit.Enabled = false; // Can't change template name
-                ((SAPbouiCOM.EditText)nameEdit.Specific).Value = rs.Fields.Item("U_Name").Value.ToString();
+                SapUiSafe.TrySetEditValue(nameEdit, B1TuneUp.Utils.SapUiSafe.SafeField(rs, "U_Name"));
 
                 Item descEdit = oForm.Items.Add("EdtDesc", BoFormItemTypes.it_EDIT);
                 descEdit.Top = 50;
                 descEdit.Left = 130;
                 descEdit.Width = 200;
                 descEdit.Height = 20;
-                ((SAPbouiCOM.EditText)descEdit.Specific).Value = rs.Fields.Item("U_Desc").Value.ToString();
+                SapUiSafe.TrySetEditValue(descEdit, B1TuneUp.Utils.SapUiSafe.SafeField(rs, "U_Desc"));
 
                 Item freqCombo = oForm.Items.Add("CmbFreq", BoFormItemTypes.it_COMBO_BOX);
                 freqCombo.Top = 80;
                 freqCombo.Left = 130;
                 freqCombo.Width = 200;
                 freqCombo.Height = 20;
-                ComboBox cmbFreq = (ComboBox)freqCombo.Specific;
+                ComboBox cmbFreq = SapUiSafe.TryGetSpecific<ComboBox>(freqCombo);
                 cmbFreq.ValidValues.Add("Daily", "Daily");
                 cmbFreq.ValidValues.Add("Weekly", "Weekly");
                 cmbFreq.ValidValues.Add("BiWeekly", "Bi-Weekly (Every 2 weeks)");
@@ -537,52 +537,52 @@ namespace B1TuneUp.Modules
                 cmbFreq.ValidValues.Add("Quarterly", "Quarterly");
                 cmbFreq.ValidValues.Add("SemiAnnually", "Semi-Annually");
                 cmbFreq.ValidValues.Add("Annually", "Annually");
-                try { cmbFreq.Select(rs.Fields.Item("U_Freq").Value.ToString()); } catch { }
+                try { cmbFreq.Select(B1TuneUp.Utils.SapUiSafe.SafeField(rs, "U_Freq")); } catch { }
 
                 Item startDateEdit = oForm.Items.Add("EdtStart", BoFormItemTypes.it_EDIT);
                 startDateEdit.Top = 110;
                 startDateEdit.Left = 130;
                 startDateEdit.Width = 200;
                 startDateEdit.Height = 20;
-                ((SAPbouiCOM.EditText)startDateEdit.Specific).Value = rs.Fields.Item("U_StartDate").Value.ToString();
+                SapUiSafe.TrySetEditValue(startDateEdit, B1TuneUp.Utils.SapUiSafe.SafeField(rs, "U_StartDate"));
 
                 Item endDateEdit = oForm.Items.Add("EdtEnd", BoFormItemTypes.it_EDIT);
                 endDateEdit.Top = 140;
                 endDateEdit.Left = 130;
                 endDateEdit.Width = 200;
                 endDateEdit.Height = 20;
-                ((SAPbouiCOM.EditText)endDateEdit.Specific).Value = rs.Fields.Item("U_EndDate").Value.ToString();
+                SapUiSafe.TrySetEditValue(endDateEdit, B1TuneUp.Utils.SapUiSafe.SafeField(rs, "U_EndDate"));
 
                 Item docTypeCombo = oForm.Items.Add("CmbDocType", BoFormItemTypes.it_COMBO_BOX);
                 docTypeCombo.Top = 170;
                 docTypeCombo.Left = 130;
                 docTypeCombo.Width = 200;
                 docTypeCombo.Height = 20;
-                ComboBox cmbDocType = (ComboBox)docTypeCombo.Specific;
+                ComboBox cmbDocType = SapUiSafe.TryGetSpecific<ComboBox>(docTypeCombo);
                 cmbDocType.ValidValues.Add("17", "Sales Invoice");
                 cmbDocType.ValidValues.Add("13", "Sales Order");
                 cmbDocType.ValidValues.Add("14", "Delivery");
                 cmbDocType.ValidValues.Add("16", "AR Credit Memo");
                 cmbDocType.ValidValues.Add("203", "Purchase Invoice");
                 cmbDocType.ValidValues.Add("1470000113", "Purchase Order");
-                try { cmbDocType.Select(rs.Fields.Item("U_DocType").Value.ToString()); } catch { }
+                try { cmbDocType.Select(B1TuneUp.Utils.SapUiSafe.SafeField(rs, "U_DocType")); } catch { }
 
                 Item docNumEdit = oForm.Items.Add("EdtDocNum", BoFormItemTypes.it_EDIT);
                 docNumEdit.Top = 200;
                 docNumEdit.Left = 130;
                 docNumEdit.Width = 200;
                 docNumEdit.Height = 20;
-                ((SAPbouiCOM.EditText)docNumEdit.Specific).Value = rs.Fields.Item("U_DocNum").Value.ToString();
+                SapUiSafe.TrySetEditValue(docNumEdit, B1TuneUp.Utils.SapUiSafe.SafeField(rs, "U_DocNum"));
 
                 Item activeCombo = oForm.Items.Add("CmbActive", BoFormItemTypes.it_COMBO_BOX);
                 activeCombo.Top = 230;
                 activeCombo.Left = 130;
                 activeCombo.Width = 200;
                 activeCombo.Height = 20;
-                ComboBox cmbActive = (ComboBox)activeCombo.Specific;
+                ComboBox cmbActive = SapUiSafe.TryGetSpecific<ComboBox>(activeCombo);
                 cmbActive.ValidValues.Add("Y", "Yes");
                 cmbActive.ValidValues.Add("N", "No");
-                if (rs.Fields.Item("U_Active").Value.ToString() == "Y")
+                if (B1TuneUp.Utils.SapUiSafe.SafeField(rs, "U_Active") == "Y")
                     cmbActive.Select(0);
                 else
                     cmbActive.Select(1);
@@ -593,14 +593,14 @@ namespace B1TuneUp.Modules
                 updateButton.Left = 20;
                 updateButton.Width = 80;
                 updateButton.Height = 25;
-                ((SAPbouiCOM.Button)updateButton.Specific).Caption = "Update";
+                SapUiSafe.TrySetCaption(updateButton, "Update");
 
                 Item cancelButton = oForm.Items.Add("BtnCancel", BoFormItemTypes.it_BUTTON);
                 cancelButton.Top = 270;
                 cancelButton.Left = 110;
                 cancelButton.Width = 80;
                 cancelButton.Height = 25;
-                ((SAPbouiCOM.Button)cancelButton.Specific).Caption = "Cancel";
+                SapUiSafe.TrySetCaption(cancelButton, "Cancel");
             }
 
             ComObjectManager.Release(rs);
@@ -610,13 +610,13 @@ namespace B1TuneUp.Modules
         {
             try
             {
-                string desc = ((EditText)oForm.Items.Item("EdtDesc").Specific).Value;
-                string freq = ((ComboBox)oForm.Items.Item("CmbFreq").Specific).Selected.Value;
-                string startDate = ((EditText)oForm.Items.Item("EdtStart").Specific).Value;
-                string endDate = ((EditText)oForm.Items.Item("EdtEnd").Specific).Value;
-                string docType = ((ComboBox)oForm.Items.Item("CmbDocType").Specific).Selected.Value;
-                string docNum = ((EditText)oForm.Items.Item("EdtDocNum").Specific).Value;
-                string active = ((ComboBox)oForm.Items.Item("CmbActive").Specific).Selected.Value;
+                string desc = SapUiSafe.TryGetSpecific<EditText>(oForm, "EdtDesc")?.Value ?? string.Empty;
+                string freq = SapUiSafe.SafeComboValue(SapUiSafe.TryGetSpecific<ComboBox>(oForm, "CmbFreq"));
+                string startDate = SapUiSafe.TryGetSpecific<EditText>(oForm, "EdtStart")?.Value ?? string.Empty;
+                string endDate = SapUiSafe.TryGetSpecific<EditText>(oForm, "EdtEnd")?.Value ?? string.Empty;
+                string docType = SapUiSafe.SafeComboValue(SapUiSafe.TryGetSpecific<ComboBox>(oForm, "CmbDocType"));
+                string docNum = SapUiSafe.TryGetSpecific<EditText>(oForm, "EdtDocNum")?.Value ?? string.Empty;
+                string active = SapUiSafe.SafeComboValue(SapUiSafe.TryGetSpecific<ComboBox>(oForm, "CmbActive"));
 
                 // Update the recurring invoice template
                 Recordset rs = (Recordset)B1App.Instance.Company.GetBusinessObject(BoObjectTypes.BoRecordset);
@@ -645,7 +645,7 @@ namespace B1TuneUp.Modules
         {
             try
             {
-                Grid matrix = (Grid)oForm.Items.Item("RecInvMatrix").Specific;
+                Grid matrix = SapUiSafe.TryGetSpecific<Grid>(oForm, "RecInvMatrix");
                 if (matrix.Rows.SelectedRows.Count > 0)
                 {
                     int selectedRow = matrix.Rows.SelectedRows.Item(0, SAPbouiCOM.BoOrderType.ot_SelectionOrder);
@@ -683,7 +683,7 @@ namespace B1TuneUp.Modules
         {
             try
             {
-                Grid matrix = (Grid)oForm.Items.Item("RecInvMatrix").Specific;
+                Grid matrix = SapUiSafe.TryGetSpecific<Grid>(oForm, "RecInvMatrix");
                 if (matrix.Rows.SelectedRows.Count > 0)
                 {
                     int selectedRow = matrix.Rows.SelectedRows.Item(0, SAPbouiCOM.BoOrderType.ot_SelectionOrder);
@@ -719,11 +719,11 @@ namespace B1TuneUp.Modules
 
                 if (!rs.EoF)
                 {
-                    string docType = rs.Fields.Item("U_DocType").Value.ToString();
-                    string docNum = rs.Fields.Item("U_DocNum").Value.ToString();
-                    string frequency = rs.Fields.Item("U_Freq").Value.ToString();
-                    string startDate = rs.Fields.Item("U_StartDate").Value.ToString();
-                    string endDate = rs.Fields.Item("U_EndDate").Value.ToString();
+                    string docType = B1TuneUp.Utils.SapUiSafe.SafeField(rs, "U_DocType");
+                    string docNum = B1TuneUp.Utils.SapUiSafe.SafeField(rs, "U_DocNum");
+                    string frequency = B1TuneUp.Utils.SapUiSafe.SafeField(rs, "U_Freq");
+                    string startDate = B1TuneUp.Utils.SapUiSafe.SafeField(rs, "U_StartDate");
+                    string endDate = B1TuneUp.Utils.SapUiSafe.SafeField(rs, "U_EndDate");
 
                     // Create the recurring invoice document based on the template
                     // This is a simplified implementation - in reality, you'd clone the source document
@@ -840,10 +840,12 @@ namespace B1TuneUp.Modules
                 // Find and refresh all recurring invoice forms
                 for (int i = 0; i < B1App.Instance.Application.Forms.Count; i++)
                 {
-                    Form form = B1App.Instance.Application.Forms.Item(i);
+                    Form form = null;
+                    try { form = SapUiSafe.TryGetForm(i); } catch { }
+                    if (form == null) continue;
                     if (form.TypeEx == "BTUN_RECINV")
                     {
-                        Grid matrix = (Grid)form.Items.Item("RecInvMatrix").Specific;
+                        Grid matrix = SapUiSafe.TryGetSpecific<Grid>(form, "RecInvMatrix");
                         LoadRecurringInvoiceTemplates(matrix);
                     }
                 }
@@ -868,12 +870,12 @@ namespace B1TuneUp.Modules
 
                 while (!rs.EoF)
                 {
-                    string templateName = rs.Fields.Item("U_Name").Value.ToString();
-                    string docType = rs.Fields.Item("U_DocType").Value.ToString();
-                    string docNum = rs.Fields.Item("U_DocNum").Value.ToString();
-                    string frequency = rs.Fields.Item("U_Freq").Value.ToString();
-                    string startDate = rs.Fields.Item("U_StartDate").Value.ToString();
-                    string endDate = rs.Fields.Item("U_EndDate").Value.ToString();
+                    string templateName = B1TuneUp.Utils.SapUiSafe.SafeField(rs, "U_Name");
+                    string docType = B1TuneUp.Utils.SapUiSafe.SafeField(rs, "U_DocType");
+                    string docNum = B1TuneUp.Utils.SapUiSafe.SafeField(rs, "U_DocNum");
+                    string frequency = B1TuneUp.Utils.SapUiSafe.SafeField(rs, "U_Freq");
+                    string startDate = B1TuneUp.Utils.SapUiSafe.SafeField(rs, "U_StartDate");
+                    string endDate = B1TuneUp.Utils.SapUiSafe.SafeField(rs, "U_EndDate");
 
                     // Process each active recurring invoice
                     ProcessRecurringInvoice(templateName, docType, docNum, frequency, startDate, endDate);

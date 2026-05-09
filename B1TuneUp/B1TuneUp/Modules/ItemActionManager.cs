@@ -48,7 +48,7 @@ namespace B1TuneUp.Modules
 
                 if (!rs.EoF)
                 {
-                    string codeValue = rs.Fields.Item(0).Value?.ToString() ?? string.Empty;
+                    string codeValue = B1TuneUp.Utils.SapUiSafe.SafeField(rs, 0);
                     string updateSql = isHana
                         ? $"UPDATE {table} SET \"U_Action\"='{act}', \"U_UpdatedAt\"=CURRENT_TIMESTAMP WHERE \"Code\"='{codeValue}'"
                         : $"UPDATE {table} SET [U_Action]='{act}', [U_UpdatedAt]=GETDATE() WHERE [Code]='{codeValue}'";
@@ -69,7 +69,7 @@ namespace B1TuneUp.Modules
                 {
                     for (int i = 0; i < B1App.Instance.Application.Forms.Count; i++)
                     {
-                        var f = B1App.Instance.Application.Forms.Item(i);
+                        var f = SapUiSafe.TryGetForm(i);
                         if (f.TypeEx == formType)
                         {
                             EventDispatcher.Instance.UnregisterLocalItemChangeHandler(f, itemId);
@@ -109,7 +109,7 @@ namespace B1TuneUp.Modules
                     ? $"SELECT \"U_Action\" FROM \"@BTUN_ITEMACT\" WHERE \"U_FormType\"='{formType.Replace("'","''")}' AND \"U_ItemID\"='{itemId.Replace("'","''")}'"
                     : $"SELECT U_Action FROM [@BTUN_ITEMACT] WHERE [U_FormType]='{formType.Replace("'","''")}' AND [U_ItemID]='{itemId.Replace("'","''")}'";
                 rs.DoQuery(sql);
-                if (!rs.EoF) return rs.Fields.Item(0).Value?.ToString() ?? "";
+                if (!rs.EoF) return B1TuneUp.Utils.SapUiSafe.SafeField(rs, 0);
             }
             catch { }
             finally { ComObjectManager.Release(rs); }
@@ -127,7 +127,7 @@ namespace B1TuneUp.Modules
                     ? $"SELECT \"U_Action\" FROM \"@BTUN_ITEMACT\" WHERE \"U_FormType\"='{formType.Replace("'","''")}' AND \"U_ItemID\"='{itemId.Replace("'","''")}' AND \"U_Event\" = '{eventType.Replace("'","''")}'"
                     : $"SELECT U_Action FROM [@BTUN_ITEMACT] WHERE [U_FormType]='{formType.Replace("'","''")}' AND [U_ItemID]='{itemId.Replace("'","''")}' AND [U_Event] = '{eventType.Replace("'","''")}'";
                 rs.DoQuery(sql);
-                if (!rs.EoF) return rs.Fields.Item(0).Value?.ToString() ?? "";
+                if (!rs.EoF) return B1TuneUp.Utils.SapUiSafe.SafeField(rs, 0);
             }
             catch { }
             finally { ComObjectManager.Release(rs); }
@@ -147,9 +147,9 @@ namespace B1TuneUp.Modules
                 rs.DoQuery(sql);
                 while (!rs.EoF)
                 {
-                    string f = rs.Fields.Item(0).Value?.ToString() ?? "";
-                    string it = rs.Fields.Item(1).Value?.ToString() ?? "";
-                    string act = rs.Fields.Item(2).Value?.ToString() ?? "";
+                    string f = B1TuneUp.Utils.SapUiSafe.SafeField(rs, 0);
+                    string it = B1TuneUp.Utils.SapUiSafe.SafeField(rs, 1);
+                    string act = B1TuneUp.Utils.SapUiSafe.SafeField(rs, 2);
                     if (!string.IsNullOrEmpty(f) && !string.IsNullOrEmpty(it)) dict[$"{f}|{it}"] = act;
                     rs.MoveNext();
                 }
@@ -176,9 +176,9 @@ namespace B1TuneUp.Modules
                 while (!rs.EoF)
                 {
                     var row = dt.NewRow();
-                    row[0] = rs.Fields.Item(0).Value?.ToString();
-                    row[1] = rs.Fields.Item(1).Value?.ToString();
-                    row[2] = rs.Fields.Item(2).Value?.ToString();
+                    row[0] = B1TuneUp.Utils.SapUiSafe.SafeField(rs, 0);
+                    row[1] = B1TuneUp.Utils.SapUiSafe.SafeField(rs, 1);
+                    row[2] = B1TuneUp.Utils.SapUiSafe.SafeField(rs, 2);
                     dt.Rows.Add(row);
                     rs.MoveNext();
                 }
@@ -205,7 +205,7 @@ namespace B1TuneUp.Modules
                 {
                     for (int i = 0; i < B1App.Instance.Application.Forms.Count; i++)
                     {
-                        var f = B1App.Instance.Application.Forms.Item(i);
+                        var f = SapUiSafe.TryGetForm(i);
                         if (f.TypeEx == formType)
                         {
                             EventDispatcher.Instance.UnregisterLocalItemChangeHandler(f, itemId);

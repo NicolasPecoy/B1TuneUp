@@ -72,7 +72,7 @@ namespace B1TuneUp.Modules
                     rs.DoQuery(sql);
                     if (rs.RecordCount > 0)
                     {
-                        var value = rs.Fields.Item(0).Value;
+                        var value = B1TuneUp.Utils.SapUiSafe.SafeFieldValue(rs, 0);
                         return value?.ToString();
                     }
                 }

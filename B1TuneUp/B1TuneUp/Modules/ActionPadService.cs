@@ -26,15 +26,15 @@ namespace B1TuneUp.Modules
                 {
                     var pad = new ActionPadEntry
                     {
-                        DocEntry = Convert.ToInt32(rs.Fields.Item(0).Value),
-                        FormType = rs.Fields.Item(1).Value?.ToString() ?? string.Empty,
-                        Title = rs.Fields.Item(2).Value?.ToString() ?? string.Empty,
-                        Position = rs.Fields.Item(3).Value?.ToString() ?? "Right",
-                        Columns = SafeInt(rs.Fields.Item("U_Columns")?.Value, 1),
-                        ButtonWidth = SafeInt(rs.Fields.Item("U_BtnWidth")?.Value, 120),
-                        ButtonHeight = SafeInt(rs.Fields.Item("U_BtnHeight")?.Value, 22),
-                        DockMode = rs.Fields.Item("U_DockMode")?.Value?.ToString() ?? "Floating",
-                        FollowForm = !string.Equals(rs.Fields.Item("U_FollowForm")?.Value?.ToString(), "N", StringComparison.OrdinalIgnoreCase)
+                        DocEntry = Convert.ToInt32(B1TuneUp.Utils.SapUiSafe.SafeFieldValue(rs, 0)),
+                        FormType = B1TuneUp.Utils.SapUiSafe.SafeField(rs, 1),
+                        Title = B1TuneUp.Utils.SapUiSafe.SafeField(rs, 2),
+                        Position = B1TuneUp.Utils.SapUiSafe.SafeField(rs, 3) ?? "Right",
+                        Columns = SafeInt(B1TuneUp.Utils.SapUiSafe.SafeFieldValue(rs, "U_Columns"), 1),
+                        ButtonWidth = SafeInt(B1TuneUp.Utils.SapUiSafe.SafeFieldValue(rs, "U_BtnWidth"), 120),
+                        ButtonHeight = SafeInt(B1TuneUp.Utils.SapUiSafe.SafeFieldValue(rs, "U_BtnHeight"), 22),
+                        DockMode = B1TuneUp.Utils.SapUiSafe.SafeField(rs, "U_DockMode", "Floating"),
+                        FollowForm = !string.Equals(B1TuneUp.Utils.SapUiSafe.SafeField(rs, "U_FollowForm"), "N", StringComparison.OrdinalIgnoreCase)
                     };
                     foreach (var button in GetButtons(pad.DocEntry))
                     {
@@ -138,23 +138,23 @@ namespace B1TuneUp.Modules
                 {
                     list.Add(new ActionPadButtonEntry
                     {
-                        DocEntry = Convert.ToInt32(rs.Fields.Item(0).Value),
+                        DocEntry = Convert.ToInt32(B1TuneUp.Utils.SapUiSafe.SafeFieldValue(rs, 0)),
                         PadEntry = docEntry,
-                        Label = rs.Fields.Item(1).Value?.ToString() ?? string.Empty,
-                        Action = rs.Fields.Item(2).Value?.ToString() ?? string.Empty,
-                        Order = Convert.ToInt32(rs.Fields.Item(3).Value),
-                        Tooltip = rs.Fields.Item("U_Tooltip")?.Value?.ToString(),
-                        Icon = rs.Fields.Item("U_Icon")?.Value?.ToString(),
-                        Color = rs.Fields.Item("U_Color")?.Value?.ToString(),
-                        HotKey = rs.Fields.Item("U_HotKey")?.Value?.ToString(),
-                        GridRow = SafeInt(rs.Fields.Item("U_GridRow")?.Value, -1),
-                        GridCol = SafeInt(rs.Fields.Item("U_GridCol")?.Value, -1),
-                        ColSpan = Math.Max(1, SafeInt(rs.Fields.Item("U_ColSpan")?.Value, 1)),
-                        RowSpan = Math.Max(1, SafeInt(rs.Fields.Item("U_RowSpan")?.Value, 1)),
-                        Left = SafeDouble(rs.Fields.Item("U_Left")?.Value, 0),
-                        Top = SafeDouble(rs.Fields.Item("U_Top")?.Value, 0),
-                        Width = SafeDouble(rs.Fields.Item("U_Width")?.Value, 120),
-                        Height = SafeDouble(rs.Fields.Item("U_Height")?.Value, 22)
+                        Label = B1TuneUp.Utils.SapUiSafe.SafeField(rs, 1),
+                        Action = B1TuneUp.Utils.SapUiSafe.SafeField(rs, 2),
+                        Order = Convert.ToInt32(B1TuneUp.Utils.SapUiSafe.SafeFieldValue(rs, 3)),
+                        Tooltip = B1TuneUp.Utils.SapUiSafe.SafeField(rs, "U_Tooltip"),
+                        Icon = B1TuneUp.Utils.SapUiSafe.SafeField(rs, "U_Icon"),
+                        Color = B1TuneUp.Utils.SapUiSafe.SafeField(rs, "U_Color"),
+                        HotKey = B1TuneUp.Utils.SapUiSafe.SafeField(rs, "U_HotKey"),
+                        GridRow = SafeInt(B1TuneUp.Utils.SapUiSafe.SafeFieldValue(rs, "U_GridRow"), -1),
+                        GridCol = SafeInt(B1TuneUp.Utils.SapUiSafe.SafeFieldValue(rs, "U_GridCol"), -1),
+                        ColSpan = Math.Max(1, SafeInt(B1TuneUp.Utils.SapUiSafe.SafeFieldValue(rs, "U_ColSpan"), 1)),
+                        RowSpan = Math.Max(1, SafeInt(B1TuneUp.Utils.SapUiSafe.SafeFieldValue(rs, "U_RowSpan"), 1)),
+                        Left = SafeDouble(B1TuneUp.Utils.SapUiSafe.SafeFieldValue(rs, "U_Left"), 0),
+                        Top = SafeDouble(B1TuneUp.Utils.SapUiSafe.SafeFieldValue(rs, "U_Top"), 0),
+                        Width = SafeDouble(B1TuneUp.Utils.SapUiSafe.SafeFieldValue(rs, "U_Width"), 120),
+                        Height = SafeDouble(B1TuneUp.Utils.SapUiSafe.SafeFieldValue(rs, "U_Height"), 22)
                     });
                     rs.MoveNext();
                 }

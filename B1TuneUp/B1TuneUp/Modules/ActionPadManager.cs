@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Windows.Forms;
@@ -15,26 +15,28 @@ namespace B1TuneUp.Modules
 
         public static void ShowPadForForm(SAPbouiCOM.Form oForm)
         {
+            if (oForm == null) return;
             Recordset rs = (Recordset)B1App.Instance.Company.GetBusinessObject(BoObjectTypes.BoRecordset);
             try
             {
+                string safeFormType = (oForm.TypeEx ?? string.Empty).Replace("'", "''");
                 string sql = B1App.Instance.IsHana
-                    ? $"SELECT * FROM \"@BTUN_PAD\" WHERE \"U_FormType\" = '{oForm.TypeEx}'"
-                    : $"SELECT * FROM [@BTUN_PAD] WHERE [U_FormType] = '{oForm.TypeEx}'";
+                    ? $"SELECT * FROM \"@BTUN_PAD\" WHERE \"U_FormType\" = '{safeFormType}'"
+                    : $"SELECT * FROM [@BTUN_PAD] WHERE [U_FormType] = '{safeFormType}'";
 
                 rs.DoQuery(sql);
                 if (!rs.EoF)
                 {
-                    string padEntry = rs.Fields.Item("Code").Value.ToString();
+                    string padEntry = SapUiSafe.SafeField(rs, "Code");
                     var config = new PadConfig
                     {
-                        Title = rs.Fields.Item("U_Title").Value.ToString(),
-                        Position = rs.Fields.Item("U_Position").Value.ToString(),
-                        Columns = SafeInt(rs.Fields.Item("U_Columns")?.Value, 1),
-                        ButtonWidth = SafeInt(rs.Fields.Item("U_BtnWidth")?.Value, 120),
-                        ButtonHeight = SafeInt(rs.Fields.Item("U_BtnHeight")?.Value, 22),
-                        DockMode = rs.Fields.Item("U_DockMode")?.Value.ToString(),
-                        FollowForm = string.Equals(rs.Fields.Item("U_FollowForm")?.Value.ToString(), "Y", StringComparison.OrdinalIgnoreCase)
+                        Title = SapUiSafe.SafeField(rs, "U_Title"),
+                        Position = SapUiSafe.SafeField(rs, "U_Position"),
+                        Columns = SafeInt(B1TuneUp.Utils.SapUiSafe.SafeFieldValue(rs, "U_Columns"), 1),
+                        ButtonWidth = SafeInt(B1TuneUp.Utils.SapUiSafe.SafeFieldValue(rs, "U_BtnWidth"), 120),
+                        ButtonHeight = SafeInt(B1TuneUp.Utils.SapUiSafe.SafeFieldValue(rs, "U_BtnHeight"), 22),
+                        DockMode = SapUiSafe.SafeField(rs, "U_DockMode"),
+                        FollowForm = string.Equals(SapUiSafe.SafeField(rs, "U_FollowForm"), "Y", StringComparison.OrdinalIgnoreCase)
                     };
 
                     CreatePadForm(padEntry, config, oForm);
@@ -57,7 +59,7 @@ namespace B1TuneUp.Modules
             {
                 if (B1App.Instance.Application.Forms.Count > 0)
                 {
-                    try { var f = B1App.Instance.Application.Forms.Item(formUID); if (f != null) { f.Select(); return; } } catch { }
+                    try { var f = SapUiSafe.TryGetForm(formUID); if (f != null) { f.Select(); return; } } catch { }
                 }
 
                 FormCreationParams fcp = (FormCreationParams)B1App.Instance.Application.CreateObject(BoCreatableObjectType.cot_FormCreationParams);
@@ -100,13 +102,13 @@ namespace B1TuneUp.Modules
                 int maxBottom = 0;
                 while (!rs.EoF)
                 {
-                    string label = rs.Fields.Item("U_Label").Value.ToString();
-                    string action = rs.Fields.Item("U_Action").Value.ToString();
-                    string tooltip = rs.Fields.Item("U_Tooltip")?.Value.ToString();
-                    string colorHex = rs.Fields.Item("U_Color")?.Value.ToString();
-                    int explicitRow = SafeInt(rs.Fields.Item("U_GridRow")?.Value, -1);
-                    int explicitCol = SafeInt(rs.Fields.Item("U_GridCol")?.Value, -1);
-                    string btnId = $"btn_{rs.Fields.Item("Code").Value}";
+                    string label = SapUiSafe.SafeField(rs, "U_Label");
+                    string action = SapUiSafe.SafeField(rs, "U_Action");
+                    string tooltip = SapUiSafe.SafeField(rs, "U_Tooltip");
+                    string colorHex = SapUiSafe.SafeField(rs, "U_Color");
+                    int explicitRow = SafeInt(B1TuneUp.Utils.SapUiSafe.SafeFieldValue(rs, "U_GridRow"), -1);
+                    int explicitCol = SafeInt(B1TuneUp.Utils.SapUiSafe.SafeFieldValue(rs, "U_GridCol"), -1);
+                    string btnId = $"btn_{SapUiSafe.SafeField(rs, "Code")}";
 
                     var (left, top) = CalculateButtonPosition(config, index, explicitRow, explicitCol);
 
@@ -124,7 +126,12 @@ namespace B1TuneUp.Modules
                         }
                     }
 
-                    SAPbouiCOM.Button btn = (SAPbouiCOM.Button)item.Specific;
+                    SAPbouiCOM.Button btn = SapUiSafe.TryGetSpecific<SAPbouiCOM.Button>(item);
+                    if (btn == null)
+                    {
+                        rs.MoveNext();
+                        continue;
+                    }
                     btn.Caption = label;
                     if (!string.IsNullOrEmpty(tooltip))
                     {

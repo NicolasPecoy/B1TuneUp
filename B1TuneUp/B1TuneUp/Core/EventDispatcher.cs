@@ -40,13 +40,13 @@ namespace B1TuneUp.Core
                 {
                     _rules.Add(new B1Rule
                     {
-                        ID = rs.Fields.Item("DocEntry").Value.ToString(),
-                        FormType = rs.Fields.Item("U_FormType").Value.ToString(),
-                        Type = (RuleType)Enum.Parse(typeof(RuleType), rs.Fields.Item("U_Type").Value.ToString()),
-                        EventType = rs.Fields.Item("U_EventType").Value.ToString(),
-                        BeforeAction = rs.Fields.Item("U_Before").Value.ToString() == "Y",
-                        Condition = rs.Fields.Item("U_Condition").Value.ToString(),
-                        Action = rs.Fields.Item("U_Action").Value.ToString()
+                        ID = SapUiSafe.SafeField(rs, "DocEntry"),
+                        FormType = SapUiSafe.SafeField(rs, "U_FormType"),
+                        Type = ParseRuleType(SapUiSafe.SafeField(rs, "U_Type")),
+                        EventType = SapUiSafe.SafeField(rs, "U_EventType"),
+                        BeforeAction = SapUiSafe.SafeField(rs, "U_Before") == "Y",
+                        Condition = SapUiSafe.SafeField(rs, "U_Condition"),
+                        Action = SapUiSafe.SafeField(rs, "U_Action")
                     });
                     rs.MoveNext();
                 }
@@ -183,7 +183,7 @@ namespace B1TuneUp.Core
                 foreach (var rule in matchingRules)
                 {
                     Form oForm = null;
-                    try { oForm = B1App.Instance.Application.Forms.Item(FormUID); } catch { }
+                    oForm = currentForm ?? TryGetForm(FormUID);
 
                     if (MacroEngine.CheckCondition(rule.Condition, oForm))
                     {
@@ -333,7 +333,7 @@ namespace B1TuneUp.Core
                 if (BusinessObjectInfo.BeforeAction && (BusinessObjectInfo.EventType == BoEventTypes.et_FORM_DATA_ADD || BusinessObjectInfo.EventType == BoEventTypes.et_FORM_DATA_UPDATE))
                 {
                     Form oForm = null;
-                    try { oForm = B1App.Instance.Application.Forms.Item(BusinessObjectInfo.FormUID); } catch { }
+                    oForm = TryGetForm(BusinessObjectInfo.FormUID);
 
                     if (oForm != null)
                     {
@@ -398,7 +398,8 @@ namespace B1TuneUp.Core
             if (!beforeAction) return;
             try
             {
-                Form oForm = B1App.Instance.Application.Forms.Item(formUID);
+                Form oForm = TryGetForm(formUID);
+                if (oForm == null) return;
                 FormSettingsManager.SaveSettings(oForm);
             }
             catch { }
@@ -445,8 +446,17 @@ namespace B1TuneUp.Core
         private static Form TryGetForm(string formUid)
         {
             if (string.IsNullOrWhiteSpace(formUid)) return null;
-            try { return B1App.Instance.Application.Forms.Item(formUid); }
-            catch { return null; }
+            return SapUiSafe.TryGetForm(formUid);
+        }
+
+        private static RuleType ParseRuleType(string value)
+        {
+            try
+            {
+                if (Enum.TryParse(value, out RuleType parsed)) return parsed;
+            }
+            catch { }
+            return RuleType.Macro;
         }
     }
 }

@@ -29,20 +29,20 @@ namespace B1TuneUp.Modules
                 {
                     configs.Add(new IntegrationConfig
                     {
-                        Code = Convert.ToString(rs.Fields.Item(0).Value),
-                        Name = Convert.ToString(rs.Fields.Item(1).Value),
-                        Channel = Convert.ToString(rs.Fields.Item(2).Value),
-                        Method = Convert.ToString(rs.Fields.Item(3).Value),
-                        Endpoint = Convert.ToString(rs.Fields.Item(4).Value),
-                        Headers = Convert.ToString(rs.Fields.Item(5).Value),
-                        Body = Convert.ToString(rs.Fields.Item(6).Value),
-                        AuthMode = Convert.ToString(rs.Fields.Item(7).Value),
-                        AuthUser = Convert.ToString(rs.Fields.Item(8).Value),
-                        AuthSecret = Convert.ToString(rs.Fields.Item(9).Value),
-                        ScheduleMinutes = ConvertToNullableInt(rs.Fields.Item(10).Value),
-                        HandlerMacro = Convert.ToString(rs.Fields.Item(11).Value),
-                        Notes = Convert.ToString(rs.Fields.Item(12).Value),
-                        Active = Convert.ToString(rs.Fields.Item(13).Value) != "N"
+                        Code = B1TuneUp.Utils.SapUiSafe.SafeField(rs, 0),
+                        Name = B1TuneUp.Utils.SapUiSafe.SafeField(rs, 1),
+                        Channel = B1TuneUp.Utils.SapUiSafe.SafeField(rs, 2),
+                        Method = B1TuneUp.Utils.SapUiSafe.SafeField(rs, 3),
+                        Endpoint = B1TuneUp.Utils.SapUiSafe.SafeField(rs, 4),
+                        Headers = B1TuneUp.Utils.SapUiSafe.SafeField(rs, 5),
+                        Body = B1TuneUp.Utils.SapUiSafe.SafeField(rs, 6),
+                        AuthMode = B1TuneUp.Utils.SapUiSafe.SafeField(rs, 7),
+                        AuthUser = B1TuneUp.Utils.SapUiSafe.SafeField(rs, 8),
+                        AuthSecret = B1TuneUp.Utils.SapUiSafe.SafeField(rs, 9),
+                        ScheduleMinutes = ConvertToNullableInt(B1TuneUp.Utils.SapUiSafe.SafeFieldValue(rs, 10)),
+                        HandlerMacro = B1TuneUp.Utils.SapUiSafe.SafeField(rs, 11),
+                        Notes = B1TuneUp.Utils.SapUiSafe.SafeField(rs, 12),
+                        Active = B1TuneUp.Utils.SapUiSafe.SafeField(rs, 13) != "N"
                     });
                     rs.MoveNext();
                 }

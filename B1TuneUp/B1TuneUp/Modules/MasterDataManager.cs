@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using SAPbobsCOM;
 using B1TuneUp.Core;
 using B1TuneUp.Utils;
@@ -19,8 +19,8 @@ namespace B1TuneUp.Modules
                 rs.DoQuery(sql);
                 if (!rs.EoF)
                 {
-                    string selectSql = rs.Fields.Item("U_SelectSQL").Value.ToString();
-                    string actionMacro = rs.Fields.Item("U_Action").Value.ToString();
+                    string selectSql = B1TuneUp.Utils.SapUiSafe.SafeField(rs, "U_SelectSQL");
+                    string actionMacro = B1TuneUp.Utils.SapUiSafe.SafeField(rs, "U_Action");
 
                     ProcessMDM(selectSql, actionMacro);
                 }
@@ -46,8 +46,8 @@ namespace B1TuneUp.Modules
                     // Extraer todos los campos del registro actual
                     for (int i = 0; i < rs.Fields.Count; i++)
                     {
-                        string fieldName = rs.Fields.Item(i).Name;
-                        object fieldValue = rs.Fields.Item(i).Value;
+                        string fieldName = B1TuneUp.Utils.SapUiSafe.SafeFieldName(rs, i);
+                        object fieldValue = B1TuneUp.Utils.SapUiSafe.SafeFieldValue(rs, i);
                         recordContext[fieldName] = fieldValue ?? "";
                     }
 

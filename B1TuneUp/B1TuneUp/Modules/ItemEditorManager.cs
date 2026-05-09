@@ -12,13 +12,13 @@ namespace B1TuneUp.Modules
         {
             try
             {
-                var targetForm = form ?? B1App.Instance.Application.Forms.ActiveForm;
+                var targetForm = form ?? SapUiSafe.TryGetActiveForm();
                 if (targetForm == null)
                 {
                     B1App.Instance.Application.SetStatusBarMessage("No hay un formulario activo.", BoMessageTime.bmt_Short, true);
                     return;
                 }
-                if (!targetForm.Items.Exists(itemId))
+                if (SapUiSafe.TryGetItem(targetForm, itemId) == null)
                 {
                     B1App.Instance.Application.SetStatusBarMessage($"Item {itemId} no encontrado.", BoMessageTime.bmt_Short, true);
                     return;
@@ -36,7 +36,7 @@ namespace B1TuneUp.Modules
         {
             try
             {
-                var targetForm = form ?? B1App.Instance.Application.Forms.ActiveForm;
+                var targetForm = form ?? SapUiSafe.TryGetActiveForm();
                 if (targetForm == null)
                 {
                     B1App.Instance.Application.SetStatusBarMessage("No hay un formulario activo en SAP Business One.", BoMessageTime.bmt_Short, true);
@@ -55,13 +55,13 @@ namespace B1TuneUp.Modules
         {
             try
             {
-                if (form == null) form = B1App.Instance.Application.Forms.ActiveForm;
+                if (form == null) form = SapUiSafe.TryGetActiveForm();
                 if (form == null) return;
-                if (!form.Items.Exists(itemId)) return;
+                var it = SapUiSafe.TryGetItem(form, itemId);
+                if (it == null) return;
                 try
                 {
                     // Some SDK environments may not allow Remove; we attempt to hide the item as a safe operation
-                    var it = form.Items.Item(itemId);
                     it.Enabled = false;
                     it.Visible = false;
                     B1App.Instance.Application.SetStatusBarMessage($"Item {itemId} ocultado (disabled).", SAPbouiCOM.BoMessageTime.bmt_Short, false);

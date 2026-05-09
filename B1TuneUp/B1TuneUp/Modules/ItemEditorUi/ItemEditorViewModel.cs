@@ -3,6 +3,7 @@ using System.ComponentModel;
 using System.Threading.Tasks;
 using B1TuneUp.Core;
 using B1TuneUp.Modules.IntegrationUi;
+using B1TuneUp.Utils;
 using SAPbouiCOM;
 
 namespace B1TuneUp.Modules.ItemEditorUi
@@ -108,13 +109,13 @@ namespace B1TuneUp.Modules.ItemEditorUi
             try
             {
                 var form = GetForm();
-                if (form == null || string.IsNullOrEmpty(_itemId) || !form.Items.Exists(_itemId))
+                var item = SapUiSafe.TryGetItem(form, _itemId);
+                if (form == null || string.IsNullOrEmpty(_itemId) || item == null)
                 {
                     StatusMessage = "No se encontró el ítem en el formulario.";
                     return;
                 }
 
-                var item = form.Items.Item(_itemId);
                 Left = item.Left;
                 Top = item.Top;
                 Width = item.Width;
@@ -140,14 +141,14 @@ namespace B1TuneUp.Modules.ItemEditorUi
             {
                 if (!string.IsNullOrEmpty(_formUid))
                 {
-                    return B1App.Instance?.Application?.Forms?.Item(_formUid);
+                    return SapUiSafe.TryGetForm(_formUid);
                 }
             }
             catch
             {
                 // ignored
             }
-            return B1App.Instance?.Application?.Forms?.ActiveForm;
+            return SapUiSafe.TryGetActiveForm();
         }
 
         private async Task ApplyAsync()
@@ -160,7 +161,8 @@ namespace B1TuneUp.Modules.ItemEditorUi
                     StatusMessage = "No se pudo obtener el formulario.";
                     return Task.CompletedTask;
                 }
-                if (string.IsNullOrEmpty(_itemId) || !form.Items.Exists(_itemId))
+                var item = SapUiSafe.TryGetItem(form, _itemId);
+                if (string.IsNullOrEmpty(_itemId) || item == null)
                 {
                     StatusMessage = "El ítem ya no existe.";
                     return Task.CompletedTask;
@@ -168,7 +170,6 @@ namespace B1TuneUp.Modules.ItemEditorUi
 
                 try
                 {
-                    var item = form.Items.Item(_itemId);
                     item.Left = Left;
                     item.Top = Top;
                     item.Width = Width;

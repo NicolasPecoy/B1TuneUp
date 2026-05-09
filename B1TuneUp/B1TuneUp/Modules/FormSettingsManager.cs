@@ -26,6 +26,7 @@ namespace B1TuneUp.Modules
         /// </summary>
         public static void RestoreSettings(Form oForm)
         {
+            if (oForm == null) return;
             string data = LoadSettingsData(oForm.TypeEx);
             if (string.IsNullOrEmpty(data)) return;
 
@@ -55,11 +56,12 @@ namespace B1TuneUp.Modules
                 for (int i = 0; i < oForm.Items.Count; i++)
                 {
                     Item item;
-                    try { item = oForm.Items.Item(i); } catch { continue; }
+                    try { item = SapUiSafe.TryGetItem(oForm, i); } catch { continue; }
                     if (item.Type != BoFormItemTypes.it_MATRIX) continue;
 
                     Matrix matrix;
-                    try { matrix = (Matrix)item.Specific; } catch { continue; }
+                    try { matrix = SapUiSafe.TryGetSpecific<Matrix>(item); } catch { continue; }
+                    if (matrix == null) continue;
 
                     for (int j = 0; j < matrix.Columns.Count; j++)
                     {
@@ -83,6 +85,7 @@ namespace B1TuneUp.Modules
         {
             try
             {
+                if (oForm == null) return;
                 var sb = new StringBuilder();
                 sb.Append($"W={oForm.Width};H={oForm.Height};L={oForm.Left};T={oForm.Top}");
 
@@ -94,11 +97,12 @@ namespace B1TuneUp.Modules
                     for (int i = 0; i < oForm.Items.Count; i++)
                     {
                         Item item;
-                        try { item = oForm.Items.Item(i); } catch { continue; }
+                        try { item = SapUiSafe.TryGetItem(oForm, i); } catch { continue; }
                         if (item.Type != BoFormItemTypes.it_MATRIX) continue;
 
                         Matrix matrix;
-                        try { matrix = (Matrix)item.Specific; } catch { continue; }
+                        try { matrix = SapUiSafe.TryGetSpecific<Matrix>(item); } catch { continue; }
+                        if (matrix == null) continue;
 
                         for (int j = 0; j < matrix.Columns.Count; j++)
                         {
@@ -134,7 +138,7 @@ namespace B1TuneUp.Modules
 
                 rs.DoQuery(sql);
                 if (!rs.EoF)
-                    return rs.Fields.Item("U_Data").Value?.ToString() ?? string.Empty;
+                    return SapUiSafe.SafeField(rs, "U_Data");
             }
             catch { }
             finally { ComObjectManager.Release(rs); }
@@ -168,8 +172,8 @@ namespace B1TuneUp.Modules
                     table.Code = codeValue;
                     table.Name = $"FSET_{formType}_{userCode}";
                     table.UserFields.Fields.Item("U_FormType").Value = formType;
-                    table.UserFields.Fields.Item("U_UserCode").Value  = userCode;
-                    table.UserFields.Fields.Item("U_Data").Value      = data;
+                    table.UserFields.Fields.Item("U_UserCode").Value = userCode;
+                    table.UserFields.Fields.Item("U_Data").Value = data;
                     table.Add();
                 }
             }
@@ -188,7 +192,7 @@ namespace B1TuneUp.Modules
 
                 rs.DoQuery(sql);
                 if (!rs.EoF)
-                    return rs.Fields.Item(0).Value?.ToString();
+                    return SapUiSafe.SafeField(rs, 0);
             }
             catch { }
             finally { ComObjectManager.Release(rs); }

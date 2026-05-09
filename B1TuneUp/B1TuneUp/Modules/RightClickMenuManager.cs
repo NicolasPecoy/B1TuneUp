@@ -57,9 +57,9 @@ namespace B1TuneUp.Modules
 
                 while (!rs.EoF)
                 {
-                    string menuId = rs.Fields.Item("U_MenuID").Value.ToString();
-                    string name = rs.Fields.Item("U_Name").Value.ToString();
-                    string action = rs.Fields.Item("U_Action").Value.ToString();
+                    string menuId = B1TuneUp.Utils.SapUiSafe.SafeField(rs, "U_MenuID");
+                    string name = B1TuneUp.Utils.SapUiSafe.SafeField(rs, "U_Name");
+                    string action = B1TuneUp.Utils.SapUiSafe.SafeField(rs, "U_Action");
 
                     var actionDef = RightClickActionDefinition.Parse(action);
                     if (!actionDef.HasValue)
@@ -273,12 +273,11 @@ namespace B1TuneUp.Modules
             try
             {
                 if (!string.IsNullOrWhiteSpace(formUid))
-                    return B1App.Instance.Application.Forms.Item(formUid);
+                    return SapUiSafe.TryGetForm(formUid);
             }
             catch { }
 
-            try { return B1App.Instance.Application.Forms.ActiveForm; }
-            catch { return null; }
+            return SapUiSafe.TryGetActiveForm();
         }
 
         private static string ExpandPlaceholders(string macro, ContextSnapshot ctx)
@@ -426,17 +425,10 @@ namespace B1TuneUp.Modules
                 try
                 {
                     if (!string.IsNullOrEmpty(FormUid))
-                        return B1App.Instance.Application.Forms.Item(FormUid);
+                        return SapUiSafe.TryGetForm(FormUid);
                 }
                 catch { }
-                try
-                {
-                    return B1App.Instance.Application.Forms.ActiveForm;
-                }
-                catch
-                {
-                    return null;
-                }
+                return SapUiSafe.TryGetActiveForm();
             }
         }
     }

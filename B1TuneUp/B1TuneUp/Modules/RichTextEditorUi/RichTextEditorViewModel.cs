@@ -4,6 +4,7 @@ using System.Runtime.CompilerServices;
 using SAPbouiCOM;
 using B1TuneUp.Core;
 using B1TuneUp.Modules.IntegrationUi;
+using B1TuneUp.Utils;
 
 namespace B1TuneUp.Modules.RichTextEditorUi
 {
@@ -60,15 +61,15 @@ namespace B1TuneUp.Modules.RichTextEditorUi
         {
             try
             {
-                var form = B1App.Instance?.Application?.Forms?.ActiveForm;
+                var form = SapUiSafe.TryGetActiveForm();
                 if (form == null || string.IsNullOrWhiteSpace(ItemId))
                 {
                     return;
                 }
-                if (form.Items.Exists(ItemId))
+                var item = SapUiSafe.TryGetItem(form, ItemId);
+                if (item != null)
                 {
-                    var item = form.Items.Item(ItemId);
-                    if (item.Specific is EditText editText)
+                    if (SapUiSafe.TryGetSpecific<EditText>(item) is EditText editText)
                     {
                         TextContent = editText.Value ?? string.Empty;
                     }
@@ -81,19 +82,19 @@ namespace B1TuneUp.Modules.RichTextEditorUi
         {
             try
             {
-                var form = B1App.Instance?.Application?.Forms?.ActiveForm;
+                var form = SapUiSafe.TryGetActiveForm();
                 if (form == null)
                 {
                     StatusMessage = "No hay formulario activo.";
                     return;
                 }
-                if (!form.Items.Exists(ItemId))
+                var item = SapUiSafe.TryGetItem(form, ItemId);
+                if (item == null)
                 {
                     StatusMessage = $"El item {ItemId} no existe en el formulario actual.";
                     return;
                 }
-                var item = form.Items.Item(ItemId);
-                if (item.Specific is EditText editText)
+                if (SapUiSafe.TryGetSpecific<EditText>(item) is EditText editText)
                 {
                     editText.Value = TextContent ?? string.Empty;
                     StatusMessage = "Texto guardado correctamente.";

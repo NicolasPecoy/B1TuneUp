@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Windows;
 using B1TuneUp.Core;
+using B1TuneUp.Utils;
 using SAPbouiCOM;
 using Application = System.Windows.Application;
 
@@ -14,7 +15,7 @@ namespace B1TuneUp.Modules.PlacementEnhancementUi
             {
                 if (form == null)
                 {
-                    form = B1App.Instance.Application.Forms.ActiveForm;
+                    form = SapUiSafe.TryGetActiveForm();
                 }
                 if (form == null)
                 {

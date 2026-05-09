@@ -178,11 +178,11 @@ namespace B1TuneUp.Modules
             switch (action)
             {
                 case "Hide":
-                    oForm.Items.Item(itemId).Visible = false;
+                    SapUiSafe.TryGetItem(oForm, itemId).Visible = false;
                     break;
                 case "Move":
                     {
-                        Item item = oForm.Items.Item(itemId);
+                        Item item = SapUiSafe.TryGetItem(oForm, itemId);
                         if (entry.Top.HasValue) item.Top = entry.Top.Value;
                         if (entry.Left.HasValue) item.Left = entry.Left.Value;
                         if (entry.Width.HasValue) item.Width = entry.Width.Value;
@@ -191,34 +191,34 @@ namespace B1TuneUp.Modules
                     break;
                 case "Resize":
                     {
-                        Item item = oForm.Items.Item(itemId);
+                        Item item = SapUiSafe.TryGetItem(oForm, itemId);
                         if (entry.Width.HasValue) item.Width = entry.Width.Value;
                         if (entry.Height.HasValue) item.Height = entry.Height.Value;
                     }
                     break;
                 case "ChangeLabel":
                     {
-                        Item item = oForm.Items.Item(itemId);
+                        Item item = SapUiSafe.TryGetItem(oForm, itemId);
                         string text = entry.Label ?? string.Empty;
-                        if (item.Specific is StaticText lbl)
+                        if (SapUiSafe.TryGetSpecific<StaticText>(item) is StaticText lbl)
                         {
                             lbl.Caption = text;
                         }
-                        else if (item.Specific is EditText txt)
+                        else if (SapUiSafe.TryGetSpecific<EditText>(item) is EditText txt)
                         {
                             txt.Value = text;
                         }
-                        else if (item.Specific is SAPbouiCOM.Button btn)
+                        else if (SapUiSafe.TryGetSpecific<SAPbouiCOM.Button>(item) is SAPbouiCOM.Button btn)
                         {
                             btn.Caption = text;
                         }
                     }
                     break;
                 case "Enable":
-                    oForm.Items.Item(itemId).Enabled = true;
+                    SapUiSafe.TryGetItem(oForm, itemId).Enabled = true;
                     break;
                 case "Disable":
-                    oForm.Items.Item(itemId).Enabled = false;
+                    SapUiSafe.TryGetItem(oForm, itemId).Enabled = false;
                     break;
                 case "AddButton":
                     AddButton(oForm,
@@ -272,7 +272,7 @@ namespace B1TuneUp.Modules
                     rs.DoQuery(sql);
                     while (!rs.EoF)
                     {
-                        string code = rs.Fields.Item(0).Value?.ToString();
+                        string code = B1TuneUp.Utils.SapUiSafe.SafeField(rs, 0);
                         if (!string.IsNullOrEmpty(code)) ctx.GroupCodes.Add(code);
                         rs.MoveNext();
                     }
@@ -411,12 +411,12 @@ namespace B1TuneUp.Modules
                 oItem.Width = width;
                 oItem.Height = height;
 
-                SAPbouiCOM.Button oBtn = (SAPbouiCOM.Button)oItem.Specific;
+                SAPbouiCOM.Button oBtn = SapUiSafe.TryGetSpecific<SAPbouiCOM.Button>(oItem);
                 oBtn.Caption = caption;
 
                 if (!string.IsNullOrEmpty(fromItemId))
                 {
-                    Item fromItem = oForm.Items.Item(fromItemId);
+                    Item fromItem = SapUiSafe.TryGetItem(oForm, fromItemId);
                     oItem.Top = fromItem.Top;
                     oItem.Height = fromItem.Height;
                     oItem.Left = fromItem.Left + fromItem.Width + 5;
@@ -436,7 +436,7 @@ namespace B1TuneUp.Modules
         {
             try
             {
-                oForm.Items.Item(itemId).Visible = false;
+                SapUiSafe.TryGetItem(oForm, itemId).Visible = false;
             }
             catch { }
         }
@@ -447,7 +447,7 @@ namespace B1TuneUp.Modules
             try
             {
                 oItem = oForm.Items.Add(tabId, BoFormItemTypes.it_FOLDER);
-                Folder oFolder = (Folder)oItem.Specific;
+                Folder oFolder = SapUiSafe.TryGetSpecific<Folder>(oItem);
                 oFolder.Caption = caption;
                 oFolder.GroupWith(afterTabId);
             }
@@ -465,7 +465,7 @@ namespace B1TuneUp.Modules
         {
             try
             {
-                Item oItem = oForm.Items.Item(itemId);
+                Item oItem = SapUiSafe.TryGetItem(oForm, itemId);
                 oItem.Left = left;
                 oItem.Top = top;
             }
@@ -483,7 +483,7 @@ namespace B1TuneUp.Modules
                 oItem.Width = width;
                 oItem.Height = height;
 
-                Folder oFolder = (Folder)oItem.Specific;
+                Folder oFolder = SapUiSafe.TryGetSpecific<Folder>(oItem);
                 oFolder.Caption = caption;
             }
             catch (Exception ex)
@@ -507,7 +507,7 @@ namespace B1TuneUp.Modules
                 oItem.Width = width;
                 oItem.Height = height;
 
-                EditText oEdit = (EditText)oItem.Specific;
+                EditText oEdit = SapUiSafe.TryGetSpecific<EditText>(oItem);
                 oEdit.Value = value;
             }
             catch (Exception ex)

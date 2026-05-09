@@ -18,7 +18,7 @@ namespace B1TuneUp.Modules
             {
                 if (form == null)
                 {
-                    try { form = B1App.Instance.Application.Forms.ActiveForm; } catch { form = null; }
+                    form = SapUiSafe.TryGetActiveForm();
                     if (form == null)
                     {
                         B1App.Instance.Application.SetStatusBarMessage("No hay formulario activo para Item Placement.", SAPbouiCOM.BoMessageTime.bmt_Short, true);
@@ -86,8 +86,9 @@ namespace B1TuneUp.Modules
                 {
                     rs.DoQuery(sql);
                     if (rs.EoF) return false;
-                    var b64 = rs.Fields.Item(0).Value?.ToString() ?? "";
-                    var fname = rs.Fields.Item(1).Value?.ToString() ?? "layout.srf";
+                    var b64 = SapUiSafe.SafeField(rs, 0);
+                    var fname = SapUiSafe.SafeField(rs, 1);
+                    if (string.IsNullOrWhiteSpace(fname)) fname = "layout.srf";
                     if (string.IsNullOrEmpty(b64)) return false;
                     var bytes = Convert.FromBase64String(b64);
                     var outPath = destPath;
@@ -132,7 +133,7 @@ namespace B1TuneUp.Modules
                 rs.DoQuery(sql);
                 while (!rs.EoF)
                 {
-                    var r = dt.NewRow(); r[0] = rs.Fields.Item(0).Value?.ToString(); r[1] = rs.Fields.Item(1).Value?.ToString(); r[2] = rs.Fields.Item(2).Value?.ToString(); r[3] = rs.Fields.Item(3).Value?.ToString(); dt.Rows.Add(r); rs.MoveNext();
+                    var r = dt.NewRow(); r[0] = SapUiSafe.SafeField(rs, 0); r[1] = SapUiSafe.SafeField(rs, 1); r[2] = SapUiSafe.SafeField(rs, 2); r[3] = SapUiSafe.SafeField(rs, 3); dt.Rows.Add(r); rs.MoveNext();
                 }
             }
             catch { }
@@ -144,13 +145,13 @@ namespace B1TuneUp.Modules
         {
             var def = GetLayoutDefinition(layoutName, formType);
             if (string.IsNullOrEmpty(def)) return false;
-            try { ApplyLayoutToForm(def, B1App.Instance.Application.Forms.ActiveForm); return true; } catch { return false; }
+            try { ApplyLayoutToForm(def, SapUiSafe.TryGetActiveForm()); return true; } catch { return false; }
         }
 
         // Export the current form as SRF/XML using the UI API if available
         public static bool ExportSrf(SAPbouiCOM.Form form, string filePath)
         {
-            if (form == null) form = B1App.Instance.Application.Forms.ActiveForm;
+            if (form == null) form = SapUiSafe.TryGetActiveForm();
             if (form == null) return false;
             try
             {
@@ -223,7 +224,7 @@ namespace B1TuneUp.Modules
                 var content = System.IO.File.ReadAllText(filePath);
                 if (content.Contains("<Layout") || content.Contains("<Item"))
                 {
-                    var form = B1App.Instance.Application.Forms.ActiveForm;
+                    var form = SapUiSafe.TryGetActiveForm();
                     if (form != null) return ApplyLayoutToForm(content, form);
                 }
 
@@ -256,7 +257,7 @@ namespace B1TuneUp.Modules
 
                 if (!rs.EoF)
                 {
-                    string codeValue = rs.Fields.Item(0).Value.ToString();
+                    string codeValue = B1TuneUp.Utils.SapUiSafe.SafeField(rs, 0);
                     string updateSql = B1App.Instance.IsHana
                         ? $"UPDATE \"@BTUN_LAYOUT\" SET \"U_Def\" = '{xmlEsc}', \"U_Desc\" = '{desc}', \"U_UpdatedAt\" = CURRENT_TIMESTAMP WHERE \"Code\" = '{codeValue}'"
                         : $"UPDATE [@BTUN_LAYOUT] SET U_Def = '{xmlEsc}', U_Desc = '{desc}', U_UpdatedAt = GETDATE() WHERE [Code] = '{codeValue}'";
@@ -350,15 +351,15 @@ namespace B1TuneUp.Modules
                 while (!rs.EoF)
                 {
                     var row = dt.NewRow();
-                    row["DocEntry"] = rs.Fields.Item("Code").Value?.ToString();
-                    row["U_Name"] = rs.Fields.Item("U_Name").Value?.ToString();
-                    row["U_FormType"] = rs.Fields.Item("U_FormType").Value?.ToString();
-                    row["U_Desc"] = rs.Fields.Item("U_Desc").Value?.ToString();
-                    row["U_FileName"] = rs.Fields.Item("U_FileName").Value?.ToString();
-                    row["U_Owner"] = rs.Fields.Item("U_Owner").Value?.ToString();
-                    row["U_CreatedAt"] = rs.Fields.Item("U_CreatedAt").Value;
-                    row["U_UpdatedAt"] = rs.Fields.Item("U_UpdatedAt").Value;
-                    row["U_Version"] = rs.Fields.Item("U_Version").Value;
+                    row["DocEntry"] = B1TuneUp.Utils.SapUiSafe.SafeField(rs, "Code");
+                    row["U_Name"] = B1TuneUp.Utils.SapUiSafe.SafeField(rs, "U_Name");
+                    row["U_FormType"] = B1TuneUp.Utils.SapUiSafe.SafeField(rs, "U_FormType");
+                    row["U_Desc"] = B1TuneUp.Utils.SapUiSafe.SafeField(rs, "U_Desc");
+                    row["U_FileName"] = B1TuneUp.Utils.SapUiSafe.SafeField(rs, "U_FileName");
+                    row["U_Owner"] = B1TuneUp.Utils.SapUiSafe.SafeField(rs, "U_Owner");
+                    row["U_CreatedAt"] = B1TuneUp.Utils.SapUiSafe.SafeFieldValue(rs, "U_CreatedAt");
+                    row["U_UpdatedAt"] = SapUiSafe.SafeField(rs, "U_UpdatedAt");
+                    row["U_Version"] = SapUiSafe.SafeField(rs, "U_Version");
                     dt.Rows.Add(row);
                     rs.MoveNext();
                 }
@@ -379,7 +380,7 @@ namespace B1TuneUp.Modules
                     ? $"SELECT \"U_Def\" FROM \"@BTUN_LAYOUT\" WHERE \"U_Name\" = '{layoutName.Replace("'", "''")}' AND \"U_FormType\" = '{formType.Replace("'", "''")}'"
                     : $"SELECT U_Def FROM [@BTUN_LAYOUT] WHERE [U_Name] = '{layoutName.Replace("'", "''")}' AND [U_FormType] = '{formType.Replace("'", "''")}'";
                 rs.DoQuery(sql);
-                if (!rs.EoF) return rs.Fields.Item(0).Value?.ToString() ?? "";
+                if (!rs.EoF) return SapUiSafe.SafeField(rs, 0);
             }
             catch { }
             finally { ComObjectManager.Release(rs); }
@@ -406,9 +407,9 @@ namespace B1TuneUp.Modules
                         int width = int.Parse(n.Attributes["width"].Value);
                         int height = int.Parse(n.Attributes["height"].Value);
 
-                        if (form.Items.Exists(id))
+                        var it = SapUiSafe.TryGetItem(form, id);
+                        if (it != null)
                         {
-                            var it = form.Items.Item(id);
                             it.Left = left;
                             it.Top = top;
                             it.Width = width;

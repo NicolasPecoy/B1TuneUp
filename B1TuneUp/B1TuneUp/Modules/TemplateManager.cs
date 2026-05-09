@@ -66,7 +66,7 @@ namespace B1TuneUp.Modules
 
                 if (!rs.EoF)
                 {
-                    docEntry = rs.Fields.Item(0).Value.ToString();
+                    docEntry = B1TuneUp.Utils.SapUiSafe.SafeField(rs, 0);
                 }
 
                 // Serialize form data to save as template
@@ -121,7 +121,7 @@ namespace B1TuneUp.Modules
 
                 if (!rs.EoF)
                 {
-                    string formData = rs.Fields.Item(0).Value.ToString();
+                    string formData = B1TuneUp.Utils.SapUiSafe.SafeField(rs, 0);
                     DeserializeFormData(oForm, formData);
 
                     B1App.Instance.Application.SetStatusBarMessage($"Template '{templateName}' cargado exitosamente.", BoMessageTime.bmt_Short, false);
@@ -155,19 +155,20 @@ namespace B1TuneUp.Modules
                     {
                         if (item.Type == BoFormItemTypes.it_EDIT || item.Type == BoFormItemTypes.it_COMBO_BOX)
                         {
-                            if (item.Specific is EditText editText)
+                            if (SapUiSafe.TryGetSpecific<EditText>(item) is EditText editText)
                             {
                                 dataDict[item.UniqueID] = editText.Value ?? "";
                             }
-                            else if (item.Specific is ComboBox comboBox)
+                            else if (SapUiSafe.TryGetSpecific<ComboBox>(item) is ComboBox comboBox)
                             {
-                                dataDict[item.UniqueID] = comboBox.Selected?.Value ?? "";
+                                dataDict[item.UniqueID] = SapUiSafe.SafeComboValue(comboBox);
                             }
                         }
                         // Handle matrix fields
                         else if (item.Type == BoFormItemTypes.it_MATRIX)
                         {
-                            Matrix matrix = (Matrix)item.Specific;
+                            Matrix matrix = SapUiSafe.TryGetSpecific<Matrix>(item);
+                            if (matrix == null) continue;
                             for (int i = 1; i <= matrix.RowCount; i++)
                             {
                                 for (int j = 0; j < matrix.Columns.Count; j++)
@@ -175,9 +176,8 @@ namespace B1TuneUp.Modules
                                     Column column = matrix.Columns.Item(j);
                                     if (column.Type == BoFormItemTypes.it_EDIT)
                                     {
-                                        EditText cellEdit = (EditText)column.Cells.Item(i).Specific;
                                         string key = $"{item.UniqueID}.{column.UniqueID}.{i}";
-                                        dataDict[key] = cellEdit.Value ?? "";
+                                        dataDict[key] = SapUiSafe.SafeMatrixCell(matrix, column.UniqueID, i);
                                     }
                                 }
                             }
@@ -236,17 +236,16 @@ namespace B1TuneUp.Modules
                             string columnId = keyParts[1];
                             int rowIndex = int.Parse(keyParts[2]);
 
-                            if (oForm.Items.Exists(itemId))
+                            Item item = SapUiSafe.TryGetItem(oForm, itemId);
+                            if (item != null)
                             {
-                                Item item = oForm.Items.Item(itemId);
                                 if (item.Type == BoFormItemTypes.it_MATRIX)
                                 {
-                                    Matrix matrix = (Matrix)item.Specific;
+                                    Matrix matrix = SapUiSafe.TryGetSpecific<Matrix>(item);
+                                    if (matrix == null) continue;
                                     if (matrix.Columns.Exists(columnId))
                                     {
-                                        Column column = matrix.Columns.Item(columnId);
-                                        EditText cellEdit = (EditText)column.Cells.Item(rowIndex).Specific;
-                                        cellEdit.Value = kvp.Value;
+                                        SapUiSafe.TrySetMatrixCell(matrix, columnId, rowIndex, kvp.Value);
                                     }
                                 }
                             }
@@ -254,14 +253,14 @@ namespace B1TuneUp.Modules
                         else
                         {
                             // Regular field
-                            if (oForm.Items.Exists(kvp.Key))
+                            Item item = SapUiSafe.TryGetItem(oForm, kvp.Key);
+                            if (item != null)
                             {
-                                Item item = oForm.Items.Item(kvp.Key);
-                                if (item.Specific is EditText editText)
+                                if (SapUiSafe.TryGetSpecific<EditText>(item) is EditText editText)
                                 {
                                     editText.Value = kvp.Value;
                                 }
-                                else if (item.Specific is ComboBox comboBox)
+                                else if (SapUiSafe.TryGetSpecific<ComboBox>(item) is ComboBox comboBox)
                                 {
                                     try { comboBox.Select(kvp.Value, BoSearchKey.psk_ByValue); } catch { }
                                 }
@@ -299,7 +298,7 @@ namespace B1TuneUp.Modules
                 comboItem.Left = 10;
                 comboItem.Width = 300;
 
-                SAPbouiCOM.ComboBox cmbTemplates = (SAPbouiCOM.ComboBox)comboItem.Specific;
+                SAPbouiCOM.ComboBox cmbTemplates = SapUiSafe.TryGetSpecific<SAPbouiCOM.ComboBox>(comboItem);
 
                 // Load available templates
                 Recordset rs = (Recordset)B1App.Instance.Company.GetBusinessObject(BoObjectTypes.BoRecordset);
@@ -313,7 +312,7 @@ namespace B1TuneUp.Modules
 
                     while (!rs.EoF)
                     {
-                        string templateName = rs.Fields.Item(0).Value.ToString();
+                        string templateName = B1TuneUp.Utils.SapUiSafe.SafeField(rs, 0);
                         cmbTemplates.ValidValues.Add(templateName, templateName);
                         rs.MoveNext();
                     }
@@ -329,7 +328,7 @@ namespace B1TuneUp.Modules
                 okItem.Left = 10;
                 okItem.Width = 80;
 
-                SAPbouiCOM.Button okBtn = (SAPbouiCOM.Button)okItem.Specific;
+                SAPbouiCOM.Button okBtn = SapUiSafe.TryGetSpecific<SAPbouiCOM.Button>(okItem);
                 okBtn.Caption = "OK";
 
                 // Add Cancel button
@@ -338,7 +337,7 @@ namespace B1TuneUp.Modules
                 cancelItem.Left = 100;
                 cancelItem.Width = 80;
 
-                SAPbouiCOM.Button cancelBtn = (SAPbouiCOM.Button)cancelItem.Specific;
+                SAPbouiCOM.Button cancelBtn = SapUiSafe.TryGetSpecific<SAPbouiCOM.Button>(cancelItem);
                 cancelBtn.Caption = "Cancelar";
 
                 selForm.Visible = true;
@@ -346,7 +345,7 @@ namespace B1TuneUp.Modules
                 // Wait for user interaction (simplified - in real implementation would use events)
                 System.Threading.Thread.Sleep(100); // Allow form to render
 
-                string selectedTemplate = cmbTemplates.Selected?.Value ?? "";
+                string selectedTemplate = SapUiSafe.SafeComboValue(cmbTemplates);
 
                 selForm.Close();
 
@@ -382,7 +381,7 @@ namespace B1TuneUp.Modules
                 gridItem.Width = 560;
                 gridItem.Height = 300;
 
-                Grid grid = (Grid)gridItem.Specific;
+                Grid grid = SapUiSafe.TryGetSpecific<Grid>(gridItem);
 
                 // Add buttons
                 Item deleteItem = mngForm.Items.Add("btnDelete", BoFormItemTypes.it_BUTTON);
@@ -390,7 +389,7 @@ namespace B1TuneUp.Modules
                 deleteItem.Left = 10;
                 deleteItem.Width = 80;
 
-                SAPbouiCOM.Button deleteBtn = (SAPbouiCOM.Button)deleteItem.Specific;
+                SAPbouiCOM.Button deleteBtn = SapUiSafe.TryGetSpecific<SAPbouiCOM.Button>(deleteItem);
                 deleteBtn.Caption = "Eliminar";
 
                 Item refreshItem = mngForm.Items.Add("btnRefresh", BoFormItemTypes.it_BUTTON);
@@ -398,7 +397,7 @@ namespace B1TuneUp.Modules
                 refreshItem.Left = 100;
                 refreshItem.Width = 80;
 
-                SAPbouiCOM.Button refreshBtn = (SAPbouiCOM.Button)refreshItem.Specific;
+                SAPbouiCOM.Button refreshBtn = SapUiSafe.TryGetSpecific<SAPbouiCOM.Button>(refreshItem);
                 refreshBtn.Caption = "Actualizar";
 
                 mngForm.Visible = true;
@@ -429,7 +428,9 @@ namespace B1TuneUp.Modules
                     {
                         grid.DataTable = null; // Clear existing data table
                         // Use active form's datasources (ParentForm isn't available in all SDKs)
-                        grid.DataTable = B1App.Instance.Application.Forms.ActiveForm.DataSources.DataTables.Add("tmplDt");
+                        var active = SapUiSafe.TryGetActiveForm();
+                        if (active == null) return;
+                        grid.DataTable = active.DataSources.DataTables.Add("tmplDt");
                         grid.DataTable.ExecuteQuery(sql);
 
                     // Ensure expected columns exist

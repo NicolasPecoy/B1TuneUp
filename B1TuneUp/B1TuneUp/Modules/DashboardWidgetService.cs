@@ -122,7 +122,7 @@ namespace B1TuneUp.Modules
 
         private static string ReadString(Recordset rs, string field)
         {
-            try { return rs.Fields.Item(field).Value?.ToString() ?? string.Empty; }
+            try { return B1TuneUp.Utils.SapUiSafe.SafeField(rs, field); }
             catch { return string.Empty; }
         }
 
@@ -130,7 +130,7 @@ namespace B1TuneUp.Modules
         {
             try
             {
-                var raw = rs.Fields.Item(field).Value;
+                var raw = B1TuneUp.Utils.SapUiSafe.SafeFieldValue(rs, field);
                 if (raw == null) return fallback;
                 if (int.TryParse(raw.ToString(), out var value)) return value;
             }

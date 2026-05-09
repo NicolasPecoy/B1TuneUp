@@ -33,6 +33,7 @@ namespace B1TuneUp.Modules
             }
             catch (Exception ex)
             {
+                Logger.Error("Error opening PLD Extensions form", ex);
                 B1App.Instance.Application.SetStatusBarMessage($"Error opening PLD Extensions form: {ex.Message}", BoMessageTime.bmt_Short, true);
             }
         }
@@ -46,7 +47,8 @@ namespace B1TuneUp.Modules
             matrixItem.Width = 870;
             matrixItem.Height = 300;
 
-            SAPbouiCOM.Grid matrix = (SAPbouiCOM.Grid)matrixItem.Specific;
+            SAPbouiCOM.Grid matrix = SapUiSafe.TryGetSpecific<SAPbouiCOM.Grid>(matrixItem);
+            if (matrix == null) return;
 
             // Use a DataTable as the grid datasource and add columns there
             SAPbouiCOM.DataTable dt = null;
@@ -60,7 +62,7 @@ namespace B1TuneUp.Modules
                 if (!dt.Columns.IsNameExists("ExportDate")) dt.Columns.Add("ExportDate", SAPbouiCOM.BoFieldsType.ft_Date, 20);
                 if (!dt.Columns.IsNameExists("Language")) dt.Columns.Add("Language", SAPbouiCOM.BoFieldsType.ft_AlphaNumeric, 10);
             }
-            catch { }
+            catch (Exception ex) { Logger.Error("Error initializing PLD Extensions data table columns", ex); }
 
             matrix.DataTable = dt;
 
@@ -72,7 +74,7 @@ namespace B1TuneUp.Modules
                 matrix.Columns.Item("ExportDate").TitleObject.Caption = "Export Date";
                 matrix.Columns.Item("Language").TitleObject.Caption = "Language";
             }
-            catch { }
+            catch (Exception ex) { Logger.Error("Error configuring PLD Extensions grid columns", ex); }
 
             // Create buttons
             Item importButton = oForm.Items.Add("BtnImport", BoFormItemTypes.it_BUTTON);
@@ -80,42 +82,48 @@ namespace B1TuneUp.Modules
             importButton.Left = 10;
             importButton.Width = 100;
             importButton.Height = 25;
-            ((SAPbouiCOM.Button)importButton.Specific).Caption = "Import Layout";
+            var importBtn = SapUiSafe.TryGetSpecific<SAPbouiCOM.Button>(importButton);
+            if (importBtn != null) importBtn.Caption = "Import Layout";
 
             Item exportButton = oForm.Items.Add("BtnExport", BoFormItemTypes.it_BUTTON);
             exportButton.Top = 320;
             exportButton.Left = 120;
             exportButton.Width = 100;
             exportButton.Height = 25;
-            ((SAPbouiCOM.Button)exportButton.Specific).Caption = "Export Layout";
+            var exportBtn = SapUiSafe.TryGetSpecific<SAPbouiCOM.Button>(exportButton);
+            if (exportBtn != null) exportBtn.Caption = "Export Layout";
 
             Item viewButton = oForm.Items.Add("BtnView", BoFormItemTypes.it_BUTTON);
             viewButton.Top = 320;
             viewButton.Left = 230;
             viewButton.Width = 100;
             viewButton.Height = 25;
-            ((SAPbouiCOM.Button)viewButton.Specific).Caption = "View Layout";
+            var viewBtn = SapUiSafe.TryGetSpecific<SAPbouiCOM.Button>(viewButton);
+            if (viewBtn != null) viewBtn.Caption = "View Layout";
 
             Item deleteButton = oForm.Items.Add("BtnDelete", BoFormItemTypes.it_BUTTON);
             deleteButton.Top = 320;
             deleteButton.Left = 340;
             deleteButton.Width = 100;
             deleteButton.Height = 25;
-            ((SAPbouiCOM.Button)deleteButton.Specific).Caption = "Delete";
+            var deleteBtn = SapUiSafe.TryGetSpecific<SAPbouiCOM.Button>(deleteButton);
+            if (deleteBtn != null) deleteBtn.Caption = "Delete";
 
             Item transferButton = oForm.Items.Add("BtnTransfer", BoFormItemTypes.it_BUTTON);
             transferButton.Top = 320;
             transferButton.Left = 450;
             transferButton.Width = 120;
             transferButton.Height = 25;
-            ((SAPbouiCOM.Button)transferButton.Specific).Caption = "Transfer Company";
+            var transferBtn = SapUiSafe.TryGetSpecific<SAPbouiCOM.Button>(transferButton);
+            if (transferBtn != null) transferBtn.Caption = "Transfer Company";
 
             Item closeButton = oForm.Items.Add("BtnClose", BoFormItemTypes.it_BUTTON);
             closeButton.Top = 320;
             closeButton.Left = 780;
             closeButton.Width = 80;
             closeButton.Height = 25;
-            ((SAPbouiCOM.Button)closeButton.Specific).Caption = "Close";
+            var closeBtn = SapUiSafe.TryGetSpecific<SAPbouiCOM.Button>(closeButton);
+            if (closeBtn != null) closeBtn.Caption = "Close";
 
             // Import/Export options section
             Item optionsLabel = oForm.Items.Add("LblOptions", BoFormItemTypes.it_STATIC);
@@ -123,87 +131,102 @@ namespace B1TuneUp.Modules
             optionsLabel.Left = 10;
             optionsLabel.Width = 200;
             optionsLabel.Height = 20;
-            ((SAPbouiCOM.StaticText)optionsLabel.Specific).Caption = "Import/Export Options:";
+            var optionsText = SapUiSafe.TryGetSpecific<SAPbouiCOM.StaticText>(optionsLabel);
+            if (optionsText != null) optionsText.Caption = "Import/Export Options:";
 
             Item objTypeLabel = oForm.Items.Add("LblObjType", BoFormItemTypes.it_STATIC);
             objTypeLabel.Top = 390;
             objTypeLabel.Left = 10;
             objTypeLabel.Width = 100;
             objTypeLabel.Height = 20;
-            ((SAPbouiCOM.StaticText)objTypeLabel.Specific).Caption = "Object Type:";
+            var objTypeText = SapUiSafe.TryGetSpecific<SAPbouiCOM.StaticText>(objTypeLabel);
+            if (objTypeText != null) objTypeText.Caption = "Object Type:";
 
             Item objTypeCombo = oForm.Items.Add("CmbObjType", BoFormItemTypes.it_COMBO_BOX);
             objTypeCombo.Top = 390;
             objTypeCombo.Left = 120;
             objTypeCombo.Width = 150;
             objTypeCombo.Height = 20;
-            SAPbouiCOM.ComboBox cmbObjType = (SAPbouiCOM.ComboBox)objTypeCombo.Specific;
-            cmbObjType.ValidValues.Add("17", "Sales Invoice (17)");
-            cmbObjType.ValidValues.Add("13", "Sales Order (13)");
-            cmbObjType.ValidValues.Add("14", "Delivery (14)");
-            cmbObjType.ValidValues.Add("16", "Credit Memo (16)");
-            cmbObjType.ValidValues.Add("203", "Purchase Invoice (203)");
-            cmbObjType.ValidValues.Add("1470000113", "Purchase Order (1470000113)");
-            cmbObjType.ValidValues.Add("150", "Incoming Payment (150)");
-            cmbObjType.ValidValues.Add("1470000167", "Customer (1470000167)");
-            cmbObjType.ValidValues.Add("1470000168", "Vendor (1470000168)");
-            cmbObjType.Select(0); // Default to Sales Invoice
+            SAPbouiCOM.ComboBox cmbObjType = SapUiSafe.TryGetSpecific<SAPbouiCOM.ComboBox>(objTypeCombo);
+            if (cmbObjType != null)
+            {
+                cmbObjType.ValidValues.Add("17", "Sales Invoice (17)");
+                cmbObjType.ValidValues.Add("13", "Sales Order (13)");
+                cmbObjType.ValidValues.Add("14", "Delivery (14)");
+                cmbObjType.ValidValues.Add("16", "Credit Memo (16)");
+                cmbObjType.ValidValues.Add("203", "Purchase Invoice (203)");
+                cmbObjType.ValidValues.Add("1470000113", "Purchase Order (1470000113)");
+                cmbObjType.ValidValues.Add("150", "Incoming Payment (150)");
+                cmbObjType.ValidValues.Add("1470000167", "Customer (1470000167)");
+                cmbObjType.ValidValues.Add("1470000168", "Vendor (1470000168)");
+                cmbObjType.Select(0); // Default to Sales Invoice
+            }
 
             Item layoutTypeLabel = oForm.Items.Add("LblLayoutType", BoFormItemTypes.it_STATIC);
             layoutTypeLabel.Top = 390;
             layoutTypeLabel.Left = 290;
             layoutTypeLabel.Width = 100;
             layoutTypeLabel.Height = 20;
-            ((SAPbouiCOM.StaticText)layoutTypeLabel.Specific).Caption = "Layout Type:";
+            var layoutTypeText = SapUiSafe.TryGetSpecific<SAPbouiCOM.StaticText>(layoutTypeLabel);
+            if (layoutTypeText != null) layoutTypeText.Caption = "Layout Type:";
 
             Item layoutTypeCombo = oForm.Items.Add("CmbLayoutType", BoFormItemTypes.it_COMBO_BOX);
             layoutTypeCombo.Top = 390;
             layoutTypeCombo.Left = 400;
             layoutTypeCombo.Width = 120;
             layoutTypeCombo.Height = 20;
-            SAPbouiCOM.ComboBox cmbLayoutType = (SAPbouiCOM.ComboBox)layoutTypeCombo.Specific;
-            cmbLayoutType.ValidValues.Add("PLD", "Print Layout Designer");
-            cmbLayoutType.ValidValues.Add("RPT", "Crystal Report");
-            cmbLayoutType.ValidValues.Add("B1FORM", "B1 Form");
-            cmbLayoutType.Select(0); // Default to PLD
+            SAPbouiCOM.ComboBox cmbLayoutType = SapUiSafe.TryGetSpecific<SAPbouiCOM.ComboBox>(layoutTypeCombo);
+            if (cmbLayoutType != null)
+            {
+                cmbLayoutType.ValidValues.Add("PLD", "Print Layout Designer");
+                cmbLayoutType.ValidValues.Add("RPT", "Crystal Report");
+                cmbLayoutType.ValidValues.Add("B1FORM", "B1 Form");
+                cmbLayoutType.Select(0); // Default to PLD
+            }
 
             Item languageLabel = oForm.Items.Add("LblLang", BoFormItemTypes.it_STATIC);
             languageLabel.Top = 420;
             languageLabel.Left = 10;
             languageLabel.Width = 100;
             languageLabel.Height = 20;
-            ((SAPbouiCOM.StaticText)languageLabel.Specific).Caption = "Language:";
+            var languageText = SapUiSafe.TryGetSpecific<SAPbouiCOM.StaticText>(languageLabel);
+            if (languageText != null) languageText.Caption = "Language:";
 
             Item languageCombo = oForm.Items.Add("CmbLang", BoFormItemTypes.it_COMBO_BOX);
             languageCombo.Top = 420;
             languageCombo.Left = 120;
             languageCombo.Width = 150;
             languageCombo.Height = 20;
-            SAPbouiCOM.ComboBox cmbLang = (SAPbouiCOM.ComboBox)languageCombo.Specific;
-            // Add common languages
-            cmbLang.ValidValues.Add("es", "Spanish");
-            cmbLang.ValidValues.Add("en", "English");
-            cmbLang.ValidValues.Add("de", "German");
-            cmbLang.ValidValues.Add("fr", "French");
-            cmbLang.ValidValues.Add("it", "Italian");
-            cmbLang.ValidValues.Add("pt", "Portuguese");
-            cmbLang.ValidValues.Add("ja", "Japanese");
-            cmbLang.ValidValues.Add("zh", "Chinese");
-            cmbLang.Select(0); // Default to Spanish
+            SAPbouiCOM.ComboBox cmbLang = SapUiSafe.TryGetSpecific<SAPbouiCOM.ComboBox>(languageCombo);
+            if (cmbLang != null)
+            {
+                // Add common languages
+                cmbLang.ValidValues.Add("es", "Spanish");
+                cmbLang.ValidValues.Add("en", "English");
+                cmbLang.ValidValues.Add("de", "German");
+                cmbLang.ValidValues.Add("fr", "French");
+                cmbLang.ValidValues.Add("it", "Italian");
+                cmbLang.ValidValues.Add("pt", "Portuguese");
+                cmbLang.ValidValues.Add("ja", "Japanese");
+                cmbLang.ValidValues.Add("zh", "Chinese");
+                cmbLang.Select(0); // Default to Spanish
+            }
 
             Item layoutNameLabel = oForm.Items.Add("LblLayoutName", BoFormItemTypes.it_STATIC);
             layoutNameLabel.Top = 420;
             layoutNameLabel.Left = 290;
             layoutNameLabel.Width = 100;
             layoutNameLabel.Height = 20;
-            ((SAPbouiCOM.StaticText)layoutNameLabel.Specific).Caption = "Layout Name:";
+            var layoutNameText = SapUiSafe.TryGetSpecific<SAPbouiCOM.StaticText>(layoutNameLabel);
+            if (layoutNameText != null) layoutNameText.Caption = "Layout Name:";
 
             Item layoutNameEdit = oForm.Items.Add("EdtLayoutName", BoFormItemTypes.it_EDIT);
             layoutNameEdit.Top = 420;
             layoutNameEdit.Left = 400;
             layoutNameEdit.Width = 200;
             layoutNameEdit.Height = 20;
-            ((SAPbouiCOM.EditText)layoutNameEdit.Specific).Value = $"Layout_{DateTime.Now:yyyyMMdd}";
+            var layoutNameInput = SapUiSafe.TryGetSpecific<SAPbouiCOM.EditText>(layoutNameEdit);
+            if (layoutNameInput != null) layoutNameInput.Value = $"Layout_{DateTime.Now:yyyyMMdd}";
 
             // Action buttons
             Item importSelectedButton = oForm.Items.Add("BtnImportSel", BoFormItemTypes.it_BUTTON);
@@ -211,14 +234,16 @@ namespace B1TuneUp.Modules
             importSelectedButton.Left = 20;
             importSelectedButton.Width = 120;
             importSelectedButton.Height = 25;
-            ((SAPbouiCOM.Button)importSelectedButton.Specific).Caption = "Import Selected";
+            var importSelectedBtn = SapUiSafe.TryGetSpecific<SAPbouiCOM.Button>(importSelectedButton);
+            if (importSelectedBtn != null) importSelectedBtn.Caption = "Import Selected";
 
             Item exportCurrentButton = oForm.Items.Add("BtnExportCur", BoFormItemTypes.it_BUTTON);
             exportCurrentButton.Top = 460;
             exportCurrentButton.Left = 150;
             exportCurrentButton.Width = 120;
             exportCurrentButton.Height = 25;
-            ((SAPbouiCOM.Button)exportCurrentButton.Specific).Caption = "Export Current";
+            var exportCurrentBtn = SapUiSafe.TryGetSpecific<SAPbouiCOM.Button>(exportCurrentButton);
+            if (exportCurrentBtn != null) exportCurrentBtn.Caption = "Export Current";
 
             // Load existing layouts
             LoadLayouts(matrix);
@@ -242,11 +267,11 @@ namespace B1TuneUp.Modules
                     matrix.DataTable.Rows.Add();
                     int rowIndex = matrix.DataTable.Rows.Count - 1;
 
-                    matrix.DataTable.SetValue("LayoutName", rowIndex, rs.Fields.Item("U_Name").Value);
-                    matrix.DataTable.SetValue("ObjectType", rowIndex, rs.Fields.Item("U_ObjType").Value);
-                    matrix.DataTable.SetValue("Description", rowIndex, rs.Fields.Item("U_Desc").Value);
-                    matrix.DataTable.SetValue("ExportDate", rowIndex, rs.Fields.Item("U_ExportDate").Value);
-                    matrix.DataTable.SetValue("Language", rowIndex, rs.Fields.Item("U_Language").Value);
+                    matrix.DataTable.SetValue("LayoutName", rowIndex, SapUiSafe.SafeFieldValue(rs, "U_Name"));
+                    matrix.DataTable.SetValue("ObjectType", rowIndex, SapUiSafe.SafeFieldValue(rs, "U_ObjType"));
+                    matrix.DataTable.SetValue("Description", rowIndex, SapUiSafe.SafeFieldValue(rs, "U_Desc"));
+                    matrix.DataTable.SetValue("ExportDate", rowIndex, SapUiSafe.SafeFieldValue(rs, "U_ExportDate"));
+                    matrix.DataTable.SetValue("Language", rowIndex, SapUiSafe.SafeFieldValue(rs, "U_Language"));
 
                     rs.MoveNext();
                 }
@@ -255,6 +280,7 @@ namespace B1TuneUp.Modules
             }
             catch (Exception ex)
             {
+                Logger.Error("Error loading PLD layouts", ex);
                 B1App.Instance.Application.SetStatusBarMessage($"Error loading layouts: {ex.Message}", BoMessageTime.bmt_Short, true);
             }
         }
@@ -281,7 +307,8 @@ namespace B1TuneUp.Modules
                             B1App.Instance.Application.SetStatusBarMessage($"Layout imported successfully from: {filePath}", BoMessageTime.bmt_Short, false);
 
                             // Refresh the grid
-                            SAPbouiCOM.Grid matrix = (SAPbouiCOM.Grid)oForm.Items.Item("LayoutMatrix").Specific;
+                            SAPbouiCOM.Grid matrix = SapUiSafe.TryGetSpecific<SAPbouiCOM.Grid>(oForm, "LayoutMatrix");
+                            if (matrix == null) return;
                             LoadLayouts(matrix);
                         }
                         else
@@ -297,6 +324,7 @@ namespace B1TuneUp.Modules
             }
             catch (Exception ex)
             {
+                Logger.Error("Error importing PLD layout", ex);
                 B1App.Instance.Application.SetStatusBarMessage($"Error importing layout: {ex.Message}", BoMessageTime.bmt_Short, true);
             }
         }
@@ -335,6 +363,7 @@ namespace B1TuneUp.Modules
             }
             catch (Exception ex)
             {
+                Logger.Error("Error importing PLD layout from XML", ex);
                 B1App.Instance.Application.SetStatusBarMessage($"Error importing layout from XML: {ex.Message}", BoMessageTime.bmt_Short, true);
                 return false;
             }
@@ -344,7 +373,8 @@ namespace B1TuneUp.Modules
         {
             try
             {
-                SAPbouiCOM.Grid matrix = (SAPbouiCOM.Grid)oForm.Items.Item("LayoutMatrix").Specific;
+                SAPbouiCOM.Grid matrix = SapUiSafe.TryGetSpecific<SAPbouiCOM.Grid>(oForm, "LayoutMatrix");
+                if (matrix == null) return;
                 if (matrix.Rows.SelectedRows.Count > 0)
                 {
                     int selectedRow = matrix.Rows.SelectedRows.Item(0, SAPbouiCOM.BoOrderType.ot_SelectionOrder);
@@ -362,6 +392,7 @@ namespace B1TuneUp.Modules
             }
             catch (Exception ex)
             {
+                Logger.Error("Error exporting PLD layout", ex);
                 B1App.Instance.Application.SetStatusBarMessage($"Error exporting layout: {ex.Message}", BoMessageTime.bmt_Short, true);
             }
         }
@@ -389,7 +420,7 @@ namespace B1TuneUp.Modules
 
                     if (!rs.EoF)
                     {
-                        string xmlData = rs.Fields.Item("U_XMLData").Value.ToString();
+                        string xmlData = SapUiSafe.SafeField(rs, "U_XMLData");
 
                         // Write the XML data to file
                         File.WriteAllText(filePath, xmlData);
@@ -410,6 +441,7 @@ namespace B1TuneUp.Modules
             }
             catch (Exception ex)
             {
+                Logger.Error("Error exporting PLD layout to file", ex);
                 B1App.Instance.Application.SetStatusBarMessage($"Error exporting layout to file: {ex.Message}", BoMessageTime.bmt_Short, true);
             }
         }
@@ -450,6 +482,7 @@ namespace B1TuneUp.Modules
             }
             catch (Exception ex)
             {
+                Logger.Error("Error creating basic PLD layout XML", ex);
                 B1App.Instance.Application.SetStatusBarMessage($"Error creating basic layout XML: {ex.Message}", BoMessageTime.bmt_Short, true);
             }
         }
@@ -458,7 +491,8 @@ namespace B1TuneUp.Modules
         {
             try
             {
-                SAPbouiCOM.Grid matrix = (SAPbouiCOM.Grid)oForm.Items.Item("LayoutMatrix").Specific;
+                SAPbouiCOM.Grid matrix = SapUiSafe.TryGetSpecific<SAPbouiCOM.Grid>(oForm, "LayoutMatrix");
+                if (matrix == null) return;
                 if (matrix.Rows.SelectedRows.Count > 0)
                 {
                     int selectedRow = matrix.Rows.SelectedRows.Item(0, SAPbouiCOM.BoOrderType.ot_SelectionOrder);
@@ -478,6 +512,7 @@ namespace B1TuneUp.Modules
             }
             catch (Exception ex)
             {
+                Logger.Error("Error viewing PLD layout", ex);
                 B1App.Instance.Application.SetStatusBarMessage($"Error viewing layout: {ex.Message}", BoMessageTime.bmt_Short, true);
             }
         }
@@ -486,7 +521,8 @@ namespace B1TuneUp.Modules
         {
             try
             {
-                SAPbouiCOM.Grid matrix = (SAPbouiCOM.Grid)oForm.Items.Item("LayoutMatrix").Specific;
+                SAPbouiCOM.Grid matrix = SapUiSafe.TryGetSpecific<SAPbouiCOM.Grid>(oForm, "LayoutMatrix");
+                if (matrix == null) return;
                 if (matrix.Rows.SelectedRows.Count > 0)
                 {
                     int selectedRow = matrix.Rows.SelectedRows.Item(0, SAPbouiCOM.BoOrderType.ot_SelectionOrder);
@@ -518,6 +554,7 @@ namespace B1TuneUp.Modules
             }
             catch (Exception ex)
             {
+                Logger.Error("Error deleting PLD layout", ex);
                 B1App.Instance.Application.SetStatusBarMessage($"Error deleting layout: {ex.Message}", BoMessageTime.bmt_Short, true);
             }
         }
@@ -540,6 +577,7 @@ namespace B1TuneUp.Modules
             }
             catch (Exception ex)
             {
+                Logger.Error("Error in PLD company transfer functionality", ex);
                 B1App.Instance.Application.SetStatusBarMessage($"Error in transfer functionality: {ex.Message}", BoMessageTime.bmt_Short, true);
             }
         }
@@ -556,6 +594,7 @@ namespace B1TuneUp.Modules
             }
             catch (Exception ex)
             {
+                Logger.Error("Error importing selected PLD layout", ex);
                 B1App.Instance.Application.SetStatusBarMessage($"Error importing selected layout: {ex.Message}", BoMessageTime.bmt_Short, true);
             }
         }
@@ -573,6 +612,7 @@ namespace B1TuneUp.Modules
             }
             catch (Exception ex)
             {
+                Logger.Error("Error exporting current PLD layout", ex);
                 B1App.Instance.Application.SetStatusBarMessage($"Error exporting current layout: {ex.Message}", BoMessageTime.bmt_Short, true);
             }
         }
@@ -591,6 +631,7 @@ namespace B1TuneUp.Modules
             }
             catch (Exception ex)
             {
+                Logger.Error("Error importing PLD layout from SAP", ex);
                 B1App.Instance.Application.SetStatusBarMessage($"Error importing layout from SAP: {ex.Message}", BoMessageTime.bmt_Short, true);
                 return false;
             }
@@ -610,6 +651,7 @@ namespace B1TuneUp.Modules
             }
             catch (Exception ex)
             {
+                Logger.Error("Error exporting PLD layout to SAP", ex);
                 B1App.Instance.Application.SetStatusBarMessage($"Error exporting layout to SAP: {ex.Message}", BoMessageTime.bmt_Short, true);
                 return false;
             }

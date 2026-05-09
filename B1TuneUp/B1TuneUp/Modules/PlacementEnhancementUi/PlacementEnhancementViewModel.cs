@@ -13,6 +13,7 @@ using B1TuneUp.Core;
 using B1TuneUp.Models;
 using B1TuneUp.Modules;
 using B1TuneUp.Modules.IntegrationUi;
+using B1TuneUp.Utils;
 
 namespace B1TuneUp.Modules.PlacementEnhancementUi
 {
@@ -405,7 +406,7 @@ namespace B1TuneUp.Modules.PlacementEnhancementUi
         {
             try
             {
-                var form = B1App.Instance?.Application?.Forms?.ActiveForm;
+                var form = SapUiSafe.TryGetActiveForm();
                 if (form == null)
                 {
                     ActiveItemInfo = "Sin formulario activo.";
@@ -419,7 +420,12 @@ namespace B1TuneUp.Modules.PlacementEnhancementUi
                     return;
                 }
 
-                var item = form.Items.Item(activeItemId);
+                var item = SapUiSafe.TryGetItem(form, activeItemId);
+                if (item == null)
+                {
+                    ActiveItemInfo = "El item activo ya no existe.";
+                    return;
+                }
                 ManualFormType = form.TypeEx;
                 PlacementItemId = activeItemId;
                 PlacementLeft = item.Left;

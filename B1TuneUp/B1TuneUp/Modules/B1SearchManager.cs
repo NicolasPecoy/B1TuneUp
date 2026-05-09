@@ -1,4 +1,4 @@
-ï»¿using System;
+using System;
 using System.Collections.Generic;
 using SAPbouiCOM;
 using B1TuneUp.Core;
@@ -30,7 +30,7 @@ namespace B1TuneUp.Modules
 
                 item = oForm.Items.Add("btnSrch", BoFormItemTypes.it_BUTTON);
                 item.Top = 10; item.Left = 315; item.Width = 60;
-                ((SAPbouiCOM.Button)item.Specific).Caption = "Buscar";
+                SapUiSafe.TrySetCaption(item, "Buscar");
 
                 item = oForm.Items.Add("grdRes", BoFormItemTypes.it_GRID);
                 item.Top = 40; item.Left = 10; item.Width = 365; item.Height = 250;
@@ -38,7 +38,7 @@ namespace B1TuneUp.Modules
                 // Agregar columna para acciones
                 item = oForm.Items.Add("btnOpen", BoFormItemTypes.it_BUTTON);
                 item.Top = 300; item.Left = 10; item.Width = 100;
-                ((SAPbouiCOM.Button)item.Specific).Caption = "Abrir Seleccionado";
+                SapUiSafe.TrySetCaption(item, "Abrir Seleccionado");
 
                 oForm.Visible = true;
             }
@@ -47,8 +47,10 @@ namespace B1TuneUp.Modules
 
         public static void ExecuteSearch(Form oForm)
         {
-            string searchText = ((EditText)oForm.Items.Item("txtSrch").Specific).Value;
-            Grid grid = (Grid)oForm.Items.Item("grdRes").Specific;
+            if (oForm == null) return;
+            string searchText = SapUiSafe.TryGetSpecific<EditText>(oForm, "txtSrch")?.Value ?? string.Empty;
+            Grid grid = SapUiSafe.TryGetSpecific<Grid>(oForm, "grdRes");
+            if (grid == null) return;
 
             Recordset rs = (Recordset)B1App.Instance.Company.GetBusinessObject(BoObjectTypes.BoRecordset);
             try
@@ -61,8 +63,8 @@ namespace B1TuneUp.Modules
                 string combinedSql = "";
                 while (!rs.EoF)
                 {
-                    string sql = rs.Fields.Item("U_Query").Value.ToString();
-                    sql = sql.Replace("%search%", searchText);
+                    string sql = SapUiSafe.SafeField(rs, "U_Query");
+                    sql = sql.Replace("%search%", searchText.Replace("'", "''"));
 
                     if (combinedSql != "") combinedSql += " UNION ALL ";
                     combinedSql += sql;
@@ -87,12 +89,13 @@ namespace B1TuneUp.Modules
         {
             try
             {
-                Grid grid = (Grid)oForm.Items.Item("grdRes").Specific;
+                Grid grid = SapUiSafe.TryGetSpecific<Grid>(oForm, "grdRes");
+                if (grid == null) return;
                 if (grid.Rows.SelectedRows.Count > 0)
                 {
                     int rowIndex = grid.Rows.SelectedRows.Item(0, SAPbouiCOM.BoOrderType.ot_RowOrder);
 
-                    // Buscar la configuraciÃ³n de bÃºsqueda correspondiente
+                    // Buscar la configuración de búsqueda correspondiente
                     Recordset rs = (Recordset)B1App.Instance.Company.GetBusinessObject(BoObjectTypes.BoRecordset);
                     try
                     {
@@ -102,13 +105,13 @@ namespace B1TuneUp.Modules
 
                         rs.DoQuery(sql);
 
-                        // AquÃ­ se podrÃ­a ejecutar la acciÃ³n asociada a la bÃºsqueda
+                        // Aquí se podría ejecutar la acción asociada a la búsqueda
                         // Para ahora simplemente mostramos un mensaje
                         if (!rs.EoF)
                         {
-                            string action = rs.Fields.Item("U_Action").Value.ToString();
+                            string action = SapUiSafe.SafeField(rs, "U_Action");
 
-                            // Procesar la acciÃ³n reemplazando variables de la fila seleccionada
+                            // Procesar la acción reemplazando variables de la fila seleccionada
                             string processedAction = ProcessActionForRow(action, grid, rowIndex);
                             MacroEngine.ExecuteMacro(processedAction, oForm);
                         }
@@ -133,7 +136,7 @@ namespace B1TuneUp.Modules
             for (int colIndex = 0; colIndex < grid.Columns.Count; colIndex++)
             {
                 string columnName = grid.Columns.Item(colIndex).UniqueID;
-                string cellValue = grid.DataTable.GetValue(colIndex, rowIndex).ToString();
+                string cellValue = grid.DataTable.GetValue(colIndex, rowIndex)?.ToString() ?? string.Empty;
                 processedAction = processedAction.Replace($"$[{columnName}]", cellValue);
             }
 

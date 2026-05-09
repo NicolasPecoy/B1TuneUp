@@ -24,12 +24,12 @@ namespace B1TuneUp.Modules
                 {
                     list.Add(new SchedulerEntry
                     {
-                        Code = Convert.ToString(rs.Fields.Item(0).Value),
-                        Name = Convert.ToString(rs.Fields.Item(1).Value),
-                        Action = Convert.ToString(rs.Fields.Item(2).Value),
-                        IntervalMinutes = SafeInt(rs.Fields.Item(3).Value, 60),
-                        LastRun = SafeDateTime(rs.Fields.Item(4).Value),
-                        Active = !string.Equals(Convert.ToString(rs.Fields.Item(5).Value), "N", StringComparison.OrdinalIgnoreCase)
+                        Code = B1TuneUp.Utils.SapUiSafe.SafeField(rs, 0),
+                        Name = B1TuneUp.Utils.SapUiSafe.SafeField(rs, 1),
+                        Action = B1TuneUp.Utils.SapUiSafe.SafeField(rs, 2),
+                        IntervalMinutes = SafeInt(B1TuneUp.Utils.SapUiSafe.SafeFieldValue(rs, 3), 60),
+                        LastRun = SafeDateTime(B1TuneUp.Utils.SapUiSafe.SafeFieldValue(rs, 4)),
+                        Active = !string.Equals(B1TuneUp.Utils.SapUiSafe.SafeField(rs, 5), "N", StringComparison.OrdinalIgnoreCase)
                     });
                     rs.MoveNext();
                 }

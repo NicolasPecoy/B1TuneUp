@@ -22,12 +22,12 @@ namespace B1TuneUp.Modules
                 {
                     list.Add(new AuditLogEntry
                     {
-                        DocEntry = Convert.ToString(rs.Fields.Item(0).Value),
-                        Date = SafeDateTime(rs.Fields.Item(1).Value),
-                        Type = Convert.ToString(rs.Fields.Item(2).Value),
-                        Details = Convert.ToString(rs.Fields.Item(3).Value),
-                        Status = Convert.ToString(rs.Fields.Item(4).Value),
-                        User = Convert.ToString(rs.Fields.Item(5).Value)
+                        DocEntry = B1TuneUp.Utils.SapUiSafe.SafeField(rs, 0),
+                        Date = SafeDateTime(B1TuneUp.Utils.SapUiSafe.SafeFieldValue(rs, 1)),
+                        Type = B1TuneUp.Utils.SapUiSafe.SafeField(rs, 2),
+                        Details = B1TuneUp.Utils.SapUiSafe.SafeField(rs, 3),
+                        Status = B1TuneUp.Utils.SapUiSafe.SafeField(rs, 4),
+                        User = B1TuneUp.Utils.SapUiSafe.SafeField(rs, 5)
                     });
                     rs.MoveNext();
                 }

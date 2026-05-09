@@ -24,13 +24,13 @@ namespace B1TuneUp.Modules
                 {
                     var process = new ProcessDefinition
                     {
-                        Code = Convert.ToString(rs.Fields.Item(0).Value),
-                        Name = Convert.ToString(rs.Fields.Item(1).Value),
-                        DocEntry = Convert.ToString(rs.Fields.Item(0).Value),
-                        FormType = Convert.ToString(rs.Fields.Item(2).Value),
-                        Description = Convert.ToString(rs.Fields.Item(3).Value),
-                        Active = !string.Equals(Convert.ToString(rs.Fields.Item(4).Value), "N", StringComparison.OrdinalIgnoreCase),
-                        AutoShow = string.Equals(Convert.ToString(rs.Fields.Item(5).Value), "Y", StringComparison.OrdinalIgnoreCase)
+                        Code = B1TuneUp.Utils.SapUiSafe.SafeField(rs, 0),
+                        Name = B1TuneUp.Utils.SapUiSafe.SafeField(rs, 1),
+                        DocEntry = B1TuneUp.Utils.SapUiSafe.SafeField(rs, 0),
+                        FormType = B1TuneUp.Utils.SapUiSafe.SafeField(rs, 2),
+                        Description = B1TuneUp.Utils.SapUiSafe.SafeField(rs, 3),
+                        Active = !string.Equals(B1TuneUp.Utils.SapUiSafe.SafeField(rs, 4), "N", StringComparison.OrdinalIgnoreCase),
+                        AutoShow = string.Equals(B1TuneUp.Utils.SapUiSafe.SafeField(rs, 5), "Y", StringComparison.OrdinalIgnoreCase)
                     };
                     LoadSteps(process);
                     list.Add(process);
@@ -60,13 +60,13 @@ namespace B1TuneUp.Modules
                 {
                     process.Steps.Add(new ProcessStepDefinition
                     {
-                        DocEntry = Convert.ToString(rs.Fields.Item(0).Value),
-                        Order = SafeInt(rs.Fields.Item(1).Value),
-                        Name = Convert.ToString(rs.Fields.Item(2).Value),
-                        Description = Convert.ToString(rs.Fields.Item(3).Value),
-                        DoneCondition = Convert.ToString(rs.Fields.Item(4).Value),
-                        Action = Convert.ToString(rs.Fields.Item(5).Value),
-                        Mandatory = string.Equals(Convert.ToString(rs.Fields.Item(6).Value), "Y", StringComparison.OrdinalIgnoreCase)
+                        DocEntry = B1TuneUp.Utils.SapUiSafe.SafeField(rs, 0),
+                        Order = SafeInt(B1TuneUp.Utils.SapUiSafe.SafeFieldValue(rs, 1)),
+                        Name = B1TuneUp.Utils.SapUiSafe.SafeField(rs, 2),
+                        Description = B1TuneUp.Utils.SapUiSafe.SafeField(rs, 3),
+                        DoneCondition = B1TuneUp.Utils.SapUiSafe.SafeField(rs, 4),
+                        Action = B1TuneUp.Utils.SapUiSafe.SafeField(rs, 5),
+                        Mandatory = string.Equals(B1TuneUp.Utils.SapUiSafe.SafeField(rs, 6), "Y", StringComparison.OrdinalIgnoreCase)
                     });
                     rs.MoveNext();
                 }

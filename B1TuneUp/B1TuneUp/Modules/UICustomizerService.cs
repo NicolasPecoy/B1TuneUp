@@ -43,27 +43,27 @@ namespace B1TuneUp.Modules
         {
             return new UiCustomizationEntry
             {
-                Code = Convert.ToString(rs.Fields.Item(0).Value),
-                Name = Convert.ToString(rs.Fields.Item(1).Value),
-                FormType = Convert.ToString(rs.Fields.Item(2).Value),
-                ItemId = Convert.ToString(rs.Fields.Item(3).Value),
-                Action = Convert.ToString(rs.Fields.Item(4).Value),
-                Top = ToNullableInt(rs.Fields.Item(5).Value),
-                Left = ToNullableInt(rs.Fields.Item(6).Value),
-                Width = ToNullableInt(rs.Fields.Item(7).Value),
-                Height = ToNullableInt(rs.Fields.Item(8).Value),
-                Label = Convert.ToString(rs.Fields.Item(9).Value),
-                FromPane = ToNullableInt(rs.Fields.Item(10).Value),
-                ToPane = ToNullableInt(rs.Fields.Item(11).Value),
+                Code = B1TuneUp.Utils.SapUiSafe.SafeField(rs, 0),
+                Name = B1TuneUp.Utils.SapUiSafe.SafeField(rs, 1),
+                FormType = B1TuneUp.Utils.SapUiSafe.SafeField(rs, 2),
+                ItemId = B1TuneUp.Utils.SapUiSafe.SafeField(rs, 3),
+                Action = B1TuneUp.Utils.SapUiSafe.SafeField(rs, 4),
+                Top = ToNullableInt(B1TuneUp.Utils.SapUiSafe.SafeFieldValue(rs, 5)),
+                Left = ToNullableInt(B1TuneUp.Utils.SapUiSafe.SafeFieldValue(rs, 6)),
+                Width = ToNullableInt(B1TuneUp.Utils.SapUiSafe.SafeFieldValue(rs, 7)),
+                Height = ToNullableInt(B1TuneUp.Utils.SapUiSafe.SafeFieldValue(rs, 8)),
+                Label = B1TuneUp.Utils.SapUiSafe.SafeField(rs, 9),
+                FromPane = ToNullableInt(B1TuneUp.Utils.SapUiSafe.SafeFieldValue(rs, 10)),
+                ToPane = ToNullableInt(B1TuneUp.Utils.SapUiSafe.SafeFieldValue(rs, 11)),
                 UpdatedAt = null,
-                UserCode = Convert.ToString(rs.Fields.Item(12).Value),
-                UserGroup = Convert.ToString(rs.Fields.Item(13).Value),
-                Condition = Convert.ToString(rs.Fields.Item(14).Value),
-                Priority = ToNullableInt(rs.Fields.Item(15).Value) ?? 10,
-                Localization = Convert.ToString(rs.Fields.Item(16).Value),
-                Variant = Convert.ToString(rs.Fields.Item(17).Value),
-                DependsOn = Convert.ToString(rs.Fields.Item(18).Value),
-                InheritFrom = Convert.ToString(rs.Fields.Item(19).Value)
+                UserCode = B1TuneUp.Utils.SapUiSafe.SafeField(rs, 12),
+                UserGroup = B1TuneUp.Utils.SapUiSafe.SafeField(rs, 13),
+                Condition = B1TuneUp.Utils.SapUiSafe.SafeField(rs, 14),
+                Priority = ToNullableInt(B1TuneUp.Utils.SapUiSafe.SafeFieldValue(rs, 15)) ?? 10,
+                Localization = B1TuneUp.Utils.SapUiSafe.SafeField(rs, 16),
+                Variant = B1TuneUp.Utils.SapUiSafe.SafeField(rs, 17),
+                DependsOn = B1TuneUp.Utils.SapUiSafe.SafeField(rs, 18),
+                InheritFrom = B1TuneUp.Utils.SapUiSafe.SafeField(rs, 19)
             };
         }
 
@@ -155,7 +155,7 @@ namespace B1TuneUp.Modules
                 rs.DoQuery(sql);
                 while (!rs.EoF)
                 {
-                    var ft = Convert.ToString(rs.Fields.Item(0).Value);
+                    var ft = B1TuneUp.Utils.SapUiSafe.SafeField(rs, 0);
                     if (!string.IsNullOrWhiteSpace(ft)) list.Add(ft);
                     rs.MoveNext();
                 }
@@ -171,7 +171,7 @@ namespace B1TuneUp.Modules
         {
             try
             {
-                var form = B1App.Instance.Application.Forms.ActiveForm;
+                var form = SapUiSafe.TryGetActiveForm();
                 if (form != null)
                 {
                     UICustomizer.ApplyCustomization(form);
@@ -188,7 +188,7 @@ namespace B1TuneUp.Modules
         {
             try
             {
-                var form = B1App.Instance.Application.Forms.ActiveForm;
+                var form = SapUiSafe.TryGetActiveForm();
                 ItemPlacementManager.OpenPlacementForm(form);
             }
             catch (Exception ex)

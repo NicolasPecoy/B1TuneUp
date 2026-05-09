@@ -2,6 +2,7 @@ using System;
 using System.Linq;
 using B1TuneUp.Core;
 using B1TuneUp.Models;
+using B1TuneUp.Utils;
 using SAPbouiCOM;
 using WpfApplication = System.Windows.Application;
 
@@ -12,7 +13,7 @@ namespace B1TuneUp.Modules.ActionPadInlineDesigner
         public static void ShowOverlay(ActionPadEntry pad)
         {
             SAPbouiCOM.Form form = null;
-            try { form = B1App.Instance.Application.Forms.ActiveForm; } catch { }
+            form = SapUiSafe.TryGetActiveForm();
             ShowOverlay(pad, form);
         }
 
@@ -35,8 +36,7 @@ namespace B1TuneUp.Modules.ActionPadInlineDesigner
         public static void ShowOverlayForActiveForm()
         {
             SAPbouiCOM.Form form = null;
-            try { form = B1App.Instance.Application.Forms.ActiveForm; }
-            catch { }
+            form = SapUiSafe.TryGetActiveForm();
             ShowOverlayForForm(form);
         }
 

@@ -20,33 +20,37 @@ namespace B1TuneUp.Modules
 
         private static void ApplyLocks(Form oForm, string triggerItemId, bool onLoad)
         {
+            if (oForm == null) return;
             Recordset rs = (Recordset)B1App.Instance.Company.GetBusinessObject(BoObjectTypes.BoRecordset);
             try
             {
                 string eventFilter = onLoad ? "Load" : "Change";
+                string safeFormType = (oForm.TypeEx ?? string.Empty).Replace("'", "''");
+                string safeEvent = eventFilter.Replace("'", "''");
+                string safeTrigger = (triggerItemId ?? string.Empty).Replace("'", "''");
                 string sql;
 
                 if (B1App.Instance.IsHana)
                 {
-                    sql = $"SELECT * FROM \"@BTUN_LOCK\" WHERE \"U_FormType\" = '{oForm.TypeEx}' AND \"U_OnEvent\" = '{eventFilter}'";
+                    sql = $"SELECT * FROM \"@BTUN_LOCK\" WHERE \"U_FormType\" = '{safeFormType}' AND \"U_OnEvent\" = '{safeEvent}'";
                     if (!onLoad && !string.IsNullOrEmpty(triggerItemId))
-                        sql += $" AND (\"U_TriggerItem\" = '{triggerItemId}' OR IFNULL(\"U_TriggerItem\",'') = '')";
+                        sql += $" AND (\"U_TriggerItem\" = '{safeTrigger}' OR IFNULL(\"U_TriggerItem\",'') = '')";
                 }
                 else
                 {
-                    sql = $"SELECT * FROM [@BTUN_LOCK] WHERE [U_FormType] = '{oForm.TypeEx}' AND [U_OnEvent] = '{eventFilter}'";
+                    sql = $"SELECT * FROM [@BTUN_LOCK] WHERE [U_FormType] = '{safeFormType}' AND [U_OnEvent] = '{safeEvent}'";
                     if (!onLoad && !string.IsNullOrEmpty(triggerItemId))
-                        sql += $" AND ([U_TriggerItem] = '{triggerItemId}' OR ISNULL([U_TriggerItem],'') = '')";
+                        sql += $" AND ([U_TriggerItem] = '{safeTrigger}' OR ISNULL([U_TriggerItem],'') = '')";
                 }
 
                 rs.DoQuery(sql);
 
                 while (!rs.EoF)
                 {
-                    string itemId    = rs.Fields.Item("U_ItemID").Value.ToString();
-                    string colId     = rs.Fields.Item("U_ColID").Value.ToString();
-                    string lockType  = rs.Fields.Item("U_LockType").Value.ToString();
-                    string condition = rs.Fields.Item("U_Condition").Value.ToString();
+                    string itemId    = SapUiSafe.SafeField(rs, "U_ItemID");
+                    string colId     = SapUiSafe.SafeField(rs, "U_ColID");
+                    string lockType  = SapUiSafe.SafeField(rs, "U_LockType");
+                    string condition = SapUiSafe.SafeField(rs, "U_Condition");
 
                     bool shouldLock = string.IsNullOrEmpty(condition)
                         || MacroEngine.CheckCondition(condition, oForm);
@@ -71,11 +75,13 @@ namespace B1TuneUp.Modules
 
         private static void ApplyLock(Form oForm, string itemId, string colId, string lockType, bool locked)
         {
-            Item item = oForm.Items.Item(itemId);
+            Item item = SapUiSafe.TryGetItem(oForm, itemId);
+            if (item == null) return;
 
             if (!string.IsNullOrEmpty(colId) && item.Type == BoFormItemTypes.it_MATRIX)
             {
-                Matrix matrix = (Matrix)item.Specific;
+                Matrix matrix = SapUiSafe.TryGetSpecific<Matrix>(item);
+                if (matrix == null) return;
                 Column col = matrix.Columns.Item(colId);
                 if (lockType.ToUpper() == "HIDDEN")
                     col.Visible  = !locked;

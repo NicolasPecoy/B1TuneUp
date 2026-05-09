@@ -2,6 +2,7 @@ using System;
 using System.Windows.Forms;
 using SAPbouiCOM;
 using B1TuneUp.Core;
+using B1TuneUp.Utils;
 
 namespace B1TuneUp.Modules.Forms
 {
@@ -49,8 +50,8 @@ namespace B1TuneUp.Modules.Forms
                 string val = _txt.Text;
                 if (_parentForm != null && !string.IsNullOrEmpty(_targetItemId) && _parentForm.Items.Exists(_targetItemId))
                 {
-                    var it = _parentForm.Items.Item(_targetItemId);
-                    if (it.Specific is SAPbouiCOM.EditText et)
+                    var it = SapUiSafe.TryGetItem(_parentForm, _targetItemId);
+                    if (SapUiSafe.TryGetSpecific<SAPbouiCOM.EditText>(it) is SAPbouiCOM.EditText et)
                     {
                         et.Value = val;
                         B1App.Instance.Application.SetStatusBarMessage("Valor escaneado insertado en campo.", BoMessageTime.bmt_Short, false);

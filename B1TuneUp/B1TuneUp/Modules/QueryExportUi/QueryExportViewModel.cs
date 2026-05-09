@@ -5,6 +5,7 @@ using Microsoft.Win32;
 using SAPbouiCOM;
 using B1TuneUp.Core;
 using B1TuneUp.Modules.IntegrationUi;
+using B1TuneUp.Utils;
 
 namespace B1TuneUp.Modules.QueryExportUi
 {
@@ -55,7 +56,7 @@ namespace B1TuneUp.Modules.QueryExportUi
         {
             try
             {
-                var form = B1App.Instance?.Application?.Forms?.ActiveForm;
+                var form = SapUiSafe.TryGetActiveForm();
                 if (form == null)
                 {
                     StatusMessage = "No hay formulario activo.";
@@ -90,18 +91,18 @@ namespace B1TuneUp.Modules.QueryExportUi
             {
                 try
                 {
-                    if (form.Items.Exists(id))
+                    var item = SapUiSafe.TryGetItem(form, id);
+                    if (item != null)
                     {
-                        var item = form.Items.Item(id);
-                        if (item.Specific is EditText editText)
+                        if (SapUiSafe.TryGetSpecific<EditText>(item) is EditText editText)
                         {
                             return editText.Value;
                         }
-                        if (item.Specific is ComboBox combo)
+                        if (SapUiSafe.TryGetSpecific<ComboBox>(item) is ComboBox combo)
                         {
-                            return combo.Selected?.Description ?? combo.Selected?.Value ?? string.Empty;
+                            return combo.Selected?.Description ?? SapUiSafe.SafeComboValue(combo);
                         }
-                        if (item.Specific is StaticText staticText)
+                        if (SapUiSafe.TryGetSpecific<StaticText>(item) is StaticText staticText)
                         {
                             return staticText.Caption;
                         }
@@ -118,9 +119,12 @@ namespace B1TuneUp.Modules.QueryExportUi
             {
                 for (int i = 0; i < form.Items.Count; i++)
                 {
-                    var it = form.Items.Item(i + 1);
+                    Item it = null;
+                    try { it = SapUiSafe.TryGetItem(form, i + 1); } catch { }
+                    if (it == null) continue;
                     if (it.Type != BoFormItemTypes.it_GRID) continue;
-                    var grid = (Grid)it.Specific;
+                    var grid = SapUiSafe.TryGetSpecific<Grid>(it);
+                    if (grid == null) continue;
                     if (grid.Rows.SelectedRows.Count <= 0) continue;
                     int rowIndex = grid.GetDataTableRowIndex(grid.Rows.SelectedRows.Item(0));
                     string[] columns = { "Query", "U_Query", "SQL", "Qry" };

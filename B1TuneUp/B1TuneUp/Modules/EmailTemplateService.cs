@@ -208,7 +208,7 @@ namespace B1TuneUp.Modules
 
         private static string ReadString(Recordset rs, string field)
         {
-            try { return Convert.ToString(rs.Fields.Item(field).Value); }
+            try { return B1TuneUp.Utils.SapUiSafe.SafeField(rs, field); }
             catch { return string.Empty; }
         }
 
@@ -216,7 +216,7 @@ namespace B1TuneUp.Modules
         {
             try
             {
-                var value = rs.Fields.Item(field).Value;
+                var value = B1TuneUp.Utils.SapUiSafe.SafeFieldValue(rs, field);
                 if (value == null) return null;
                 if (int.TryParse(value.ToString(), out var parsed)) return parsed;
             }
@@ -228,7 +228,7 @@ namespace B1TuneUp.Modules
         {
             try
             {
-                var value = rs.Fields.Item(field).Value;
+                var value = B1TuneUp.Utils.SapUiSafe.SafeFieldValue(rs, field);
                 if (value == null) return null;
                 if (DateTime.TryParse(value.ToString(), out var parsed)) return parsed;
             }

@@ -268,26 +268,21 @@ namespace B1TuneUp.Modules
 
         private static Item EnsureFlagItem(Form form)
         {
-            Item item = null;
+            Item item = SapUiSafe.TryGetItem(form, FlagItemId);
+            if (item != null) return item;
+
             try
             {
-                item = form.Items.Item(FlagItemId);
+                item = form.Items.Add(FlagItemId, BoFormItemTypes.it_PICTURE);
+                item.Width = 30;
+                item.Height = 20;
+                item.Enabled = true;
+                item.Visible = true;
+                try { item.AffectsFormMode = false; } catch { }
             }
             catch
             {
-                try
-                {
-                    item = form.Items.Add(FlagItemId, BoFormItemTypes.it_PICTURE);
-                    item.Width = 30;
-                    item.Height = 20;
-                    item.Enabled = true;
-                    item.Visible = true;
-                    try { item.AffectsFormMode = false; } catch { }
-                }
-                catch
-                {
-                    return null;
-                }
+                return null;
             }
             return item;
         }
@@ -336,7 +331,7 @@ namespace B1TuneUp.Modules
         {
             try
             {
-                object specific = flagItem?.Specific;
+                object specific = SapUiSafe.TryGetSpecificObject(flagItem);
                 if (specific == null) return;
 
                 var type = specific.GetType();
@@ -363,7 +358,8 @@ namespace B1TuneUp.Modules
         {
             try
             {
-                var item = form.Items.Item(FlagItemId);
+                var item = SapUiSafe.TryGetItem(form, FlagItemId);
+                if (item == null) return;
                 item.Visible = false;
             }
             catch { }
@@ -371,8 +367,7 @@ namespace B1TuneUp.Modules
 
         private static Item TryGetItem(Form form, string itemId)
         {
-            if (form == null || string.IsNullOrWhiteSpace(itemId)) return null;
-            try { return form.Items.Item(itemId); } catch { return null; }
+            return SapUiSafe.TryGetItem(form, itemId);
         }
 
         private static string ReadFromDbDataSource(Form form, string table, string field)
@@ -398,11 +393,11 @@ namespace B1TuneUp.Modules
             {
                 if (item.Type == BoFormItemTypes.it_EDIT || item.Type == BoFormItemTypes.it_EXTEDIT)
                 {
-                    return NormalizeSapValue(((EditText)item.Specific).Value);
+                    return NormalizeSapValue(SapUiSafe.TryGetSpecific<EditText>(item)?.Value);
                 }
                 if (item.Type == BoFormItemTypes.it_COMBO_BOX)
                 {
-                    return NormalizeSapValue(((ComboBox)item.Specific).Selected?.Value);
+                    return NormalizeSapValue(SapUiSafe.SafeComboValue(SapUiSafe.TryGetSpecific<ComboBox>(item)));
                 }
             }
             catch { }
@@ -464,8 +459,8 @@ namespace B1TuneUp.Modules
                 rs.DoQuery(sql);
                 if (!rs.EoF)
                 {
-                    billToDef = NormalizeSapValue(rs.Fields.Item(0).Value?.ToString());
-                    bpCountry = NormalizeSapValue(rs.Fields.Item(1).Value?.ToString());
+                    billToDef = NormalizeSapValue(B1TuneUp.Utils.SapUiSafe.SafeField(rs, 0));
+                    bpCountry = NormalizeSapValue(B1TuneUp.Utils.SapUiSafe.SafeField(rs, 1));
                 }
             }
             catch { }
@@ -488,7 +483,7 @@ namespace B1TuneUp.Modules
                 rs.DoQuery(sql);
                 if (!rs.EoF)
                 {
-                    return NormalizeSapValue(rs.Fields.Item(0).Value?.ToString());
+                    return NormalizeSapValue(B1TuneUp.Utils.SapUiSafe.SafeField(rs, 0));
                 }
             }
             catch { }
@@ -511,7 +506,7 @@ namespace B1TuneUp.Modules
                 rs.DoQuery(sql);
                 if (!rs.EoF)
                 {
-                    return NormalizeSapValue(rs.Fields.Item(0).Value?.ToString());
+                    return NormalizeSapValue(B1TuneUp.Utils.SapUiSafe.SafeField(rs, 0));
                 }
             }
             catch { }
@@ -534,7 +529,7 @@ namespace B1TuneUp.Modules
                 rs.DoQuery(sql);
                 if (!rs.EoF)
                 {
-                    return NormalizeSapValue(rs.Fields.Item(0).Value?.ToString());
+                    return NormalizeSapValue(B1TuneUp.Utils.SapUiSafe.SafeField(rs, 0));
                 }
             }
             catch { }

@@ -34,7 +34,7 @@ namespace B1TuneUp.Modules
                 comboItem.Top = 10;
                 comboItem.Left = 10;
                 comboItem.Width = 480;
-                var cmbReports = (ComboBox)comboItem.Specific;
+                var cmbReports = SapUiSafe.TryGetSpecific<ComboBox>(comboItem);
 
                 // Load report templates
                 LoadReportTemplatesIntoCombo(cmbReports);
@@ -43,25 +43,25 @@ namespace B1TuneUp.Modules
                 btnEdit.Top = 40;
                 btnEdit.Left = 10;
                 btnEdit.Width = 100;
-                ((Button)btnEdit.Specific).Caption = "Editar";
+                SapUiSafe.TrySetCaption(btnEdit, "Editar");
 
                 Item btnPreview = oForm.Items.Add("btnPreview", BoFormItemTypes.it_BUTTON);
                 btnPreview.Top = 40;
                 btnPreview.Left = 120;
                 btnPreview.Width = 100;
-                ((Button)btnPreview.Specific).Caption = "Vista Previa";
+                SapUiSafe.TrySetCaption(btnPreview, "Vista Previa");
 
                 Item btnParams = oForm.Items.Add("btnParams", BoFormItemTypes.it_BUTTON);
                 btnParams.Top = 40;
                 btnParams.Left = 230;
                 btnParams.Width = 120;
-                ((Button)btnParams.Specific).Caption = "Parámetros";
+                SapUiSafe.TrySetCaption(btnParams, "Parámetros");
 
                 Item btnManage = oForm.Items.Add("btnManage", BoFormItemTypes.it_BUTTON);
                 btnManage.Top = 40;
                 btnManage.Left = 360;
                 btnManage.Width = 120;
-                ((Button)btnManage.Specific).Caption = "Administrar Templates";
+                SapUiSafe.TrySetCaption(btnManage, "Administrar Templates");
 
                 oForm.Visible = true;
             }
@@ -84,7 +84,7 @@ namespace B1TuneUp.Modules
                 rs.DoQuery(sql);
                 while (!rs.EoF)
                 {
-                    string name = rs.Fields.Item(0).Value.ToString();
+                    string name = B1TuneUp.Utils.SapUiSafe.SafeField(rs, 0);
                     try { combo.ValidValues.Add(name, name); } catch { }
                     rs.MoveNext();
                 }
@@ -117,7 +117,7 @@ namespace B1TuneUp.Modules
                 rs.DoQuery(checkSql);
                 if (!rs.EoF)
                 {
-                    string codeValue = rs.Fields.Item(0).Value.ToString();
+                    string codeValue = B1TuneUp.Utils.SapUiSafe.SafeField(rs, 0);
                     string updateSql = isHana
                         ? $"UPDATE \"@BTUN_RPT\" SET \"U_Data\"='{safeEncoded}', \"U_UpdatedAt\"=CURRENT_TIMESTAMP WHERE \"Code\"='{codeValue}'"
                         : $"UPDATE [@BTUN_RPT] SET U_Data='{safeEncoded}', U_UpdatedAt=GETDATE() WHERE [Code]='{codeValue}'";
@@ -163,7 +163,7 @@ namespace B1TuneUp.Modules
                 rs.DoQuery(sql);
                 if (!rs.EoF)
                 {
-                    string raw = rs.Fields.Item(0).Value?.ToString() ?? "";
+                    string raw = B1TuneUp.Utils.SapUiSafe.SafeField(rs, 0);
                     // Stored as key1=val1|key2=val2
                     var parts = raw.Split(new[] { '|' }, StringSplitOptions.RemoveEmptyEntries);
                     foreach (var p in parts)
@@ -240,7 +240,7 @@ namespace B1TuneUp.Modules
                 info.Left = 10;
                 info.Width = 760;
                 info.Height = 20;
-                ((StaticText)info.Specific).Caption = "Vista previa avanzada no disponible en este entorno. Parámetros aplicados: " + (parameters == null ? "(ninguno)" : string.Join(", ", parameters.Keys));
+                SapUiSafe.TrySetCaption(info, "Vista previa avanzada no disponible en este entorno. Parámetros aplicados: " + (parameters == null ? "(ninguno)" : string.Join(", ", parameters.Keys)));
 
                 prevForm.Visible = true;
             }
@@ -270,7 +270,7 @@ namespace B1TuneUp.Modules
                 gridItem.Width = 560;
                 gridItem.Height = 300;
 
-                Grid grid = (Grid)gridItem.Specific;
+                Grid grid = SapUiSafe.TryGetSpecific<Grid>(gridItem);
                 try
                 {
                     grid.DataTable = mngForm.DataSources.DataTables.Add("rptDt");

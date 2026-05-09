@@ -85,14 +85,14 @@ namespace B1TuneUp.Modules
                 rs.DoQuery(sql);
                 while (!rs.EoF)
                 {
-                    string stepEntry    = rs.Fields.Item("Code").Value.ToString();
-                    string stepName     = rs.Fields.Item("U_StepName").Value.ToString();
-                    string stepDesc     = rs.Fields.Item("U_StepDesc").Value.ToString();
-                    string doneCond     = rs.Fields.Item("U_DoneCondition").Value.ToString();
-                    string action       = rs.Fields.Item("U_Action").Value.ToString();
-                    bool   mandatory    = rs.Fields.Item("U_Mandatory").Value.ToString() == "Y";
+                    string stepEntry    = B1TuneUp.Utils.SapUiSafe.SafeField(rs, "Code");
+                    string stepName     = B1TuneUp.Utils.SapUiSafe.SafeField(rs, "U_StepName");
+                    string stepDesc     = B1TuneUp.Utils.SapUiSafe.SafeField(rs, "U_StepDesc");
+                    string doneCond     = B1TuneUp.Utils.SapUiSafe.SafeField(rs, "U_DoneCondition");
+                    string action       = B1TuneUp.Utils.SapUiSafe.SafeField(rs, "U_Action");
+                    bool   mandatory    = B1TuneUp.Utils.SapUiSafe.SafeField(rs, "U_Mandatory") == "Y";
                     int    order        = 0;
-                    int.TryParse(rs.Fields.Item("U_StepOrder").Value.ToString(), out order);
+                    int.TryParse(B1TuneUp.Utils.SapUiSafe.SafeField(rs, "U_StepOrder"), out order);
 
                     bool isDone = EvaluateCondition(doneCond, oForm);
 
@@ -178,9 +178,9 @@ namespace B1TuneUp.Modules
                     return new ProcessInfo
                     {
                         DocEntry = processEntry,
-                        Name     = rs.Fields.Item("U_Name").Value.ToString(),
-                        Desc     = rs.Fields.Item("U_Desc").Value.ToString(),
-                        FormType = rs.Fields.Item("U_FormType").Value.ToString()
+                        Name     = B1TuneUp.Utils.SapUiSafe.SafeField(rs, "U_Name"),
+                        Desc     = B1TuneUp.Utils.SapUiSafe.SafeField(rs, "U_Desc"),
+                        FormType = B1TuneUp.Utils.SapUiSafe.SafeField(rs, "U_FormType")
                     };
                 }
             }
@@ -209,7 +209,7 @@ namespace B1TuneUp.Modules
             try
             {
                 rs.DoQuery(sql);
-                if (!rs.EoF) return rs.Fields.Item(0).Value?.ToString() ?? string.Empty;
+                if (!rs.EoF) return B1TuneUp.Utils.SapUiSafe.SafeField(rs, 0);
             }
             catch { }
             finally { ComObjectManager.Release(rs); }

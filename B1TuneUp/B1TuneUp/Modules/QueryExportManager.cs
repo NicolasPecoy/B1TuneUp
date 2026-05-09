@@ -2,6 +2,7 @@ using System;
 using SAPbouiCOM;
 using B1TuneUp.Core;
 using B1TuneUp.Modules.QueryExportUi;
+using B1TuneUp.Utils;
 
 namespace B1TuneUp.Modules
 {
@@ -13,7 +14,7 @@ namespace B1TuneUp.Modules
             {
                 if (activeForm == null)
                 {
-                    try { activeForm = B1App.Instance.Application.Forms.ActiveForm; } catch { }
+                    activeForm = SapUiSafe.TryGetActiveForm();
                 }
 
                 QueryExportLauncher.Show();

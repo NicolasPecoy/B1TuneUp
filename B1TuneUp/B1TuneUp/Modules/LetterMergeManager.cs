@@ -51,7 +51,7 @@ namespace B1TuneUp.Modules
             matrixItem.Width = 870;
             matrixItem.Height = 300;
 
-            SAPbouiCOM.Grid matrix = (SAPbouiCOM.Grid)matrixItem.Specific;
+            SAPbouiCOM.Grid matrix = SapUiSafe.TryGetSpecific<SAPbouiCOM.Grid>(matrixItem);
 
             // Ensure datatable columns exist for the grid
             matrix.DataTable.Columns.Add("TemplateName", SAPbouiCOM.BoFieldsType.ft_AlphaNumeric);
@@ -71,7 +71,7 @@ namespace B1TuneUp.Modules
             addButton.Left = 10;
             addButton.Width = 80;
             addButton.Height = 25;
-            ((SAPbouiCOM.Button)addButton.Specific).Caption = "Add";
+            SapUiSafe.TrySetCaption(addButton, "Add");
             // attach click via event subscription using Application.ItemEvent in runtime; placeholder no-op here
 
             Item editButton = oForm.Items.Add("BtnEdit", BoFormItemTypes.it_BUTTON);
@@ -79,35 +79,35 @@ namespace B1TuneUp.Modules
             editButton.Left = 100;
             editButton.Width = 80;
             editButton.Height = 25;
-            ((SAPbouiCOM.Button)editButton.Specific).Caption = "Edit";
+            SapUiSafe.TrySetCaption(editButton, "Edit");
 
             Item deleteButton = oForm.Items.Add("BtnDelete", BoFormItemTypes.it_BUTTON);
             deleteButton.Top = 320;
             deleteButton.Left = 190;
             deleteButton.Width = 80;
             deleteButton.Height = 25;
-            ((SAPbouiCOM.Button)deleteButton.Specific).Caption = "Delete";
+            SapUiSafe.TrySetCaption(deleteButton, "Delete");
 
             Item executeButton = oForm.Items.Add("BtnExecute", BoFormItemTypes.it_BUTTON);
             executeButton.Top = 320;
             executeButton.Left = 280;
             executeButton.Width = 100;
             executeButton.Height = 25;
-            ((SAPbouiCOM.Button)executeButton.Specific).Caption = "Execute";
+            SapUiSafe.TrySetCaption(executeButton, "Execute");
 
             Item previewButton = oForm.Items.Add("BtnPreview", BoFormItemTypes.it_BUTTON);
             previewButton.Top = 320;
             previewButton.Left = 390;
             previewButton.Width = 100;
             previewButton.Height = 25;
-            ((SAPbouiCOM.Button)previewButton.Specific).Caption = "Preview";
+            SapUiSafe.TrySetCaption(previewButton, "Preview");
 
             Item closeButton = oForm.Items.Add("BtnClose", BoFormItemTypes.it_BUTTON);
             closeButton.Top = 320;
             closeButton.Left = 780;
             closeButton.Width = 80;
             closeButton.Height = 25;
-            ((SAPbouiCOM.Button)closeButton.Specific).Caption = "Close";
+            SapUiSafe.TrySetCaption(closeButton, "Close");
 
             // Add labels and inputs for quick merge
             Item quickMergeLabel = oForm.Items.Add("LblQM", BoFormItemTypes.it_STATIC);
@@ -115,21 +115,21 @@ namespace B1TuneUp.Modules
             quickMergeLabel.Left = 10;
             quickMergeLabel.Width = 200;
             quickMergeLabel.Height = 20;
-            ((SAPbouiCOM.StaticText)quickMergeLabel.Specific).Caption = "Quick Merge (Current Document):";
+            SapUiSafe.TrySetCaption(quickMergeLabel, "Quick Merge (Current Document):");
 
             Item docTypeLabel = oForm.Items.Add("LblQMDocType", BoFormItemTypes.it_STATIC);
             docTypeLabel.Top = 390;
             docTypeLabel.Left = 10;
             docTypeLabel.Width = 100;
             docTypeLabel.Height = 20;
-            ((SAPbouiCOM.StaticText)docTypeLabel.Specific).Caption = "Document Type:";
+            SapUiSafe.TrySetCaption(docTypeLabel, "Document Type:");
 
             Item docTypeCombo = oForm.Items.Add("CmbQMDocType", BoFormItemTypes.it_COMBO_BOX);
             docTypeCombo.Top = 390;
             docTypeCombo.Left = 120;
             docTypeCombo.Width = 150;
             docTypeCombo.Height = 20;
-            SAPbouiCOM.ComboBox cmbQMDocType = (SAPbouiCOM.ComboBox)docTypeCombo.Specific;
+            SAPbouiCOM.ComboBox cmbQMDocType = SapUiSafe.TryGetSpecific<SAPbouiCOM.ComboBox>(docTypeCombo);
             cmbQMDocType.ValidValues.Add("17", "Sales Invoice");
             cmbQMDocType.ValidValues.Add("13", "Sales Order");
             cmbQMDocType.ValidValues.Add("14", "Delivery");
@@ -146,15 +146,15 @@ namespace B1TuneUp.Modules
             templateLabel.Left = 290;
             templateLabel.Width = 100;
             templateLabel.Height = 20;
-            ((SAPbouiCOM.StaticText)templateLabel.Specific).Caption = "Template:";
+            SapUiSafe.TrySetCaption(templateLabel, "Template:");
 
             Item templateCombo = oForm.Items.Add("CmbQMTemp", BoFormItemTypes.it_COMBO_BOX);
             templateCombo.Top = 390;
             templateCombo.Left = 380;
             templateCombo.Width = 200;
             templateCombo.Height = 20;
-            SAPbouiCOM.ComboBox cmbQMTemp = (SAPbouiCOM.ComboBox)templateCombo.Specific;
-            LoadLetterTemplatesForCombo(cmbQMTemp, cmbQMDocType.Selected.Value);
+            SAPbouiCOM.ComboBox cmbQMTemp = SapUiSafe.TryGetSpecific<SAPbouiCOM.ComboBox>(templateCombo);
+            LoadLetterTemplatesForCombo(cmbQMTemp, SapUiSafe.SafeComboValue(cmbQMDocType));
 
             // SDK differences: avoid using PressToSelect/ChooseFromListAfterClick/DataBrowser/Event in compile-time bindings
 
@@ -163,7 +163,7 @@ namespace B1TuneUp.Modules
             quickMergeButton.Left = 600;
             quickMergeButton.Width = 100;
             quickMergeButton.Height = 25;
-            ((SAPbouiCOM.Button)quickMergeButton.Specific).Caption = "Quick Merge";
+            SapUiSafe.TrySetCaption(quickMergeButton, "Quick Merge");
 
             // Load existing letter merge templates
             LoadLetterMergeTemplates(matrix);
@@ -187,10 +187,10 @@ namespace B1TuneUp.Modules
                     matrix.DataTable.Rows.Add();
                     int rowIndex = matrix.DataTable.Rows.Count - 1;
 
-                    matrix.DataTable.SetValue("TemplateName", rowIndex, rs.Fields.Item("U_Name").Value);
-                    matrix.DataTable.SetValue("Description", rowIndex, rs.Fields.Item("U_Desc").Value);
-                    matrix.DataTable.SetValue("DocType", rowIndex, rs.Fields.Item("U_DocType").Value);
-                    matrix.DataTable.SetValue("FilePath", rowIndex, rs.Fields.Item("U_FilePath").Value);
+                    matrix.DataTable.SetValue("TemplateName", rowIndex, B1TuneUp.Utils.SapUiSafe.SafeFieldValue(rs, "U_Name"));
+                    matrix.DataTable.SetValue("Description", rowIndex, B1TuneUp.Utils.SapUiSafe.SafeFieldValue(rs, "U_Desc"));
+                    matrix.DataTable.SetValue("DocType", rowIndex, B1TuneUp.Utils.SapUiSafe.SafeFieldValue(rs, "U_DocType"));
+                    matrix.DataTable.SetValue("FilePath", rowIndex, B1TuneUp.Utils.SapUiSafe.SafeFieldValue(rs, "U_FilePath"));
 
                     rs.MoveNext();
                 }
@@ -219,7 +219,7 @@ namespace B1TuneUp.Modules
 
                 while (!rs.EoF)
                 {
-                    string templateName = rs.Fields.Item("U_Name").Value.ToString();
+                    string templateName = B1TuneUp.Utils.SapUiSafe.SafeField(rs, "U_Name");
                     try { combo.ValidValues.Add(templateName, templateName); } catch { }
                     rs.MoveNext();
                 }
@@ -269,35 +269,35 @@ namespace B1TuneUp.Modules
             nameLabel.Left = 20;
             nameLabel.Width = 100;
             nameLabel.Height = 20;
-            ((SAPbouiCOM.StaticText)nameLabel.Specific).Caption = "Template Name:";
+            SapUiSafe.TrySetCaption(nameLabel, "Template Name:");
 
             Item descLabel = oForm.Items.Add("LblDesc", BoFormItemTypes.it_STATIC);
             descLabel.Top = 50;
             descLabel.Left = 20;
             descLabel.Width = 100;
             descLabel.Height = 20;
-            ((SAPbouiCOM.StaticText)descLabel.Specific).Caption = "Description:";
+            SapUiSafe.TrySetCaption(descLabel, "Description:");
 
             Item docTypeLabel = oForm.Items.Add("LblDocType", BoFormItemTypes.it_STATIC);
             docTypeLabel.Top = 80;
             docTypeLabel.Left = 20;
             docTypeLabel.Width = 100;
             docTypeLabel.Height = 20;
-            ((SAPbouiCOM.StaticText)docTypeLabel.Specific).Caption = "Document Type:";
+            SapUiSafe.TrySetCaption(docTypeLabel, "Document Type:");
 
             Item filePathLabel = oForm.Items.Add("LblFilePath", BoFormItemTypes.it_STATIC);
             filePathLabel.Top = 110;
             filePathLabel.Left = 20;
             filePathLabel.Width = 100;
             filePathLabel.Height = 20;
-            ((SAPbouiCOM.StaticText)filePathLabel.Specific).Caption = "Template File Path:";
+            SapUiSafe.TrySetCaption(filePathLabel, "Template File Path:");
 
             Item browseLabel = oForm.Items.Add("LblBrowse", BoFormItemTypes.it_STATIC);
             browseLabel.Top = 110;
             browseLabel.Left = 350;
             browseLabel.Width = 200;
             browseLabel.Height = 20;
-            ((SAPbouiCOM.StaticText)browseLabel.Specific).Caption = "(Use Browse button to select .docx template)";
+            SapUiSafe.TrySetCaption(browseLabel, "(Use Browse button to select .docx template)");
 
             // Input fields
             Item nameEdit = oForm.Items.Add("EdtName", BoFormItemTypes.it_EDIT);
@@ -317,7 +317,7 @@ namespace B1TuneUp.Modules
             docTypeCombo.Left = 130;
             docTypeCombo.Width = 200;
             docTypeCombo.Height = 20;
-            ComboBox cmbDocType = (ComboBox)docTypeCombo.Specific;
+            ComboBox cmbDocType = SapUiSafe.TryGetSpecific<ComboBox>(docTypeCombo);
             cmbDocType.ValidValues.Add("17", "Sales Invoice");
             cmbDocType.ValidValues.Add("13", "Sales Order");
             cmbDocType.ValidValues.Add("14", "Delivery");
@@ -340,7 +340,7 @@ namespace B1TuneUp.Modules
             browseButton.Left = 340;
             browseButton.Width = 80;
             browseButton.Height = 22;
-            ((SAPbouiCOM.Button)browseButton.Specific).Caption = "Browse...";
+            SapUiSafe.TrySetCaption(browseButton, "Browse...");
             // Click handler attached at runtime via Application.ItemEvent
 
             // Field mapping section
@@ -349,7 +349,7 @@ namespace B1TuneUp.Modules
             fieldMapLabel.Left = 20;
             fieldMapLabel.Width = 200;
             fieldMapLabel.Height = 20;
-            ((SAPbouiCOM.StaticText)fieldMapLabel.Specific).Caption = "Field Mapping (SAP Field -> Template Field):";
+            SapUiSafe.TrySetCaption(fieldMapLabel, "Field Mapping (SAP Field -> Template Field):");
 
             // Create a matrix for field mappings
             Item matrixItem = oForm.Items.Add("FldMapMatrix", BoFormItemTypes.it_GRID);
@@ -358,7 +358,7 @@ namespace B1TuneUp.Modules
             matrixItem.Width = 650;
             matrixItem.Height = 200;
 
-            Grid matrix = (Grid)matrixItem.Specific;
+            Grid matrix = SapUiSafe.TryGetSpecific<Grid>(matrixItem);
 
             // Ensure datatable columns exist for the grid
             matrix.DataTable.Columns.Add("SAPField", SAPbouiCOM.BoFieldsType.ft_AlphaNumeric);
@@ -395,21 +395,21 @@ namespace B1TuneUp.Modules
             saveButton.Left = 20;
             saveButton.Width = 80;
             saveButton.Height = 25;
-            ((SAPbouiCOM.Button)saveButton.Specific).Caption = "Save";
+            SapUiSafe.TrySetCaption(saveButton, "Save");
 
             Item testButton = oForm.Items.Add("BtnTest", BoFormItemTypes.it_BUTTON);
             testButton.Top = 390;
             testButton.Left = 110;
             testButton.Width = 80;
             testButton.Height = 25;
-            ((SAPbouiCOM.Button)testButton.Specific).Caption = "Test";
+            SapUiSafe.TrySetCaption(testButton, "Test");
 
             Item cancelButton = oForm.Items.Add("BtnCancel", BoFormItemTypes.it_BUTTON);
             cancelButton.Top = 390;
             cancelButton.Left = 200;
             cancelButton.Width = 80;
             cancelButton.Height = 25;
-            ((SAPbouiCOM.Button)cancelButton.Specific).Caption = "Cancel";
+            SapUiSafe.TrySetCaption(cancelButton, "Cancel");
         }
 
         private static string SelectWordTemplateFile()
@@ -437,10 +437,10 @@ namespace B1TuneUp.Modules
         {
             try
             {
-                string name = ((SAPbouiCOM.EditText)oForm.Items.Item("EdtName").Specific).Value;
-                string desc = ((SAPbouiCOM.EditText)oForm.Items.Item("EdtDesc").Specific).Value;
-                string docType = ((SAPbouiCOM.ComboBox)oForm.Items.Item("CmbDocType").Specific).Selected.Value;
-                string filePath = ((SAPbouiCOM.EditText)oForm.Items.Item("EdtFilePath").Specific).Value;
+                string name = SapUiSafe.TryGetSpecific<SAPbouiCOM.EditText>(oForm, "EdtName")?.Value ?? string.Empty;
+                string desc = SapUiSafe.TryGetSpecific<SAPbouiCOM.EditText>(oForm, "EdtDesc")?.Value ?? string.Empty;
+                string docType = SapUiSafe.SafeComboValue(SapUiSafe.TryGetSpecific<SAPbouiCOM.ComboBox>(oForm, "CmbDocType"));
+                string filePath = SapUiSafe.TryGetSpecific<SAPbouiCOM.EditText>(oForm, "EdtFilePath")?.Value ?? string.Empty;
 
                 // Validate required fields
                 if (string.IsNullOrEmpty(name))
@@ -475,7 +475,7 @@ namespace B1TuneUp.Modules
                 oForm.Close();
 
                 // Refresh the parent form
-                SAPbouiCOM.Grid matrix = (SAPbouiCOM.Grid)parentForm.Items.Item("LetterMatrix").Specific;
+                SAPbouiCOM.Grid matrix = SapUiSafe.TryGetSpecific<SAPbouiCOM.Grid>(parentForm, "LetterMatrix");
                 LoadLetterMergeTemplates(matrix);
 
                 ComObjectManager.Release(rs);
@@ -490,7 +490,7 @@ namespace B1TuneUp.Modules
         {
             try
             {
-                string filePath = ((EditText)oForm.Items.Item("EdtFilePath").Specific).Value;
+                string filePath = SapUiSafe.TryGetSpecific<EditText>(oForm, "EdtFilePath")?.Value ?? string.Empty;
 
                 if (string.IsNullOrEmpty(filePath))
                 {
@@ -520,7 +520,7 @@ namespace B1TuneUp.Modules
         {
             try
             {
-                Grid matrix = (Grid)parentForm.Items.Item("LetterMatrix").Specific;
+                Grid matrix = SapUiSafe.TryGetSpecific<Grid>(parentForm, "LetterMatrix");
                 if (matrix.Rows.SelectedRows.Count > 0)
                 {
                     int selectedRow = matrix.Rows.SelectedRows.Item(0, SAPbouiCOM.BoOrderType.ot_SelectionOrder);
@@ -584,28 +584,28 @@ namespace B1TuneUp.Modules
                 nameLabel.Left = 20;
                 nameLabel.Width = 100;
                 nameLabel.Height = 20;
-                ((SAPbouiCOM.StaticText)nameLabel.Specific).Caption = "Template Name:";
+                SapUiSafe.TrySetCaption(nameLabel, "Template Name:");
 
                 Item descLabel = oForm.Items.Add("LblDesc", BoFormItemTypes.it_STATIC);
                 descLabel.Top = 50;
                 descLabel.Left = 20;
                 descLabel.Width = 100;
                 descLabel.Height = 20;
-                ((SAPbouiCOM.StaticText)descLabel.Specific).Caption = "Description:";
+                SapUiSafe.TrySetCaption(descLabel, "Description:");
 
                 Item docTypeLabel = oForm.Items.Add("LblDocType", BoFormItemTypes.it_STATIC);
                 docTypeLabel.Top = 80;
                 docTypeLabel.Left = 20;
                 docTypeLabel.Width = 100;
                 docTypeLabel.Height = 20;
-                ((SAPbouiCOM.StaticText)docTypeLabel.Specific).Caption = "Document Type:";
+                SapUiSafe.TrySetCaption(docTypeLabel, "Document Type:");
 
                 Item filePathLabel = oForm.Items.Add("LblFilePath", BoFormItemTypes.it_STATIC);
                 filePathLabel.Top = 110;
                 filePathLabel.Left = 20;
                 filePathLabel.Width = 100;
                 filePathLabel.Height = 20;
-                ((SAPbouiCOM.StaticText)filePathLabel.Specific).Caption = "Template File Path:";
+                SapUiSafe.TrySetCaption(filePathLabel, "Template File Path:");
 
                 // Input fields
                 Item nameEdit = oForm.Items.Add("EdtName", BoFormItemTypes.it_EDIT);
@@ -614,21 +614,21 @@ namespace B1TuneUp.Modules
                 nameEdit.Width = 200;
                 nameEdit.Height = 20;
                 nameEdit.Enabled = false; // Can't change template name
-                ((SAPbouiCOM.EditText)nameEdit.Specific).Value = rs.Fields.Item("U_Name").Value.ToString();
+                SapUiSafe.TrySetEditValue(nameEdit, B1TuneUp.Utils.SapUiSafe.SafeField(rs, "U_Name"));
 
                 Item descEdit = oForm.Items.Add("EdtDesc", BoFormItemTypes.it_EDIT);
                 descEdit.Top = 50;
                 descEdit.Left = 130;
                 descEdit.Width = 350;
                 descEdit.Height = 20;
-                ((SAPbouiCOM.EditText)descEdit.Specific).Value = rs.Fields.Item("U_Desc").Value.ToString();
+                SapUiSafe.TrySetEditValue(descEdit, B1TuneUp.Utils.SapUiSafe.SafeField(rs, "U_Desc"));
 
                 Item docTypeCombo = oForm.Items.Add("CmbDocType", BoFormItemTypes.it_COMBO_BOX);
                 docTypeCombo.Top = 80;
                 docTypeCombo.Left = 130;
                 docTypeCombo.Width = 200;
                 docTypeCombo.Height = 20;
-                ComboBox cmbDocType = (ComboBox)docTypeCombo.Specific;
+                ComboBox cmbDocType = SapUiSafe.TryGetSpecific<ComboBox>(docTypeCombo);
                 cmbDocType.ValidValues.Add("17", "Sales Invoice");
                 cmbDocType.ValidValues.Add("13", "Sales Order");
                 cmbDocType.ValidValues.Add("14", "Delivery");
@@ -639,7 +639,7 @@ namespace B1TuneUp.Modules
                 cmbDocType.ValidValues.Add("1470000167", "Customer");
                 cmbDocType.ValidValues.Add("1470000168", "Vendor");
 
-                string docType = rs.Fields.Item("U_DocType").Value.ToString();
+                string docType = B1TuneUp.Utils.SapUiSafe.SafeField(rs, "U_DocType");
                 for (int i = 0; i < cmbDocType.ValidValues.Count; i++)
                 {
                     if (cmbDocType.ValidValues.Item(i).Value == docType)
@@ -654,14 +654,14 @@ namespace B1TuneUp.Modules
                 filePathEdit.Left = 130;
                 filePathEdit.Width = 200;
                 filePathEdit.Height = 20;
-                ((SAPbouiCOM.EditText)filePathEdit.Specific).Value = rs.Fields.Item("U_FilePath").Value.ToString();
+                SapUiSafe.TrySetEditValue(filePathEdit, B1TuneUp.Utils.SapUiSafe.SafeField(rs, "U_FilePath"));
 
                 Item browseButton = oForm.Items.Add("BtnBrowse", BoFormItemTypes.it_BUTTON);
                 browseButton.Top = 108;
                 browseButton.Left = 340;
                 browseButton.Width = 80;
                 browseButton.Height = 22;
-                ((SAPbouiCOM.Button)browseButton.Specific).Caption = "Browse...";
+                SapUiSafe.TrySetCaption(browseButton, "Browse...");
                 // Click handler attached at runtime via Application.ItemEvent
 
                 // Field mapping section
@@ -670,7 +670,7 @@ namespace B1TuneUp.Modules
             fieldMapLabel.Left = 20;
             fieldMapLabel.Width = 200;
             fieldMapLabel.Height = 20;
-            ((SAPbouiCOM.StaticText)fieldMapLabel.Specific).Caption = "Field Mapping (SAP Field -> Template Field):";
+            SapUiSafe.TrySetCaption(fieldMapLabel, "Field Mapping (SAP Field -> Template Field):");
 
                 // Create a matrix for field mappings
                 Item matrixItem = oForm.Items.Add("FldMapMatrix", BoFormItemTypes.it_GRID);
@@ -679,7 +679,7 @@ namespace B1TuneUp.Modules
                 matrixItem.Width = 650;
                 matrixItem.Height = 200;
 
-                Grid matrix = (Grid)matrixItem.Specific;
+                Grid matrix = SapUiSafe.TryGetSpecific<Grid>(matrixItem);
 
                 // Add columns to the matrix
             // Ensure datatable columns exist for the grid
@@ -700,21 +700,21 @@ namespace B1TuneUp.Modules
                 updateButton.Left = 20;
                 updateButton.Width = 80;
                 updateButton.Height = 25;
-                ((SAPbouiCOM.Button)updateButton.Specific).Caption = "Update";
+                SapUiSafe.TrySetCaption(updateButton, "Update");
 
                 Item testButton = oForm.Items.Add("BtnTest", BoFormItemTypes.it_BUTTON);
                 testButton.Top = 390;
                 testButton.Left = 110;
                 testButton.Width = 80;
                 testButton.Height = 25;
-                ((SAPbouiCOM.Button)testButton.Specific).Caption = "Test";
+                SapUiSafe.TrySetCaption(testButton, "Test");
 
                 Item cancelButton = oForm.Items.Add("BtnCancel", BoFormItemTypes.it_BUTTON);
                 cancelButton.Top = 390;
                 cancelButton.Left = 200;
                 cancelButton.Width = 80;
                 cancelButton.Height = 25;
-                ((SAPbouiCOM.Button)cancelButton.Specific).Caption = "Cancel";
+                SapUiSafe.TrySetCaption(cancelButton, "Cancel");
             }
 
             ComObjectManager.Release(rs);
@@ -724,9 +724,9 @@ namespace B1TuneUp.Modules
         {
             try
             {
-                string desc = ((EditText)oForm.Items.Item("EdtDesc").Specific).Value;
-                string docType = ((ComboBox)oForm.Items.Item("CmbDocType").Specific).Selected.Value;
-                string filePath = ((EditText)oForm.Items.Item("EdtFilePath").Specific).Value;
+                string desc = SapUiSafe.TryGetSpecific<EditText>(oForm, "EdtDesc")?.Value ?? string.Empty;
+                string docType = SapUiSafe.SafeComboValue(SapUiSafe.TryGetSpecific<ComboBox>(oForm, "CmbDocType"));
+                string filePath = SapUiSafe.TryGetSpecific<EditText>(oForm, "EdtFilePath")?.Value ?? string.Empty;
 
                 // Validate required fields
                 if (string.IsNullOrEmpty(filePath))
@@ -757,7 +757,7 @@ namespace B1TuneUp.Modules
                 oForm.Close();
 
                 // Refresh the parent form
-                Grid matrix = (Grid)parentForm.Items.Item("LetterMatrix").Specific;
+                Grid matrix = SapUiSafe.TryGetSpecific<Grid>(parentForm, "LetterMatrix");
                 LoadLetterMergeTemplates(matrix);
 
                 ComObjectManager.Release(rs);
@@ -772,7 +772,7 @@ namespace B1TuneUp.Modules
         {
             try
             {
-                Grid matrix = (Grid)parentForm.Items.Item("LetterMatrix").Specific;
+                Grid matrix = SapUiSafe.TryGetSpecific<Grid>(parentForm, "LetterMatrix");
                 if (matrix.Rows.SelectedRows.Count > 0)
                 {
                     int selectedRow = matrix.Rows.SelectedRows.Item(0, SAPbouiCOM.BoOrderType.ot_SelectionOrder);
@@ -814,7 +814,7 @@ namespace B1TuneUp.Modules
         {
             try
             {
-                Grid matrix = (Grid)parentForm.Items.Item("LetterMatrix").Specific;
+                Grid matrix = SapUiSafe.TryGetSpecific<Grid>(parentForm, "LetterMatrix");
                 if (matrix.Rows.SelectedRows.Count > 0)
                 {
                     int selectedRow = matrix.Rows.SelectedRows.Item(0, SAPbouiCOM.BoOrderType.ot_SelectionOrder);
@@ -840,7 +840,7 @@ namespace B1TuneUp.Modules
         {
             try
             {
-                Grid matrix = (Grid)parentForm.Items.Item("LetterMatrix").Specific;
+                Grid matrix = SapUiSafe.TryGetSpecific<Grid>(parentForm, "LetterMatrix");
                 if (matrix.Rows.SelectedRows.Count > 0)
                 {
                     int selectedRow = matrix.Rows.SelectedRows.Item(0, SAPbouiCOM.BoOrderType.ot_SelectionOrder);
@@ -876,7 +876,7 @@ namespace B1TuneUp.Modules
 
                 if (!rs.EoF)
                 {
-                    string filePath = rs.Fields.Item("U_FilePath").Value.ToString();
+                    string filePath = B1TuneUp.Utils.SapUiSafe.SafeField(rs, "U_FilePath");
 
                     // Perform the letter merge
                     bool success = PerformLetterMerge(templateName, filePath);
@@ -917,7 +917,7 @@ namespace B1TuneUp.Modules
 
                 if (!rs.EoF)
                 {
-                    string filePath = rs.Fields.Item("U_FilePath").Value.ToString();
+                    string filePath = B1TuneUp.Utils.SapUiSafe.SafeField(rs, "U_FilePath");
 
                     // Show a preview of the letter merge
                     B1App.Instance.Application.SetStatusBarMessage($"Preview for template '{templateName}' (File: {filePath})", BoMessageTime.bmt_Short, false);
@@ -942,7 +942,7 @@ namespace B1TuneUp.Modules
             try
             {
                 // Get the active form to extract data
-                Form activeForm = B1App.Instance.Application.Forms.ActiveForm;
+                Form activeForm = SapUiSafe.TryGetActiveForm();
 
                 // In a real implementation, this would:
                 // 1. Open the Word template
@@ -967,7 +967,7 @@ namespace B1TuneUp.Modules
             try
             {
                 // Perform a quick merge using the current document in the active form
-                SAPbouiCOM.Form activeForm = B1App.Instance.Application.Forms.ActiveForm;
+                SAPbouiCOM.Form activeForm = SapUiSafe.TryGetActiveForm();
 
                 if (activeForm.TypeEx != docType)
                 {

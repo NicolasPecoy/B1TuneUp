@@ -26,11 +26,11 @@ namespace B1TuneUp.Modules
                 {
                     list.Add(new ItemActionEntry
                     {
-                        DocEntry = Convert.ToInt32(rs.Fields.Item(0).Value),
-                        FormType = rs.Fields.Item(1).Value?.ToString() ?? string.Empty,
-                        ItemId = rs.Fields.Item(2).Value?.ToString() ?? string.Empty,
-                        Event = rs.Fields.Item(3).Value?.ToString() ?? "Click",
-                        Action = rs.Fields.Item(4).Value?.ToString() ?? string.Empty
+                        DocEntry = Convert.ToInt32(B1TuneUp.Utils.SapUiSafe.SafeFieldValue(rs, 0)),
+                        FormType = B1TuneUp.Utils.SapUiSafe.SafeField(rs, 1),
+                        ItemId = B1TuneUp.Utils.SapUiSafe.SafeField(rs, 2),
+                        Event = B1TuneUp.Utils.SapUiSafe.SafeField(rs, 3) ?? "Click",
+                        Action = B1TuneUp.Utils.SapUiSafe.SafeField(rs, 4)
                     });
                     rs.MoveNext();
                 }

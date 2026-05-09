@@ -12,6 +12,13 @@ namespace B1TuneUp.Models
         public string AllowedGroups { get; set; }
         public string DeniedUsers { get; set; }
         public string DeniedGroups { get; set; }
+        public string Condition { get; set; }
+        public string ResultVariable { get; set; }
+        public string OnSuccessFunction { get; set; }
+        public string OnErrorFunction { get; set; }
+        public bool ContinueOnError { get; set; }
+        public int RetryCount { get; set; }
+        public int RetryDelayMs { get; set; }
         public string Notes { get; set; }
 
         public UniversalFunctionEntry Clone()

@@ -168,6 +168,12 @@ namespace B1TuneUp.Core
 
                 // Manejar eventos de Toolbox
                 Form currentForm = TryGetForm(FormUID);
+                if (!UnifiedTriggerService.HandleItemEvent(currentForm, pVal))
+                {
+                    BubbleEvent = false;
+                    return;
+                }
+
                 if (currentForm != null && ModuleActivationService.IsEnabled("Toolbox"))
                 {
                     ToolboxManager.HandleToolboxEvents(currentForm, pVal);
@@ -317,6 +323,11 @@ namespace B1TuneUp.Core
         private void OnMenuEvent(ref MenuEvent pVal, out bool BubbleEvent)
         {
             BubbleEvent = true;
+            if (!UnifiedTriggerService.HandleMenuEvent(pVal))
+            {
+                BubbleEvent = false;
+                return;
+            }
             // Clicks de menús principales
             MenuManager.HandleMenuEvent(ref pVal);
             // Clicks de menús contextuales (right-click)
@@ -329,6 +340,13 @@ namespace B1TuneUp.Core
 
             try
             {
+                Form triggerForm = TryGetForm(BusinessObjectInfo.FormUID);
+                if (!UnifiedTriggerService.HandleDataEvent(triggerForm, BusinessObjectInfo))
+                {
+                    BubbleEvent = false;
+                    return;
+                }
+
                 // Validaciones antes de guardar
                 if (BusinessObjectInfo.BeforeAction && (BusinessObjectInfo.EventType == BoEventTypes.et_FORM_DATA_ADD || BusinessObjectInfo.EventType == BoEventTypes.et_FORM_DATA_UPDATE))
                 {
@@ -438,6 +456,11 @@ namespace B1TuneUp.Core
             if (!ModuleActivationService.IsEnabled("RightClick"))
             {
                 BubbleEvent = true;
+                return;
+            }
+            if (!UnifiedTriggerService.HandleRightClickEvent(eventInfo))
+            {
+                BubbleEvent = false;
                 return;
             }
             RightClickMenuManager.OnRightClickEvent(ref eventInfo, out BubbleEvent);

@@ -31,7 +31,8 @@ namespace B1TuneUp.Modules
             new ModuleConfigurationEntry { Key = "Search", Name = "B1 Search", Description = "Búsquedas configurables y apertura de resultados.", SortOrder = 110 },
             new ModuleConfigurationEntry { Key = "UniversalFunctions", Name = "Universal Functions", Description = "Funciones reutilizables invocables desde macros, menus, validaciones y botones.", SortOrder = 120 },
             new ModuleConfigurationEntry { Key = "Authorization", Name = "Authorization & Scoping", Description = "Grupos, superusuarios y scoping por usuario/grupo.", SortOrder = 130 },
-            new ModuleConfigurationEntry { Key = "ConfigCenter", Name = "B1TuneUp Config Center", Description = "Centro de configuracion, diagnostico, repair e import/export.", SortOrder = 140 }
+            new ModuleConfigurationEntry { Key = "EventSystem", Name = "Unified Event System", Description = "Triggers configurables para forms, items, menus, right-click y data events.", SortOrder = 140 },
+            new ModuleConfigurationEntry { Key = "ConfigCenter", Name = "B1TuneUp Config Center", Description = "Centro de configuracion, diagnostico, repair e import/export.", SortOrder = 150 }
         };
 
         public static IReadOnlyList<ModuleConfigurationEntry> GetAll()

@@ -31,6 +31,17 @@ namespace B1TuneUp.Modules
             AddTableDiagnostic(items, "BTUN_RULES", "Rules");
             AddTableDiagnostic(items, "BTUN_MENUS", "Menus");
             AddTableDiagnostic(items, "BTUN_LOG", "Audit log");
+            foreach (var metadata in MetadataRegistryService.Validate())
+            {
+                items.Add(new ConfigurationDiagnosticEntry
+                {
+                    Area = metadata.IsTable ? "UDT" : "UDF",
+                    Name = metadata.DisplayName,
+                    Status = metadata.Status,
+                    IsOk = metadata.Exists,
+                    Detail = metadata.IsTable ? metadata.TableDescription : metadata.FieldDescription
+                });
+            }
 
             string version = ToolboxSettingService.GetByCode(MetadataVersionCode)?.Value ?? string.Empty;
             items.Add(new ConfigurationDiagnosticEntry
@@ -61,6 +72,7 @@ namespace B1TuneUp.Modules
 
         public static void RepairMetadata()
         {
+            MetadataRegistryService.Repair();
             ToolboxSettingService.Save(new ToolboxSettingEntry
             {
                 Code = MetadataVersionCode,
@@ -96,18 +108,73 @@ namespace B1TuneUp.Modules
             package.AuthorizationGroups.AddRange(AuthorizationAdminService.GetGroups()
                 .Where(g => string.IsNullOrWhiteSpace(moduleKey) || string.Equals(moduleKey, "Authorization", StringComparison.OrdinalIgnoreCase)));
 
+            package.Triggers.AddRange(UnifiedTriggerService.GetAll()
+                .Where(t => string.IsNullOrWhiteSpace(moduleKey) || string.Equals(moduleKey, "EventSystem", StringComparison.OrdinalIgnoreCase)));
+
             return package;
         }
 
         public static void ExportPackage(string path, string moduleKey = null)
         {
             File.WriteAllText(path, JsonSerializer.Serialize(BuildPackage(moduleKey), JsonOptions));
+            AuditLogManager.LogAction("ConfigPackage", $"Exportado paquete {path}", "Export");
         }
 
-        public static ConfigurationPackage ImportPackage(string path)
+        public static IList<PackagePreviewEntry> PreviewImport(string path)
         {
             var package = JsonSerializer.Deserialize<ConfigurationPackage>(File.ReadAllText(path), JsonOptions)
                           ?? new ConfigurationPackage();
+            var preview = new List<PackagePreviewEntry>();
+            foreach (var module in package.Modules ?? new List<ModuleConfigurationEntry>())
+            {
+                var existing = ModuleActivationService.GetAll().FirstOrDefault(m => string.Equals(m.Key, module.Key, StringComparison.OrdinalIgnoreCase));
+                preview.Add(new PackagePreviewEntry { Area = "Module", Key = module.Key, Action = existing == null ? "Create" : "Update", Conflict = existing != null && existing.Enabled != module.Enabled, Detail = module.Name });
+            }
+            foreach (var setting in package.Settings ?? new List<ToolboxSettingEntry>())
+            {
+                var existing = ToolboxSettingService.GetByCode(setting.Code);
+                preview.Add(new PackagePreviewEntry { Area = "Setting", Key = setting.Code, Action = existing == null ? "Create" : "Update", Conflict = existing != null && existing.Value != setting.Value, Detail = setting.Description });
+            }
+            foreach (var function in package.UniversalFunctions ?? new List<UniversalFunctionEntry>())
+            {
+                var existing = UniversalFunctionService.GetByCode(function.Code);
+                preview.Add(new PackagePreviewEntry { Area = "UniversalFunction", Key = function.Code, Action = existing == null ? "Create" : "Update", Conflict = existing != null, Detail = function.Type });
+            }
+            foreach (var group in package.AuthorizationGroups ?? new List<AuthorizationGroupEntry>())
+            {
+                var existing = AuthorizationAdminService.GetGroups().FirstOrDefault(g => string.Equals(g.Code, group.Code, StringComparison.OrdinalIgnoreCase));
+                preview.Add(new PackagePreviewEntry { Area = "Authorization", Key = group.Code, Action = existing == null ? "Create" : "Update", Conflict = existing != null && existing.Users != group.Users, Detail = group.Name });
+            }
+            foreach (var trigger in package.Triggers ?? new List<UnifiedTriggerEntry>())
+            {
+                var existing = UnifiedTriggerService.GetAll().FirstOrDefault(t => string.Equals(t.Code, trigger.Code, StringComparison.OrdinalIgnoreCase));
+                preview.Add(new PackagePreviewEntry { Area = "Trigger", Key = trigger.Code, Action = existing == null ? "Create" : "Update", Conflict = existing != null, Detail = trigger.EventType });
+            }
+            return preview;
+        }
+
+        public static string BackupBeforeImport()
+        {
+            string dir = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Logs");
+            Directory.CreateDirectory(dir);
+            string path = Path.Combine(dir, "config-backup-" + DateTime.Now.ToString("yyyyMMdd-HHmmss") + ".json");
+            ExportPackage(path);
+            return path;
+        }
+
+        public static ConfigurationPackage ImportPackage(string path, bool dryRun = false)
+        {
+            var package = JsonSerializer.Deserialize<ConfigurationPackage>(File.ReadAllText(path), JsonOptions)
+                          ?? new ConfigurationPackage();
+            var preview = PreviewImport(path);
+            if (dryRun)
+            {
+                AuditLogManager.LogAction("ConfigPackage", $"Dry-run import {path}: {preview.Count} cambios detectados.", "DryRun");
+                return package;
+            }
+
+            string backup = BackupBeforeImport();
+            AuditLogManager.LogAction("ConfigPackage", $"Backup previo a import: {backup}", "Backup");
 
             foreach (var module in package.Modules ?? new List<ModuleConfigurationEntry>())
             {
@@ -129,7 +196,13 @@ namespace B1TuneUp.Modules
                 AuthorizationAdminService.SaveGroup(group);
             }
 
+            foreach (var trigger in package.Triggers ?? new List<UnifiedTriggerEntry>())
+            {
+                UnifiedTriggerService.Save(trigger);
+            }
+
             AuthorizationScopeService.Invalidate();
+            AuditLogManager.LogAction("ConfigPackage", $"Importado paquete {path}: {preview.Count} cambios.", "Import");
             return package;
         }
 

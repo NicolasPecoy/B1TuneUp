@@ -101,6 +101,7 @@
                                 <Button Content="Save Modules" Command="{Binding SaveModulesCommand}" />
                                 <Button Content="Repair Metadata" Command="{Binding RepairMetadataCommand}" />
                                 <Button Content="Export" Command="{Binding ExportCommand}" />
+                                <Button Content="Preview Import" Command="{Binding PreviewImportCommand}" />
                                 <Button Content="Import" Command="{Binding ImportCommand}" />
                             </StackPanel>
                             <DataGrid ItemsSource="{Binding Modules}"
@@ -133,9 +134,46 @@
                                     <DataGridTextColumn Header="Detail" Binding="{Binding Detail}" Width="*" />
                                 </DataGrid.Columns>
                             </DataGrid>
+                            <TextBlock DockPanel.Dock="Bottom" Text="Import Preview" FontSize="14" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,12,0,8" />
+                            <DataGrid DockPanel.Dock="Bottom"
+                                      ItemsSource="{Binding PackagePreview}"
+                                      AutoGenerateColumns="False"
+                                      CanUserAddRows="False"
+                                      Height="170">
+                                <DataGrid.Columns>
+                                    <DataGridTextColumn Header="Area" Binding="{Binding Area}" Width="120" />
+                                    <DataGridTextColumn Header="Key" Binding="{Binding Key}" Width="160" />
+                                    <DataGridTextColumn Header="Action" Binding="{Binding Action}" Width="90" />
+                                    <DataGridCheckBoxColumn Header="Conflict" Binding="{Binding Conflict}" Width="70" />
+                                    <DataGridTextColumn Header="Detail" Binding="{Binding Detail}" Width="*" />
+                                </DataGrid.Columns>
+                            </DataGrid>
                         </DockPanel>
                     </Border>
                 </Grid>
+            </TabItem>
+
+            <TabItem Header="Metadata">
+                <Border Margin="0,14,0,0" Style="{StaticResource PanelStyle}">
+                    <DockPanel>
+                        <StackPanel DockPanel.Dock="Top" Orientation="Horizontal">
+                            <Button Content="Refresh" Command="{Binding RefreshCommand}" />
+                            <Button Content="Repair Schema" Command="{Binding RepairMetadataCommand}" />
+                        </StackPanel>
+                        <DataGrid ItemsSource="{Binding Metadata}"
+                                  AutoGenerateColumns="False"
+                                  CanUserAddRows="False"
+                                  Margin="0,12,0,0">
+                            <DataGrid.Columns>
+                                <DataGridTextColumn Header="Object" Binding="{Binding DisplayName}" Width="210" />
+                                <DataGridTextColumn Header="Status" Binding="{Binding Status}" Width="90" />
+                                <DataGridCheckBoxColumn Header="Table" Binding="{Binding IsTable}" Width="65" IsReadOnly="True" />
+                                <DataGridTextColumn Header="Description" Binding="{Binding FieldDescription}" Width="*" />
+                                <DataGridTextColumn Header="Table Desc" Binding="{Binding TableDescription}" Width="220" />
+                            </DataGrid.Columns>
+                        </DataGrid>
+                    </DockPanel>
+                </Border>
             </TabItem>
 
             <TabItem Header="Universal Functions">
@@ -173,6 +211,8 @@
                                 <CheckBox Content="Active" IsChecked="{Binding Active}" Margin="0,4,0,12" />
                                 <TextBlock Text="Parameters" Style="{StaticResource LabelStyle}" />
                                 <TextBox Text="{Binding Parameters, UpdateSourceTrigger=PropertyChanged}" AcceptsReturn="True" Height="90" />
+                                <TextBlock Text="Condition SQL" Style="{StaticResource LabelStyle}" />
+                                <TextBox Text="{Binding Condition, UpdateSourceTrigger=PropertyChanged}" AcceptsReturn="True" Height="70" />
                             </StackPanel>
                             <StackPanel Grid.Column="2">
                                 <TextBlock Text="Payload" Style="{StaticResource LabelStyle}" />
@@ -183,8 +223,91 @@
                                 <TextBox Text="{Binding AllowedGroups, UpdateSourceTrigger=PropertyChanged}" />
                                 <TextBlock Text="Denied Users" Style="{StaticResource LabelStyle}" />
                                 <TextBox Text="{Binding DeniedUsers, UpdateSourceTrigger=PropertyChanged}" />
+                                <UniformGrid Columns="4" Margin="0,0,0,8">
+                                    <StackPanel Margin="0,0,8,0">
+                                        <TextBlock Text="Result Var" Style="{StaticResource LabelStyle}" />
+                                        <TextBox Text="{Binding ResultVariable, UpdateSourceTrigger=PropertyChanged}" />
+                                    </StackPanel>
+                                    <StackPanel Margin="0,0,8,0">
+                                        <TextBlock Text="On Success" Style="{StaticResource LabelStyle}" />
+                                        <TextBox Text="{Binding OnSuccessFunction, UpdateSourceTrigger=PropertyChanged}" />
+                                    </StackPanel>
+                                    <StackPanel Margin="0,0,8,0">
+                                        <TextBlock Text="On Error" Style="{StaticResource LabelStyle}" />
+                                        <TextBox Text="{Binding OnErrorFunction, UpdateSourceTrigger=PropertyChanged}" />
+                                    </StackPanel>
+                                    <StackPanel>
+                                        <TextBlock Text="Retry" Style="{StaticResource LabelStyle}" />
+                                        <TextBox Text="{Binding RetryCount, UpdateSourceTrigger=PropertyChanged}" />
+                                    </StackPanel>
+                                </UniformGrid>
+                                <CheckBox Content="Continue on error" IsChecked="{Binding ContinueOnError}" Margin="0,0,0,8" />
                                 <TextBlock Text="Notes" Style="{StaticResource LabelStyle}" />
                                 <TextBox Text="{Binding Notes, UpdateSourceTrigger=PropertyChanged}" AcceptsReturn="True" Height="70" />
+                            </StackPanel>
+                        </Grid>
+                    </Border>
+                </Grid>
+            </TabItem>
+
+            <TabItem Header="Event Triggers">
+                <Grid Margin="0,14,0,0">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="430" />
+                        <ColumnDefinition Width="18" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+                    <Border Style="{StaticResource PanelStyle}">
+                        <DockPanel>
+                            <StackPanel DockPanel.Dock="Top" Orientation="Horizontal">
+                                <Button Content="New" Command="{Binding NewTriggerCommand}" />
+                                <Button Content="Save" Command="{Binding SaveTriggerCommand}" />
+                                <Button Content="Delete" Command="{Binding DeleteTriggerCommand}" />
+                            </StackPanel>
+                            <DataGrid ItemsSource="{Binding Triggers}" SelectedItem="{Binding SelectedTrigger}" AutoGenerateColumns="False" CanUserAddRows="False" Margin="0,12,0,0">
+                                <DataGrid.Columns>
+                                    <DataGridCheckBoxColumn Header="On" Binding="{Binding Active}" Width="45" />
+                                    <DataGridTextColumn Header="Code" Binding="{Binding Code}" Width="140" />
+                                    <DataGridTextColumn Header="Event" Binding="{Binding EventType}" Width="140" />
+                                    <DataGridTextColumn Header="Form" Binding="{Binding FormType}" Width="90" />
+                                </DataGrid.Columns>
+                            </DataGrid>
+                        </DockPanel>
+                    </Border>
+                    <Border Grid.Column="2" Style="{StaticResource PanelStyle}">
+                        <Grid DataContext="{Binding SelectedTrigger}">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="240" />
+                                <ColumnDefinition Width="18" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <StackPanel>
+                                <TextBlock Text="Code" Style="{StaticResource LabelStyle}" />
+                                <TextBox Text="{Binding Code, UpdateSourceTrigger=PropertyChanged}" />
+                                <TextBlock Text="Name" Style="{StaticResource LabelStyle}" />
+                                <TextBox Text="{Binding Name, UpdateSourceTrigger=PropertyChanged}" />
+                                <TextBlock Text="Event" Style="{StaticResource LabelStyle}" />
+                                <ComboBox ItemsSource="{Binding DataContext.TriggerEvents, RelativeSource={RelativeSource AncestorType=Window}}" SelectedItem="{Binding EventType}" />
+                                <TextBlock Text="Form / Item / Column" Style="{StaticResource LabelStyle}" />
+                                <TextBox Text="{Binding FormType, UpdateSourceTrigger=PropertyChanged}" />
+                                <TextBox Text="{Binding ItemId, UpdateSourceTrigger=PropertyChanged}" />
+                                <TextBox Text="{Binding ColumnId, UpdateSourceTrigger=PropertyChanged}" />
+                                <CheckBox Content="Before action" IsChecked="{Binding BeforeAction}" Margin="0,4,0,8" />
+                                <CheckBox Content="Trace enabled" IsChecked="{Binding TraceEnabled}" Margin="0,0,0,8" />
+                            </StackPanel>
+                            <StackPanel Grid.Column="2">
+                                <TextBlock Text="Condition SQL" Style="{StaticResource LabelStyle}" />
+                                <TextBox Text="{Binding Condition, UpdateSourceTrigger=PropertyChanged}" AcceptsReturn="True" Height="90" FontFamily="Consolas" />
+                                <TextBlock Text="Universal Function Code" Style="{StaticResource LabelStyle}" />
+                                <TextBox Text="{Binding UniversalFunctionCode, UpdateSourceTrigger=PropertyChanged}" />
+                                <TextBlock Text="Fallback Macro" Style="{StaticResource LabelStyle}" />
+                                <TextBox Text="{Binding Macro, UpdateSourceTrigger=PropertyChanged}" AcceptsReturn="True" Height="120" FontFamily="Consolas" />
+                                <TextBlock Text="Allowed / Denied Users" Style="{StaticResource LabelStyle}" />
+                                <TextBox Text="{Binding AllowedUsers, UpdateSourceTrigger=PropertyChanged}" />
+                                <TextBox Text="{Binding DeniedUsers, UpdateSourceTrigger=PropertyChanged}" />
+                                <TextBlock Text="Allowed / Denied Groups" Style="{StaticResource LabelStyle}" />
+                                <TextBox Text="{Binding AllowedGroups, UpdateSourceTrigger=PropertyChanged}" />
+                                <TextBox Text="{Binding DeniedGroups, UpdateSourceTrigger=PropertyChanged}" />
                             </StackPanel>
                         </Grid>
                     </Border>
@@ -218,7 +341,11 @@
                             <StackPanel>
                                 <TextBlock Text="Super Users" Style="{StaticResource LabelStyle}" />
                                 <TextBox Text="{Binding SuperUsers, UpdateSourceTrigger=PropertyChanged}" />
-                                <Button Content="Save Super Users" Command="{Binding SaveSuperUsersCommand}" />
+                                <StackPanel Orientation="Horizontal">
+                                    <Button Content="Save Super Users" Command="{Binding SaveSuperUsersCommand}" />
+                                    <Button Content="Simulate" Command="{Binding SimulateAuthorizationCommand}" />
+                                </StackPanel>
+                                <TextBlock Text="{Binding SimulationResult}" Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,6,0,8" />
                             </StackPanel>
                             <Grid Grid.Row="2" DataContext="{Binding SelectedGroup}">
                                 <Grid.ColumnDefinitions>
@@ -233,6 +360,19 @@
                                     <TextBox Text="{Binding Name, UpdateSourceTrigger=PropertyChanged}" />
                                 </StackPanel>
                                 <StackPanel Grid.Column="2">
+                                    <TextBlock Text="SAP Users" Style="{StaticResource LabelStyle}" />
+                                    <DataGrid ItemsSource="{Binding DataContext.SapUsers, RelativeSource={RelativeSource AncestorType=Window}}"
+                                              SelectedItem="{Binding DataContext.SelectedSapUser, RelativeSource={RelativeSource AncestorType=Window}}"
+                                              AutoGenerateColumns="False"
+                                              CanUserAddRows="False"
+                                              Height="120"
+                                              Margin="0,0,0,10">
+                                        <DataGrid.Columns>
+                                            <DataGridTextColumn Header="Code" Binding="{Binding UserCode}" Width="110" />
+                                            <DataGridTextColumn Header="Name" Binding="{Binding UserName}" Width="*" />
+                                            <DataGridCheckBoxColumn Header="Super" Binding="{Binding SuperUser}" Width="70" />
+                                        </DataGrid.Columns>
+                                    </DataGrid>
                                     <TextBlock Text="Users" Style="{StaticResource LabelStyle}" />
                                     <TextBox Text="{Binding Users, UpdateSourceTrigger=PropertyChanged}" AcceptsReturn="True" Height="140" />
                                     <TextBlock Text="Notes" Style="{StaticResource LabelStyle}" />

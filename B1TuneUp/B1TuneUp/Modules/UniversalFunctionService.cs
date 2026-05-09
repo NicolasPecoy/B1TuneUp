@@ -4,9 +4,11 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
+using System.Reflection;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using System.Threading;
 using B1TuneUp.Core;
 using B1TuneUp.Models;
 using B1TuneUp.Utils;
@@ -23,6 +25,7 @@ namespace B1TuneUp.Modules
             PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
             DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
         };
+        private static readonly Dictionary<string, string> Variables = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
 
         public static readonly string[] SupportedTypes =
         {
@@ -100,18 +103,48 @@ namespace B1TuneUp.Modules
             }
 
             form = form ?? SapUiSafe.TryGetActiveForm();
-            string payload = MacroEngine.ProcessSqlVariables(entry.Payload ?? string.Empty, form, rowOverride);
+            if (!MacroEngine.CheckCondition(entry.Condition, form)) return string.Empty;
+
+            int attempts = Math.Max(0, entry.RetryCount) + 1;
+            Exception lastError = null;
+            for (int attempt = 1; attempt <= attempts; attempt++)
+            {
+                try
+                {
+                    string result = ExecuteCore(entry, form, rowOverride);
+                    StoreVariable(entry.ResultVariable, result);
+                    ExecuteChain(entry.OnSuccessFunction, form, rowOverride);
+                    AuditLogManager.LogAction("UniversalFunction", $"{entry.Code} ejecutada.", "Success");
+                    return result;
+                }
+                catch (Exception ex)
+                {
+                    lastError = ex;
+                    ExceptionLogger.LogHandled(ex, $"UniversalFunctionService.Execute:{entry.Code}:attempt:{attempt}");
+                    if (attempt < attempts && entry.RetryDelayMs > 0) Thread.Sleep(entry.RetryDelayMs);
+                }
+            }
+
+            ExecuteChain(entry.OnErrorFunction, form, rowOverride);
+            if (entry.ContinueOnError) return lastError?.Message ?? string.Empty;
+            throw lastError ?? new InvalidOperationException($"Universal Function '{entry.Code}' fallo.");
+        }
+
+        private static string ExecuteCore(UniversalFunctionEntry entry, Form form, int rowOverride)
+        {
+            string payload = ResolveVariables(MacroEngine.ProcessSqlVariables(entry.Payload ?? string.Empty, form, rowOverride));
+            string parameters = ResolveVariables(MacroEngine.ProcessSqlVariables(entry.Parameters ?? string.Empty, form, rowOverride));
             string type = entry.Type ?? "Macro";
 
             if (type.Equals("SQL", StringComparison.OrdinalIgnoreCase)) return ExecuteSql(payload);
             if (type.Equals("Macro", StringComparison.OrdinalIgnoreCase)) { MacroEngine.ExecuteMacro(payload, form, rowOverride); return string.Empty; }
             if (type.Equals("Message", StringComparison.OrdinalIgnoreCase)) { B1App.Instance.Application.MessageBox(payload); return payload; }
-            if (type.Equals("ExternalApp", StringComparison.OrdinalIgnoreCase)) return ExecuteExternal(payload, entry.Parameters, form, rowOverride);
-            if (type.Equals("CrystalReport", StringComparison.OrdinalIgnoreCase)) return ExecuteReport(payload);
+            if (type.Equals("ExternalApp", StringComparison.OrdinalIgnoreCase)) return ExecuteExternal(payload, parameters, form, rowOverride);
+            if (type.Equals("CrystalReport", StringComparison.OrdinalIgnoreCase)) return ExecuteReport(payload, parameters);
             if (type.Equals("LineLoop", StringComparison.OrdinalIgnoreCase)) return ExecuteLineLoop(entry, form);
-            if (type.Equals("HTTP", StringComparison.OrdinalIgnoreCase)) return ExecuteHttp(payload, entry.Parameters);
+            if (type.Equals("HTTP", StringComparison.OrdinalIgnoreCase)) return ExecuteHttp(payload, parameters);
             if (type.Equals("Email", StringComparison.OrdinalIgnoreCase)) { EmailManager.SendEmail(payload); return payload; }
-            if (type.Equals("File", StringComparison.OrdinalIgnoreCase)) return ExecuteFile(payload, entry.Parameters);
+            if (type.Equals("File", StringComparison.OrdinalIgnoreCase)) return ExecuteFile(payload, parameters);
             if (type.Equals("DIObject", StringComparison.OrdinalIgnoreCase)) return ExecuteDiObject(payload);
             if (type.Equals("DotNetSnippet", StringComparison.OrdinalIgnoreCase)) return ExecuteSnippet(entry, form);
 
@@ -146,9 +179,9 @@ namespace B1TuneUp.Modules
             return path;
         }
 
-        private static string ExecuteReport(string reportCode)
+        private static string ExecuteReport(string reportCode, string parametersJson)
         {
-            var parameters = ReportManager.GetReportParameters(reportCode);
+            var parameters = ReadStringDictionary(parametersJson) ?? ReportManager.GetReportParameters(reportCode);
             ReportManager.ShowAdvancedPrintPreview(reportCode, parameters);
             return reportCode;
         }
@@ -173,42 +206,105 @@ namespace B1TuneUp.Modules
         {
             var method = "GET";
             var body = string.Empty;
+            var timeoutSeconds = 100;
+            var headers = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+            var authMode = string.Empty;
+            var authUser = string.Empty;
+            var authSecret = string.Empty;
             if (!string.IsNullOrWhiteSpace(parameters))
             {
-                var options = JsonSerializer.Deserialize<Dictionary<string, string>>(parameters);
+                var options = ReadStringDictionary(parameters);
                 if (options != null)
                 {
                     if (options.TryGetValue("method", out var configuredMethod)) method = configuredMethod;
                     if (options.TryGetValue("body", out var configuredBody)) body = configuredBody;
+                    if (options.TryGetValue("timeoutSeconds", out var timeoutRaw)) int.TryParse(timeoutRaw, out timeoutSeconds);
+                    if (options.TryGetValue("authMode", out var configuredAuth)) authMode = configuredAuth;
+                    if (options.TryGetValue("authUser", out var configuredUser)) authUser = configuredUser;
+                    if (options.TryGetValue("authSecret", out var configuredSecret)) authSecret = configuredSecret;
+                    if (options.TryGetValue("headers", out var rawHeaders)) headers = ParseHeaders(rawHeaders);
                 }
             }
 
             using (var client = new HttpClient())
             {
-                if (method.Equals("POST", StringComparison.OrdinalIgnoreCase))
+                client.Timeout = TimeSpan.FromSeconds(timeoutSeconds <= 0 ? 100 : timeoutSeconds);
+                foreach (var header in headers) client.DefaultRequestHeaders.TryAddWithoutValidation(header.Key, header.Value);
+                ApplyAuth(client, authMode, authUser, authSecret);
+
+                if (method.Equals("GET", StringComparison.OrdinalIgnoreCase))
                 {
-                    return client.PostAsync(url, new StringContent(body ?? string.Empty, Encoding.UTF8, "application/json"))
-                        .GetAwaiter().GetResult().Content.ReadAsStringAsync().GetAwaiter().GetResult();
+                    return client.GetStringAsync(url).GetAwaiter().GetResult();
                 }
 
-                return client.GetStringAsync(url).GetAwaiter().GetResult();
+                var request = new HttpRequestMessage(new HttpMethod(method), url)
+                {
+                    Content = new StringContent(body ?? string.Empty, Encoding.UTF8, "application/json")
+                };
+                var response = client.SendAsync(request).GetAwaiter().GetResult();
+                string content = response.Content.ReadAsStringAsync().GetAwaiter().GetResult();
+                response.EnsureSuccessStatusCode();
+                return content;
             }
         }
 
         private static string ExecuteFile(string path, string parameters)
         {
-            string action = parameters ?? "Open";
+            var options = ReadStringDictionary(parameters);
+            string action = options != null && options.TryGetValue("action", out var configuredAction) ? configuredAction : (parameters ?? "Open");
+            string content = options != null && options.TryGetValue("content", out var configuredContent) ? configuredContent : string.Empty;
+            string target = options != null && options.TryGetValue("target", out var configuredTarget) ? configuredTarget : string.Empty;
             if (action.Equals("Read", StringComparison.OrdinalIgnoreCase)) return File.Exists(path) ? File.ReadAllText(path) : string.Empty;
+            if (action.Equals("Write", StringComparison.OrdinalIgnoreCase)) { File.WriteAllText(path, content ?? string.Empty); return path; }
+            if (action.Equals("Append", StringComparison.OrdinalIgnoreCase)) { File.AppendAllText(path, content ?? string.Empty); return path; }
+            if (action.Equals("Copy", StringComparison.OrdinalIgnoreCase)) { File.Copy(path, target, true); return target; }
+            if (action.Equals("Move", StringComparison.OrdinalIgnoreCase)) { File.Move(path, target); return target; }
+            if (action.Equals("Exists", StringComparison.OrdinalIgnoreCase)) return (File.Exists(path) || Directory.Exists(path)).ToString();
+            if (action.Equals("List", StringComparison.OrdinalIgnoreCase)) return Directory.Exists(path) ? string.Join(Environment.NewLine, Directory.GetFileSystemEntries(path)) : string.Empty;
             if (action.Equals("CreateFolder", StringComparison.OrdinalIgnoreCase)) { Directory.CreateDirectory(path); return path; }
-            if (action.Equals("Delete", StringComparison.OrdinalIgnoreCase)) { if (File.Exists(path)) File.Delete(path); return path; }
+            if (action.Equals("Delete", StringComparison.OrdinalIgnoreCase)) { if (File.Exists(path)) File.Delete(path); else if (Directory.Exists(path)) Directory.Delete(path, false); return path; }
             Process.Start(new ProcessStartInfo { FileName = path, UseShellExecute = true });
             return path;
         }
 
         private static string ExecuteDiObject(string payload)
         {
-            B1App.Instance.Application.SetStatusBarMessage($"DI Object action queued: {payload}", BoMessageTime.bmt_Short, false);
-            return payload;
+            var options = JsonSerializer.Deserialize<Dictionary<string, JsonElement>>(payload ?? "{}", JsonOptions) ?? new Dictionary<string, JsonElement>();
+            string objectType = GetJsonString(options, "objectType");
+            string mode = GetJsonString(options, "mode") ?? "Add";
+            string key = GetJsonString(options, "key");
+            if (string.IsNullOrWhiteSpace(objectType)) throw new InvalidOperationException("DIObject requiere objectType.");
+            var boType = ParseObjectType(objectType);
+            object sapObject = B1App.Instance.Company.GetBusinessObject(boType);
+            try
+            {
+                if (mode.Equals("Update", StringComparison.OrdinalIgnoreCase) && !string.IsNullOrWhiteSpace(key))
+                {
+                    InvokeIfExists(sapObject, "GetByKey", key);
+                }
+
+                if (options.TryGetValue("fields", out var fields) && fields.ValueKind == JsonValueKind.Object)
+                {
+                    foreach (var field in fields.EnumerateObject()) SetProperty(sapObject, field.Name, field.Value);
+                }
+
+                if (options.TryGetValue("userFields", out var userFields) && userFields.ValueKind == JsonValueKind.Object)
+                {
+                    foreach (var field in userFields.EnumerateObject()) SetUserField(sapObject, field.Name, field.Value);
+                }
+
+                int result = mode.Equals("Update", StringComparison.OrdinalIgnoreCase)
+                    ? Convert.ToInt32(InvokeIfExists(sapObject, "Update"))
+                    : Convert.ToInt32(InvokeIfExists(sapObject, "Add"));
+                if (result != 0) throw new InvalidOperationException(B1App.Instance.Company.GetLastErrorDescription());
+                string newKey;
+                B1App.Instance.Company.GetNewObjectCode(out newKey);
+                return string.IsNullOrWhiteSpace(newKey) ? objectType : newKey;
+            }
+            finally
+            {
+                ComObjectManager.Release(sapObject);
+            }
         }
 
         private static string ExecuteSnippet(UniversalFunctionEntry entry, Form form)
@@ -254,6 +350,130 @@ namespace B1TuneUp.Modules
                 .Select(p => p.Trim())
                 .Where(p => !string.IsNullOrWhiteSpace(p))
                 .ToArray();
+        }
+
+        private static void ExecuteChain(string codes, Form form, int rowOverride)
+        {
+            foreach (var code in SplitParameters(codes))
+            {
+                Execute(code, form, rowOverride);
+            }
+        }
+
+        private static void StoreVariable(string name, string value)
+        {
+            if (string.IsNullOrWhiteSpace(name)) return;
+            lock (Variables) Variables[name.Trim()] = value ?? string.Empty;
+        }
+
+        private static string ResolveVariables(string value)
+        {
+            if (string.IsNullOrEmpty(value)) return value;
+            lock (Variables)
+            {
+                foreach (var variable in Variables)
+                {
+                    value = value.Replace("${" + variable.Key + "}", variable.Value ?? string.Empty);
+                }
+            }
+            return value;
+        }
+
+        private static Dictionary<string, string> ReadStringDictionary(string json)
+        {
+            if (string.IsNullOrWhiteSpace(json)) return null;
+            try
+            {
+                return JsonSerializer.Deserialize<Dictionary<string, string>>(json, JsonOptions);
+            }
+            catch
+            {
+                return null;
+            }
+        }
+
+        private static Dictionary<string, string> ParseHeaders(string raw)
+        {
+            var headers = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+            if (string.IsNullOrWhiteSpace(raw)) return headers;
+            try
+            {
+                var parsed = JsonSerializer.Deserialize<Dictionary<string, string>>(raw, JsonOptions);
+                if (parsed != null) return parsed;
+            }
+            catch { }
+
+            foreach (var part in raw.Split(new[] { '|', ';' }, StringSplitOptions.RemoveEmptyEntries))
+            {
+                var pieces = part.Split(new[] { '=' }, 2);
+                if (pieces.Length == 2) headers[pieces[0].Trim()] = pieces[1].Trim();
+            }
+            return headers;
+        }
+
+        private static void ApplyAuth(HttpClient client, string mode, string user, string secret)
+        {
+            if (string.IsNullOrWhiteSpace(mode) || mode.Equals("None", StringComparison.OrdinalIgnoreCase)) return;
+            if (mode.Equals("Bearer", StringComparison.OrdinalIgnoreCase))
+            {
+                client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", secret);
+            }
+            else if (mode.Equals("Basic", StringComparison.OrdinalIgnoreCase))
+            {
+                string token = Convert.ToBase64String(Encoding.UTF8.GetBytes((user ?? string.Empty) + ":" + (secret ?? string.Empty)));
+                client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Basic", token);
+            }
+            else if (mode.Equals("ApiKey", StringComparison.OrdinalIgnoreCase))
+            {
+                client.DefaultRequestHeaders.TryAddWithoutValidation(string.IsNullOrWhiteSpace(user) ? "X-API-Key" : user, secret);
+            }
+        }
+
+        private static BoObjectTypes ParseObjectType(string value)
+        {
+            if (int.TryParse(value, out var numeric)) return (BoObjectTypes)numeric;
+            return (BoObjectTypes)Enum.Parse(typeof(BoObjectTypes), value, true);
+        }
+
+        private static string GetJsonString(Dictionary<string, JsonElement> values, string name)
+        {
+            return values.TryGetValue(name, out var value) && value.ValueKind != JsonValueKind.Null ? value.ToString() : null;
+        }
+
+        private static object InvokeIfExists(object target, string method, params object[] args)
+        {
+            return target.GetType().InvokeMember(method, BindingFlags.InvokeMethod, null, target, args);
+        }
+
+        private static void SetProperty(object target, string name, JsonElement value)
+        {
+            object converted = ConvertJson(value);
+            target.GetType().InvokeMember(name, BindingFlags.SetProperty, null, target, new[] { converted });
+        }
+
+        private static void SetUserField(object target, string name, JsonElement value)
+        {
+            try
+            {
+                dynamic dyn = target;
+                dyn.UserFields.Fields.Item(name).Value = ConvertJson(value);
+            }
+            catch (Exception ex)
+            {
+                ExceptionLogger.LogHandled(ex, $"UniversalFunctionService.SetUserField:{name}");
+            }
+        }
+
+        private static object ConvertJson(JsonElement value)
+        {
+            if (value.ValueKind == JsonValueKind.Number)
+            {
+                if (value.TryGetInt32(out var i)) return i;
+                if (value.TryGetDouble(out var d)) return d;
+            }
+            if (value.ValueKind == JsonValueKind.True) return true;
+            if (value.ValueKind == JsonValueKind.False) return false;
+            return value.ToString();
         }
     }
 }

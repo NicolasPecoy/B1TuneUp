@@ -11,5 +11,6 @@ namespace B1TuneUp.Models
         public List<ToolboxSettingEntry> Settings { get; set; } = new List<ToolboxSettingEntry>();
         public List<UniversalFunctionEntry> UniversalFunctions { get; set; } = new List<UniversalFunctionEntry>();
         public List<AuthorizationGroupEntry> AuthorizationGroups { get; set; } = new List<AuthorizationGroupEntry>();
+        public List<UnifiedTriggerEntry> Triggers { get; set; } = new List<UnifiedTriggerEntry>();
     }
 }

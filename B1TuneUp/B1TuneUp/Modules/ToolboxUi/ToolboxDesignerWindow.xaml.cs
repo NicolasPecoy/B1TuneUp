@@ -8,11 +8,12 @@ namespace B1TuneUp.Modules.ToolboxUi
 {
     public partial class ToolboxDesignerWindow : Window
     {
-        private readonly ToolboxDesignerViewModel _viewModel = new ToolboxDesignerViewModel();
+        private readonly ToolboxDesignerViewModel _viewModel;
 
-        public ToolboxDesignerWindow()
+        public ToolboxDesignerWindow(string initialCategory = null)
         {
             InitializeComponent();
+            _viewModel = new ToolboxDesignerViewModel(initialCategory);
             DataContext = _viewModel;
             ElementHost.EnableModelessKeyboardInterop(this);
             Loaded += OnLoaded;

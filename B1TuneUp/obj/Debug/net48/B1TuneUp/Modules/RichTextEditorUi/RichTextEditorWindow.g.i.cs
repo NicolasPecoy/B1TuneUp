@@ -53,8 +53,7 @@ namespace B1TuneUp.Modules.RichTextEditorUi {
                 return;
             }
             _contentLoaded = true;
-            System.Uri resourceLocater = new System.Uri("/B1TuneUp;V1.0.0.0;component/b1tuneup/modules/richtexteditorui/richtexteditorwind" +
-                    "ow.xaml", System.UriKind.Relative);
+            System.Uri resourceLocater = new System.Uri("/B1TuneUp;component/b1tuneup/modules/richtexteditorui/richtexteditorwindow.xaml", System.UriKind.Relative);
             
             #line 1 "..\..\..\..\..\..\B1TuneUp\Modules\RichTextEditorUi\RichTextEditorWindow.xaml"
             System.Windows.Application.LoadComponent(this, resourceLocater);

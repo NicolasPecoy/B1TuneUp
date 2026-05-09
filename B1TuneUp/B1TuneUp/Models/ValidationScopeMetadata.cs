@@ -20,6 +20,8 @@ namespace B1TuneUp.Models
         public string DependsOn { get; set; }
         public string InheritFrom { get; set; }
         public string[] Packages { get; set; } = Array.Empty<string>();
+        public string ExcludedUsers { get; set; }
+        public string ExcludedUserGroups { get; set; }
 
         private const string Separator = "\n---B1TUNEUP::META---\n";
 
@@ -57,6 +59,8 @@ namespace B1TuneUp.Models
                         metadata.DependsOn = parsed.DependsOn;
                         metadata.InheritFrom = parsed.InheritFrom;
                         metadata.Packages = parsed.Packages ?? Array.Empty<string>();
+                        metadata.ExcludedUsers = parsed.ExcludedUsers;
+                        metadata.ExcludedUserGroups = parsed.ExcludedUserGroups;
                     }
                 }
                 catch
@@ -75,6 +79,8 @@ namespace B1TuneUp.Models
                 !string.IsNullOrWhiteSpace(Variant) ||
                 !string.IsNullOrWhiteSpace(DependsOn) ||
                 !string.IsNullOrWhiteSpace(InheritFrom) ||
+                !string.IsNullOrWhiteSpace(ExcludedUsers) ||
+                !string.IsNullOrWhiteSpace(ExcludedUserGroups) ||
                 (Packages != null && Packages.Any(p => !string.IsNullOrWhiteSpace(p)));
 
             if (!hasMetadata)
@@ -86,6 +92,8 @@ namespace B1TuneUp.Models
                 Variant = string.IsNullOrWhiteSpace(Variant) ? null : Variant,
                 DependsOn = string.IsNullOrWhiteSpace(DependsOn) ? null : DependsOn,
                 InheritFrom = string.IsNullOrWhiteSpace(InheritFrom) ? null : InheritFrom,
+                ExcludedUsers = string.IsNullOrWhiteSpace(ExcludedUsers) ? null : ExcludedUsers,
+                ExcludedUserGroups = string.IsNullOrWhiteSpace(ExcludedUserGroups) ? null : ExcludedUserGroups,
                 Packages = (Packages ?? Array.Empty<string>()).Where(p => !string.IsNullOrWhiteSpace(p)).ToArray()
             };
 
@@ -104,6 +112,8 @@ namespace B1TuneUp.Models
                 Variant = Variant,
                 DependsOn = DependsOn,
                 InheritFrom = InheritFrom,
+                ExcludedUsers = ExcludedUsers,
+                ExcludedUserGroups = ExcludedUserGroups,
                 Packages = Packages?.ToArray() ?? Array.Empty<string>()
             };
         }

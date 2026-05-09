@@ -76,6 +76,24 @@ namespace B1TuneUp.Models
                 _metadata.UpdatePackagesFromRaw(value);
             }
         }
+        public string ExcludedUsers
+        {
+            get => _metadata?.ExcludedUsers;
+            set
+            {
+                EnsureMetadata();
+                _metadata.ExcludedUsers = value;
+            }
+        }
+        public string ExcludedUserGroups
+        {
+            get => _metadata?.ExcludedUserGroups;
+            set
+            {
+                EnsureMetadata();
+                _metadata.ExcludedUserGroups = value;
+            }
+        }
 
         public DateTime? CreatedAt { get; set; }
         public DateTime? UpdatedAt { get; set; }
@@ -95,7 +113,9 @@ namespace B1TuneUp.Models
                 string groups = string.IsNullOrWhiteSpace(AppliesToUserGroup) ? "*" : AppliesToUserGroup;
                 string locale = string.IsNullOrWhiteSpace(ScopeLocalization) ? "*" : ScopeLocalization;
                 string variant = string.IsNullOrWhiteSpace(ScopeVariant) ? "*" : ScopeVariant;
-                return $"U:{users} · G:{groups} · L:{locale} · V:{variant}";
+                string excludedUsers = string.IsNullOrWhiteSpace(ExcludedUsers) ? "-" : ExcludedUsers;
+                string excludedGroups = string.IsNullOrWhiteSpace(ExcludedUserGroups) ? "-" : ExcludedUserGroups;
+                return $"U:{users} · G:{groups} · !U:{excludedUsers} · !G:{excludedGroups} · L:{locale} · V:{variant}";
             }
         }
 

@@ -188,9 +188,49 @@
                         </StackPanel>
                     </Border>
 
+                    <Border Style="{StaticResource CardStyle}">
+                        <StackPanel>
+                            <TextBlock Text="Module Configuration" FontSize="16" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,12" />
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="320" />
+                                    <ColumnDefinition Width="16" />
+                                    <ColumnDefinition Width="*" />
+                                </Grid.ColumnDefinitions>
+                                <ListBox Grid.Column="0"
+                                         ItemsSource="{Binding Modules}"
+                                         SelectedItem="{Binding SelectedModule}"
+                                         DisplayMemberPath="Name"
+                                         Height="240"
+                                         Background="{DynamicResource SurfaceAltBrush}"
+                                         BorderBrush="{DynamicResource BorderBrush}"
+                                         BorderThickness="1" />
+                                <StackPanel Grid.Column="2">
+                                    <CheckBox Content="MÃ³dulo activo"
+                                              IsChecked="{Binding SelectedModule.Enabled, Mode=TwoWay}"
+                                              Margin="0,0,0,12" />
+                                    <TextBlock Text="Usuarios permitidos" Style="{StaticResource LabelStyle}" />
+                                    <TextBox Text="{Binding SelectedModule.AllowedUsers, UpdateSourceTrigger=PropertyChanged}" />
+                                    <TextBlock Text="Grupos permitidos" Style="{StaticResource LabelStyle}" />
+                                    <TextBox Text="{Binding SelectedModule.AllowedGroups, UpdateSourceTrigger=PropertyChanged}" />
+                                    <TextBlock Text="Usuarios excluidos" Style="{StaticResource LabelStyle}" />
+                                    <TextBox Text="{Binding SelectedModule.DeniedUsers, UpdateSourceTrigger=PropertyChanged}" />
+                                    <TextBlock Text="Grupos excluidos" Style="{StaticResource LabelStyle}" />
+                                    <TextBox Text="{Binding SelectedModule.DeniedGroups, UpdateSourceTrigger=PropertyChanged}" />
+                                    <TextBlock Text="Notas" Style="{StaticResource LabelStyle}" />
+                                    <TextBox Text="{Binding SelectedModule.Notes, UpdateSourceTrigger=PropertyChanged}"
+                                             AcceptsReturn="True"
+                                             Height="72"
+                                             TextWrapping="Wrap" />
+                                </StackPanel>
+                            </Grid>
+                        </StackPanel>
+                    </Border>
+
                     <WrapPanel>
                         <Button Content="Guardar" Command="{Binding SaveCommand}" />
                         <Button Content="Guardar todo" Command="{Binding SaveAllCommand}" Background="{DynamicResource AccentAltBrush}" />
+                        <Button Content="Guardar mÃ³dulos" Command="{Binding SaveModulesCommand}" Background="{DynamicResource PrimaryDarkBrush}" />
                     </WrapPanel>
                 </StackPanel>
             </ScrollViewer>

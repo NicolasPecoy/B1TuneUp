@@ -10,10 +10,10 @@ namespace B1TuneUp.Modules.ValidationUi
     {
         private readonly ValidationDesignerViewModel _viewModel;
 
-        public ValidationDesignerWindow(string formFilter = null, string itemFilter = null)
+        public ValidationDesignerWindow(ValidationDesignerLaunchOptions options = null)
         {
             InitializeComponent();
-            _viewModel = new ValidationDesignerViewModel(formFilter, itemFilter);
+            _viewModel = new ValidationDesignerViewModel(options);
             DataContext = _viewModel;
             ElementHost.EnableModelessKeyboardInterop(this);
             Loaded += OnLoaded;

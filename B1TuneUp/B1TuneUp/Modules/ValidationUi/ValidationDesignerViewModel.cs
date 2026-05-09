@@ -2,6 +2,7 @@ using System;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Linq;
+using Microsoft.Win32;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using System.Windows;
@@ -37,13 +38,11 @@ namespace B1TuneUp.Modules.ValidationUi
         private string _busyMessage;
         private string _statusMessage;
 
-        private readonly string _initialValidationFilter;
-        private readonly string _initialItemSearch;
+        private readonly ValidationDesignerLaunchOptions _launchOptions;
 
-        public ValidationDesignerViewModel(string defaultFormFilter = null, string defaultItemSearch = null)
+        public ValidationDesignerViewModel(ValidationDesignerLaunchOptions options = null)
         {
-            _initialValidationFilter = defaultFormFilter;
-            _initialItemSearch = defaultItemSearch;
+            _launchOptions = options ?? new ValidationDesignerLaunchOptions();
 
             _validationView = (ListCollectionView)CollectionViewSource.GetDefaultView(_validationEntries);
             _validationView.Filter = FilterValidation;
@@ -51,11 +50,13 @@ namespace B1TuneUp.Modules.ValidationUi
             _mandatoryView = (ListCollectionView)CollectionViewSource.GetDefaultView(_mandatoryEntries);
             _mandatoryView.Filter = FilterMandatory;
 
-            EventOptions = new[] { "FORM_LOAD", "ITEM_PRESSED", "DATA_ADD_BEFORE", "DATA_UPDATE_BEFORE", "COMBO_SELECT", "EDIT_VALIDATE" };
+            EventOptions = new[] { "FORM_LOAD", "ITEM_PRESSED", "DATA_ADD_BEFORE", "DATA_UPDATE_BEFORE", "COMBO_SELECT", "EDIT_VALIDATE", "CLICK", "DOUBLE_CLICK", "VALIDATE" };
             SeverityOptions = new[] { "ERROR", "WARNING", "INFO" };
 
             RefreshCommand = new RelayCommand(async () => await LoadAsync());
             SaveAllCommand = new RelayCommand(async () => await SaveAllAsync(), () => _validationEntries.Any() || _mandatoryEntries.Any());
+            ExportCommand = new RelayCommand(async () => await ExportAsync(), () => _validationEntries.Any() || _mandatoryEntries.Any());
+            ImportCommand = new RelayCommand(async () => await ImportAsync());
 
             NewValidationCommand = new RelayCommand(NewValidation);
             DuplicateValidationCommand = new RelayCommand(DuplicateValidation, () => SelectedValidation != null);
@@ -67,15 +68,15 @@ namespace B1TuneUp.Modules.ValidationUi
             SaveMandatoryCommand = new RelayCommand(async () => await SaveMandatoryAsync(), () => SelectedMandatory != null);
             DeleteMandatoryCommand = new RelayCommand(async () => await DeleteMandatoryAsync(), () => SelectedMandatory != null);
 
-            if (!string.IsNullOrWhiteSpace(defaultFormFilter))
+            if (!string.IsNullOrWhiteSpace(_launchOptions.FormFilter))
             {
-                ValidationFormFilter = defaultFormFilter;
-                MandatoryFormFilter = defaultFormFilter;
+                ValidationFormFilter = _launchOptions.FormFilter;
+                MandatoryFormFilter = _launchOptions.FormFilter;
             }
-            if (!string.IsNullOrWhiteSpace(defaultItemSearch))
+            if (!string.IsNullOrWhiteSpace(_launchOptions.ItemFilter))
             {
-                ValidationSearch = defaultItemSearch;
-                MandatorySearch = defaultItemSearch;
+                ValidationSearch = _launchOptions.ItemFilter;
+                MandatorySearch = _launchOptions.ItemFilter;
             }
         }
 
@@ -241,6 +242,8 @@ namespace B1TuneUp.Modules.ValidationUi
 
         public RelayCommand RefreshCommand { get; }
         public RelayCommand SaveAllCommand { get; }
+        public RelayCommand ExportCommand { get; }
+        public RelayCommand ImportCommand { get; }
         public RelayCommand NewValidationCommand { get; }
         public RelayCommand DuplicateValidationCommand { get; }
         public RelayCommand SaveValidationCommand { get; }
@@ -276,8 +279,10 @@ namespace B1TuneUp.Modules.ValidationUi
                     }
                     _mandatoryView.Refresh();
                     SelectedMandatory = _mandatoryEntries.FirstOrDefault();
-
+                    ApplyLaunchOptions();
                     StatusMessage = $"{_validationEntries.Count} validaciones · {_mandatoryEntries.Count} campos obligatorios.";
+                    ExportCommand.RaiseCanExecuteChanged();
+                    SaveAllCommand.RaiseCanExecuteChanged();
                 });
             });
         }
@@ -288,7 +293,7 @@ namespace B1TuneUp.Modules.ValidationUi
             {
                 Name = "Nueva validación",
                 Severity = "ERROR",
-                EventType = "FORM_LOAD",
+                EventType = "DATA_ADD_BEFORE",
                 Active = true
             };
             _validationEntries.Add(entry);
@@ -416,6 +421,68 @@ namespace B1TuneUp.Modules.ValidationUi
             });
         }
 
+        private async Task ExportAsync()
+        {
+            var dialog = new SaveFileDialog
+            {
+                Filter = "Validation Package (*.json)|*.json",
+                FileName = string.IsNullOrWhiteSpace(ValidationFormFilter) ? "validation-package.json" : $"validation-{ValidationFormFilter}.json"
+            };
+            if (dialog.ShowDialog() != true) return;
+
+            await RunSafeAsync("Exportando validaciones...", async () =>
+            {
+                string formType = string.IsNullOrWhiteSpace(ValidationFormFilter) ? null : ValidationFormFilter.Trim();
+                await Task.Run(() => ValidationRuleService.ExportPackage(dialog.FileName, formType));
+                StatusMessage = "Paquete exportado correctamente.";
+            });
+        }
+
+        private async Task ImportAsync()
+        {
+            var dialog = new OpenFileDialog
+            {
+                Filter = "Validation Package (*.json)|*.json"
+            };
+            if (dialog.ShowDialog() != true) return;
+
+            await RunSafeAsync("Importando validaciones...", async () =>
+            {
+                await Task.Run(() => ValidationRuleService.ImportPackage(dialog.FileName));
+                await LoadAsync();
+                StatusMessage = "Paquete importado correctamente.";
+            });
+        }
+
+        private void ApplyLaunchOptions()
+        {
+            if (_launchOptions == null) return;
+            if (_launchOptions.StartNewValidation)
+            {
+                _launchOptions.StartNewValidation = false;
+                NewValidation();
+                SelectedValidation.FormType = _launchOptions.FormFilter ?? SelectedValidation.FormType;
+                SelectedValidation.ItemName = ComposeItemFilter(_launchOptions.ItemFilter, _launchOptions.ColumnFilter);
+                SelectedValidation.EventType = "ITEM_PRESSED";
+                SelectedValidation.Message = $"ValidaciÃ³n creada desde formulario para {ComposeItemFilter(_launchOptions.ItemFilter, _launchOptions.ColumnFilter)}";
+            }
+
+            if (_launchOptions.StartNewMandatory)
+            {
+                _launchOptions.StartNewMandatory = false;
+                NewMandatory();
+                SelectedMandatory.FormType = _launchOptions.FormFilter ?? SelectedMandatory.FormType;
+                SelectedMandatory.ItemId = _launchOptions.ItemFilter ?? SelectedMandatory.ItemId;
+                SelectedMandatory.ColumnId = _launchOptions.ColumnFilter ?? SelectedMandatory.ColumnId;
+            }
+        }
+
+        private static string ComposeItemFilter(string item, string column)
+        {
+            if (string.IsNullOrWhiteSpace(item)) return string.Empty;
+            return string.IsNullOrWhiteSpace(column) ? item : $"{item}.{column}";
+        }
+
         private bool FilterValidation(object obj)
         {
             var entry = obj as ValidationRuleEntry;
@@ -441,7 +508,10 @@ namespace B1TuneUp.Modules.ValidationUi
             if (!string.IsNullOrWhiteSpace(ValidationUserFilter))
             {
                 string token = ValidationUserFilter.Trim();
-                if (!Contains(entry.AppliesToUser, token) && !Contains(entry.AppliesToUserGroup, token))
+                if (!Contains(entry.AppliesToUser, token) &&
+                    !Contains(entry.AppliesToUserGroup, token) &&
+                    !Contains(entry.ExcludedUsers, token) &&
+                    !Contains(entry.ExcludedUserGroups, token))
                 {
                     return false;
                 }
@@ -545,6 +615,7 @@ namespace B1TuneUp.Modules.ValidationUi
                 IsBusy = false;
                 BusyMessage = string.Empty;
                 SaveAllCommand.RaiseCanExecuteChanged();
+                ExportCommand.RaiseCanExecuteChanged();
             }
         }
 

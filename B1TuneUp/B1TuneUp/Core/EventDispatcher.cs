@@ -142,30 +142,36 @@ namespace B1TuneUp.Core
             try
             {
                 // Manejar eventos del Action Pad
-                if (pVal.FormTypeEx == "BTUN_PAD")
+                if (pVal.FormTypeEx == "BTUN_PAD" && ModuleActivationService.IsEnabled("ActionPad"))
                 {
                     ActionPadManager.HandleItemEvent(FormUID, pVal);
                     return;
                 }
 
                 // Manejar eventos de B1 Search
-                if (pVal.FormTypeEx == "BTUN_SEARCH")
+                if (pVal.FormTypeEx == "BTUN_SEARCH" && ModuleActivationService.IsEnabled("Search"))
                 {
                     if (pVal.ItemUID == "btnSrch" && pVal.EventType == BoEventTypes.et_CLICK && !pVal.BeforeAction)
                     {
-                        Form oForm = B1App.Instance.Application.Forms.Item(FormUID);
+                        Form oForm = TryGetForm(FormUID);
+                        if (oForm == null) return;
                         B1SearchManager.ExecuteSearch(oForm);
                     }
                     else if (pVal.ItemUID == "btnOpen" && pVal.EventType == BoEventTypes.et_CLICK && !pVal.BeforeAction)
                     {
-                        Form oForm = B1App.Instance.Application.Forms.Item(FormUID);
+                        Form oForm = TryGetForm(FormUID);
+                        if (oForm == null) return;
                         B1SearchManager.OpenSelectedRecord(oForm);
                     }
                     return;
                 }
 
                 // Manejar eventos de Toolbox
-                ToolboxManager.HandleToolboxEvents(B1App.Instance.Application.Forms.Item(FormUID), pVal);
+                Form currentForm = TryGetForm(FormUID);
+                if (currentForm != null && ModuleActivationService.IsEnabled("Toolbox"))
+                {
+                    ToolboxManager.HandleToolboxEvents(currentForm, pVal);
+                }
 
                 var val = pVal;
                 var matchingRules = _rules.Where(r =>
@@ -189,13 +195,14 @@ namespace B1TuneUp.Core
                 // UI Customization Dinámica y valores por defecto en Load
                 if (pVal.EventType == BoEventTypes.et_FORM_LOAD && !pVal.BeforeAction)
                 {
-                    Form oForm = B1App.Instance.Application.Forms.Item(FormUID);
+                    Form oForm = currentForm ?? TryGetForm(FormUID);
                     UnregisterLocalItemChangeHandlers(FormUID);
-                    UICustomizer.ApplyCustomization(oForm);
-                    DefaultValueManager.ApplyOnLoad(oForm);
-                    LockFieldManager.ApplyOnLoad(oForm);
+                    if (oForm == null) return;
+                    if (ModuleActivationService.IsEnabled("UiCustomization")) UICustomizer.ApplyCustomization(oForm);
+                    if (ModuleActivationService.IsEnabled("DefaultValues")) DefaultValueManager.ApplyOnLoad(oForm);
+                    if (ModuleActivationService.IsEnabled("LockFields")) LockFieldManager.ApplyOnLoad(oForm);
                     FormSettingsManager.RestoreSettings(oForm);
-                    QuickCopyManager.AddQuickCopyButtons(oForm);
+                    if (ModuleActivationService.IsEnabled("QuickCopy")) QuickCopyManager.AddQuickCopyButtons(oForm);
                     ProcessStepsManager.CheckAndShowAutoProcess(oForm);
                     // Register saved item actions for this form so they execute on item changes/clicks
                     try
@@ -239,10 +246,27 @@ namespace B1TuneUp.Core
                 {
                     try
                     {
-                        Form oForm = B1App.Instance.Application.Forms.Item(FormUID);
+                        Form oForm = TryGetForm(FormUID);
+                        if (oForm == null) return;
                         QuickCopyManager.HandleButtonClick(FormUID, pVal.ItemUID, oForm);
                     }
                     catch { }
+                }
+
+                if (ModuleActivationService.IsEnabled("Validation") && !pVal.BeforeAction)
+                {
+                    Form oForm = currentForm ?? TryGetForm(FormUID);
+                    if (oForm != null)
+                    {
+                        if (pVal.EventType == BoEventTypes.et_FORM_LOAD)
+                        {
+                            ValidationManager.ExecuteValidations(oForm, "FORM_LOAD");
+                        }
+                        else if (pVal.EventType == BoEventTypes.et_ITEM_PRESSED || pVal.EventType == BoEventTypes.et_CLICK)
+                        {
+                            ValidationManager.ExecuteValidations(oForm, "ITEM_PRESSED", itemId: pVal.ItemUID);
+                        }
+                    }
                 }
 
                 // Valores por defecto en Change (validate/combo select)
@@ -250,9 +274,17 @@ namespace B1TuneUp.Core
                 {
                     try
                     {
-                        Form oForm = B1App.Instance.Application.Forms.Item(FormUID);
-                        DefaultValueManager.ApplyOnChange(oForm, pVal.ItemUID);
-                        LockFieldManager.ApplyOnChange(oForm, pVal.ItemUID);
+                        Form oForm = currentForm ?? TryGetForm(FormUID);
+                        if (oForm == null) return;
+                        if (ModuleActivationService.IsEnabled("DefaultValues")) DefaultValueManager.ApplyOnChange(oForm, pVal.ItemUID);
+                        if (ModuleActivationService.IsEnabled("LockFields")) LockFieldManager.ApplyOnChange(oForm, pVal.ItemUID);
+                        if (ModuleActivationService.IsEnabled("Validation"))
+                        {
+                            ValidationManager.ExecuteValidations(
+                                oForm,
+                                pVal.EventType == BoEventTypes.et_VALIDATE ? "EDIT_VALIDATE" : "COMBO_SELECT",
+                                itemId: pVal.ItemUID);
+                        }
                         // Invoke any local handlers registered for this item
                         try
                         {
@@ -306,10 +338,22 @@ namespace B1TuneUp.Core
                     if (oForm != null)
                     {
                         // 1. Validar campos obligatorios dinámicos
-                        if (!MandatoryFieldManager.ValidateMandatoryFields(oForm))
+                        if (ModuleActivationService.IsEnabled("MandatoryFields") && !MandatoryFieldManager.ValidateMandatoryFields(oForm))
                         {
                             BubbleEvent = false;
                             return;
+                        }
+
+                        if (ModuleActivationService.IsEnabled("Validation"))
+                        {
+                            string validationEvent = BusinessObjectInfo.EventType == BoEventTypes.et_FORM_DATA_ADD
+                                ? "DATA_ADD_BEFORE"
+                                : "DATA_UPDATE_BEFORE";
+                            if (!ValidationManager.ExecuteValidations(oForm, validationEvent))
+                            {
+                                BubbleEvent = false;
+                                return;
+                            }
                         }
 
                         // 2. Validar reglas personalizadas
@@ -390,7 +434,19 @@ namespace B1TuneUp.Core
 
         private void OnRightClickEvent(ref ContextMenuInfo eventInfo, out bool BubbleEvent)
         {
+            if (!ModuleActivationService.IsEnabled("RightClick"))
+            {
+                BubbleEvent = true;
+                return;
+            }
             RightClickMenuManager.OnRightClickEvent(ref eventInfo, out BubbleEvent);
+        }
+
+        private static Form TryGetForm(string formUid)
+        {
+            if (string.IsNullOrWhiteSpace(formUid)) return null;
+            try { return B1App.Instance.Application.Forms.Item(formUid); }
+            catch { return null; }
         }
     }
 }

@@ -25,7 +25,8 @@ namespace B1TuneUp.Modules
             BubbleEvent = true;
             try
             {
-                SAPbouiCOM.Form oForm = B1App.Instance.Application.Forms.Item(eventInfo.FormUID);
+                SAPbouiCOM.Form oForm = TryResolveForm(eventInfo?.FormUID);
+                if (oForm == null) return;
                 if (eventInfo.BeforeAction)
                 {
                     _currentContext = ContextSnapshot.From(oForm, eventInfo);
@@ -45,10 +46,12 @@ namespace B1TuneUp.Modules
             try
             {
                 _rcActions.Clear();
+                string safeFormType = (oForm?.TypeEx ?? string.Empty).Replace("'", "''");
+                string safeItemUid = (eventInfo?.ItemUID ?? string.Empty).Replace("'", "''");
 
                 string sql = B1App.Instance.IsHana
-                    ? $"SELECT * FROM \"@BTUN_RCLICK\" WHERE \"U_FormType\" = '{oForm.TypeEx}' AND (IFNULL(\"U_ItemID\", '') = '' OR \"U_ItemID\" = '{eventInfo.ItemUID}')"
-                    : $"SELECT * FROM [@BTUN_RCLICK] WHERE [U_FormType] = '{oForm.TypeEx}' AND (ISNULL([U_ItemID], '') = '' OR [U_ItemID] = '{eventInfo.ItemUID}')";
+                    ? $"SELECT * FROM \"@BTUN_RCLICK\" WHERE \"U_FormType\" = '{safeFormType}' AND (IFNULL(\"U_ItemID\", '') = '' OR \"U_ItemID\" = '{safeItemUid}')"
+                    : $"SELECT * FROM [@BTUN_RCLICK] WHERE [U_FormType] = '{safeFormType}' AND (ISNULL([U_ItemID], '') = '' OR [U_ItemID] = '{safeItemUid}')";
 
                 rs.DoQuery(sql);
 
@@ -102,6 +105,9 @@ namespace B1TuneUp.Modules
                 EnsureContextMenu("BTUN_MANAGE_ITEM_ACT", "Manage Item Actions", RightClickActionDefinition.Builtin(BuiltinRightClickAction.ManageItemActions));
                 EnsureContextMenu("BTUN_FUNC_BUTTONS", "Function Buttons (TuneUp)", RightClickActionDefinition.Builtin(BuiltinRightClickAction.FunctionButtons));
                 EnsureContextMenu("BTUN_VALID_MENU", "Validation System", RightClickActionDefinition.Builtin(BuiltinRightClickAction.ValidationDesigner));
+                EnsureContextMenu("BTUN_VALID_QUICK", "Nueva Validation aquÃ­", RightClickActionDefinition.Builtin(BuiltinRightClickAction.QuickValidation));
+                EnsureContextMenu("BTUN_MAND_QUICK", "Nuevo Mandatory aquÃ­", RightClickActionDefinition.Builtin(BuiltinRightClickAction.QuickMandatory));
+                EnsureContextMenu("BTUN_MODULE_CFG", "Module Configuration", RightClickActionDefinition.Builtin(BuiltinRightClickAction.ModuleConfiguration));
 
                 EnsureContextMenu("BTUN_OPEN_DESIGNER", "Open Visual Designer", "OpenDesigner()");
                 EnsureContextMenu("BTUN_EXPORT_SRF", "Export SRF", "ExportSRF('')");
@@ -233,6 +239,15 @@ namespace B1TuneUp.Modules
                 case BuiltinRightClickAction.ValidationDesigner:
                     ExecuteValidationAction(ctx.ItemUid, ctx);
                     break;
+                case BuiltinRightClickAction.QuickValidation:
+                    ValidationDesignerLauncher.ShowQuickValidation(ctx.FormType, ctx.ItemUid, ctx.ColumnUid);
+                    break;
+                case BuiltinRightClickAction.QuickMandatory:
+                    ValidationDesignerLauncher.ShowQuickMandatory(ctx.FormType, ctx.ItemUid, ctx.ColumnUid);
+                    break;
+                case BuiltinRightClickAction.ModuleConfiguration:
+                    ToolboxUi.ToolboxDesignerLauncher.Show("Modules");
+                    break;
                 case BuiltinRightClickAction.FunctionButtons:
                     ExecuteFunctionButtonAction(ctx.ItemUid, ctx);
                     break;
@@ -251,6 +266,19 @@ namespace B1TuneUp.Modules
             string formType = ctx.FormType ?? ctx.ResolveForm()?.TypeEx;
             string itemFilter = string.IsNullOrWhiteSpace(payload) ? ctx.ItemUid : payload;
             ItemActionsLauncher.Show(formType, itemFilter);
+        }
+
+        private static SAPbouiCOM.Form TryResolveForm(string formUid)
+        {
+            try
+            {
+                if (!string.IsNullOrWhiteSpace(formUid))
+                    return B1App.Instance.Application.Forms.Item(formUid);
+            }
+            catch { }
+
+            try { return B1App.Instance.Application.Forms.ActiveForm; }
+            catch { return null; }
         }
 
         private static string ExpandPlaceholders(string macro, ContextSnapshot ctx)
@@ -293,6 +321,9 @@ namespace B1TuneUp.Modules
             ActionPadDesigner,
             ManageItemActions,
             ValidationDesigner,
+            QuickValidation,
+            QuickMandatory,
+            ModuleConfiguration,
             FunctionButtons
         }
 
@@ -352,6 +383,9 @@ namespace B1TuneUp.Modules
                     case "itemplacement": return BuiltinRightClickAction.ItemPlacement;
                     case "manageitemactions": return BuiltinRightClickAction.ManageItemActions;
                     case "validation": return BuiltinRightClickAction.ValidationDesigner;
+                    case "quickvalidation": return BuiltinRightClickAction.QuickValidation;
+                    case "quickmandatory": return BuiltinRightClickAction.QuickMandatory;
+                    case "moduleconfiguration": return BuiltinRightClickAction.ModuleConfiguration;
                     case "functionbuttons": return BuiltinRightClickAction.FunctionButtons;
                     default: return BuiltinRightClickAction.None;
                 }

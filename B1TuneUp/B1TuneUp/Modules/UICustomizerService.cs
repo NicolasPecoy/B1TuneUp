@@ -354,6 +354,8 @@ namespace B1TuneUp.Modules
                 Sequence = entry.Sequence,
                 PromptButtons = entry.PromptButtons,
                 Notes = entry.Notes,
+                ExcludedUsers = entry.ExcludedUsers,
+                ExcludedUserGroups = entry.ExcludedUserGroups,
                 ScopeLocalization = entry.ScopeLocalization,
                 ScopeVariant = entry.ScopeVariant,
                 ScopeDependsOn = entry.ScopeDependsOn,

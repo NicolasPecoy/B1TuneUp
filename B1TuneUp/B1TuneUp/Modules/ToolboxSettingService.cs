@@ -42,6 +42,37 @@ namespace B1TuneUp.Modules
             return list;
         }
 
+        public static ToolboxSettingEntry GetByCode(string code)
+        {
+            if (string.IsNullOrWhiteSpace(code)) return null;
+            Recordset rs = null;
+            try
+            {
+                bool isHana = B1App.Instance.IsHana;
+                string safeCode = code.Replace("'", "''");
+                string sql = isHana
+                    ? $"SELECT \"U_Code\", \"U_Value\" FROM \"@BTUN_TBOX\" WHERE \"U_Code\" = '{safeCode}'"
+                    : $"SELECT U_Code, U_Value FROM [@BTUN_TBOX] WHERE U_Code = '{safeCode}'";
+
+                rs = (Recordset)B1App.Instance.Company.GetBusinessObject(BoObjectTypes.BoRecordset);
+                rs.DoQuery(sql);
+                if (rs.EoF) return null;
+
+                string actualCode = ReadString(rs, "U_Code");
+                return new ToolboxSettingEntry
+                {
+                    Code = actualCode,
+                    Value = ReadString(rs, "U_Value"),
+                    Category = ToolboxSettingMetadata.DetermineCategory(actualCode),
+                    Description = ToolboxSettingMetadata.Describe(actualCode)
+                };
+            }
+            finally
+            {
+                ComObjectManager.Release(rs);
+            }
+        }
+
         public static ToolboxSettingEntry Save(ToolboxSettingEntry entry)
         {
             if (entry == null) throw new ArgumentNullException(nameof(entry));

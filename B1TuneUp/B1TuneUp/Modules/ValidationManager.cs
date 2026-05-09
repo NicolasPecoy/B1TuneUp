@@ -950,51 +950,44 @@ namespace B1TuneUp.Modules
         }
 
         // Main method to execute validations for a given form and event
-        public static bool ExecuteValidations(SAPbouiCOM.Form form, string eventType, string targetSeverity = "")
+        public static bool ExecuteValidations(SAPbouiCOM.Form form, string eventType, string targetSeverity = "", string itemId = null)
         {
             try
             {
-                Recordset rs = (Recordset)B1App.Instance.Company.GetBusinessObject(BoObjectTypes.BoRecordset);
-                string sql = B1App.Instance.IsHana ?
-                    $"SELECT \"Code\",\"Name\",\"U_FormType\",\"U_ItemName\",\"U_Event\",\"U_Condition\",\"U_Action\",\"U_Severity\",\"U_Message\",\"U_Block\",\"U_User\",\"U_UserGroup\",\"U_PromptButtons\" FROM \"@BTUN_VAL\" WHERE \"U_FormType\" = '{form.TypeEx}' AND \"U_Event\" = '{eventType}' AND \"U_Active\" = 'Y' ORDER BY \"U_Sequence\",\"U_CreatedAt\"" :
-                    $"SELECT Code,Name,U_FormType,U_ItemName,U_Event,U_Condition,U_Action,U_Severity,U_Message,U_Block,U_User,U_UserGroup,U_PromptButtons FROM [@BTUN_VAL] WHERE U_FormType = '{form.TypeEx}' AND U_Event = '{eventType}' AND U_Active = 'Y' ORDER BY U_Sequence,U_CreatedAt";
-
-                rs.DoQuery(sql);
-
+                if (form == null) return true;
+                var rules = ValidationRuleService.GetAll()
+                    .Where(rule => rule.Active)
+                    .Where(rule => string.Equals(rule.FormType, form.TypeEx, StringComparison.OrdinalIgnoreCase))
+                    .Where(rule => MatchesValidationEvent(rule.EventType, eventType))
+                    .Where(rule => MatchesItem(rule.ItemName, itemId))
+                    .OrderBy(rule => rule.Sequence)
+                    .ThenBy(rule => rule.Code)
+                    .ToList();
                 bool allValid = true;
 
-                while (!rs.EoF)
+                foreach (var rule in rules)
                 {
-                    string severity = string.IsNullOrWhiteSpace(ReadField(rs, "U_Severity")) ? "ERROR" : ReadField(rs, "U_Severity");
+                    string severity = string.IsNullOrWhiteSpace(rule.Severity) ? "ERROR" : rule.Severity;
                     if (!string.IsNullOrEmpty(targetSeverity) && !severity.Equals(targetSeverity, StringComparison.OrdinalIgnoreCase))
                     {
-                        rs.MoveNext();
                         continue;
                     }
 
-                    string userFilter = ReadField(rs, "U_User");
-                    string groupFilter = ReadField(rs, "U_UserGroup");
-                    if (!MatchesCurrentUser(userFilter, groupFilter))
+                    if (!AuthorizationScopeService.MatchesValidation(rule))
                     {
-                        rs.MoveNext();
                         continue;
                     }
 
-                    string condition = ReadField(rs, "U_Condition");
-                    bool conditionResult = EvaluateCondition(condition, form);
+                    bool conditionResult = EvaluateCondition(rule.Condition, form);
 
                     if (conditionResult)
                     {
-                        string action = ReadField(rs, "U_Action");
-                        string message = ReadField(rs, "U_Message");
-                        bool blockAlways = !string.Equals(ReadField(rs, "U_Block"), "N", StringComparison.OrdinalIgnoreCase);
-                        string promptButtons = ReadField(rs, "U_PromptButtons");
-                        string processedMessage = BuildValidationMessage(form, message, condition);
-                        string ruleName = ReadField(rs, "Name");
+                        string processedMessage = BuildValidationMessage(form, rule.Message, rule.Condition);
+                        string ruleName = string.IsNullOrWhiteSpace(rule.Name) ? rule.Code : rule.Name;
 
-                        if (!string.IsNullOrEmpty(action))
+                        if (!string.IsNullOrEmpty(rule.Action))
                         {
-                            MacroEngine.ExecuteMacro(action, form);
+                            MacroEngine.ExecuteMacro(rule.Action, form);
                         }
 
                         AuditLogManager.LogAction("ValidationRule", $"Rule {ruleName} ({severity}) triggered on {form.TypeEx}");
@@ -1006,8 +999,8 @@ namespace B1TuneUp.Modules
                                 allValid = false;
                                 break;
                             case "WARNING":
-                                bool userContinue = HandlePrompt(processedMessage, promptButtons);
-                                if (!userContinue || blockAlways)
+                                bool userContinue = HandlePrompt(processedMessage, rule.PromptButtons);
+                                if (!userContinue || rule.BlockAlways)
                                 {
                                     allValid = false;
                                 }
@@ -1020,11 +1013,7 @@ namespace B1TuneUp.Modules
                                 break;
                         }
                     }
-
-                    rs.MoveNext();
                 }
-
-                ComObjectManager.Release(rs);
 
                 return allValid;
             }
@@ -1033,6 +1022,63 @@ namespace B1TuneUp.Modules
                 B1App.Instance.Application.SetStatusBarMessage($"Error in validation execution: {ex.Message}", BoMessageTime.bmt_Short, true);
                 return false; // Fail on error to be safe
             }
+        }
+
+        private static bool MatchesValidationEvent(string configuredEvent, string runtimeEvent)
+        {
+            if (string.IsNullOrWhiteSpace(configuredEvent) || string.IsNullOrWhiteSpace(runtimeEvent))
+            {
+                return false;
+            }
+
+            string configured = configuredEvent.Trim();
+            string runtime = runtimeEvent.Trim();
+            if (string.Equals(configured, runtime, StringComparison.OrdinalIgnoreCase))
+            {
+                return true;
+            }
+
+            switch (configured.ToUpperInvariant())
+            {
+                case "EDIT_VALIDATE":
+                    return string.Equals(runtime, "VALIDATE", StringComparison.OrdinalIgnoreCase)
+                        || string.Equals(runtime, "ET_VALIDATE", StringComparison.OrdinalIgnoreCase)
+                        || string.Equals(runtime, "EDIT_VALIDATE", StringComparison.OrdinalIgnoreCase);
+                case "ITEM_PRESSED":
+                    return string.Equals(runtime, "ITEM_PRESSED", StringComparison.OrdinalIgnoreCase)
+                        || string.Equals(runtime, "ET_ITEM_PRESSED", StringComparison.OrdinalIgnoreCase)
+                        || string.Equals(runtime, "CLICK", StringComparison.OrdinalIgnoreCase)
+                        || string.Equals(runtime, "ET_CLICK", StringComparison.OrdinalIgnoreCase);
+                default:
+                    return false;
+            }
+        }
+
+        private static bool MatchesItem(string configuredItem, string runtimeItem)
+        {
+            if (string.IsNullOrWhiteSpace(configuredItem))
+            {
+                return true;
+            }
+
+            if (string.IsNullOrWhiteSpace(runtimeItem))
+            {
+                return false;
+            }
+
+            string configured = configuredItem.Trim();
+            string runtime = runtimeItem.Trim();
+            if (string.Equals(configured, runtime, StringComparison.OrdinalIgnoreCase))
+            {
+                return true;
+            }
+
+            if (configured.StartsWith(runtime + ".", StringComparison.OrdinalIgnoreCase))
+            {
+                return true;
+            }
+
+            return false;
         }
 
         private static bool EvaluateCondition(string condition, SAPbouiCOM.Form form = null)

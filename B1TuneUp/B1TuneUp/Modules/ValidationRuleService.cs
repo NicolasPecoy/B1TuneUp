@@ -1,5 +1,8 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Text.Json;
 using B1TuneUp.Core;
 using B1TuneUp.Models;
 using B1TuneUp.Utils;
@@ -9,6 +12,11 @@ namespace B1TuneUp.Modules
 {
     public static class ValidationRuleService
     {
+        private static readonly JsonSerializerOptions JsonOptions = new JsonSerializerOptions
+        {
+            WriteIndented = true
+        };
+
         public static IList<ValidationRuleEntry> GetAll()
         {
             var list = new List<ValidationRuleEntry>();
@@ -51,6 +59,64 @@ namespace B1TuneUp.Modules
                 ComObjectManager.Release(rs);
             }
             return list;
+        }
+
+        public static void ExportPackage(string filePath, string formType = null)
+        {
+            if (string.IsNullOrWhiteSpace(filePath))
+            {
+                throw new ArgumentException("Se requiere la ruta de exportaciÃ³n.", nameof(filePath));
+            }
+
+            var package = new ValidationConfigurationPackage
+            {
+                FormType = formType?.Trim(),
+                ExportedAtUtc = DateTime.UtcNow,
+                ExportedBy = B1App.Instance?.Company?.UserName ?? Environment.UserName,
+                ValidationRules = GetAll()
+                    .Where(rule => string.IsNullOrWhiteSpace(formType) || string.Equals(rule.FormType, formType, StringComparison.OrdinalIgnoreCase))
+                    .Select(rule => rule.Clone())
+                    .ToList(),
+                MandatoryRules = MandatoryFieldService.GetAll()
+                    .Where(rule => string.IsNullOrWhiteSpace(formType) || string.Equals(rule.FormType, formType, StringComparison.OrdinalIgnoreCase))
+                    .Select(rule => rule.Clone())
+                    .ToList()
+            };
+
+            string directory = Path.GetDirectoryName(filePath);
+            if (!string.IsNullOrWhiteSpace(directory) && !Directory.Exists(directory))
+            {
+                Directory.CreateDirectory(directory);
+            }
+
+            File.WriteAllText(filePath, JsonSerializer.Serialize(package, JsonOptions));
+        }
+
+        public static ValidationConfigurationPackage ImportPackage(string filePath)
+        {
+            if (string.IsNullOrWhiteSpace(filePath) || !File.Exists(filePath))
+            {
+                throw new FileNotFoundException("No se encontrÃ³ el archivo de importaciÃ³n.", filePath);
+            }
+
+            var package = JsonSerializer.Deserialize<ValidationConfigurationPackage>(File.ReadAllText(filePath), JsonOptions)
+                ?? throw new InvalidOperationException("El archivo no contiene un paquete de validaciones vÃ¡lido.");
+
+            foreach (var rule in package.ValidationRules ?? new List<ValidationRuleEntry>())
+            {
+                var copy = rule.Clone();
+                copy.Code = null;
+                Save(copy);
+            }
+
+            foreach (var rule in package.MandatoryRules ?? new List<MandatoryFieldEntry>())
+            {
+                var copy = rule.Clone();
+                copy.Code = null;
+                MandatoryFieldService.Save(copy);
+            }
+
+            return package;
         }
 
         public static ValidationRuleEntry Save(ValidationRuleEntry entry)

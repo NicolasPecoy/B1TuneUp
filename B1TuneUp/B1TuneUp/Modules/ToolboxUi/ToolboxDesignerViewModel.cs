@@ -14,16 +14,18 @@ namespace B1TuneUp.Modules.ToolboxUi
     public class ToolboxDesignerViewModel : INotifyPropertyChanged
     {
         private readonly ObservableCollection<ToolboxSettingEntry> _settings = new ObservableCollection<ToolboxSettingEntry>();
+        private readonly ObservableCollection<ModuleConfigurationEntry> _modules = new ObservableCollection<ModuleConfigurationEntry>();
         private readonly ListCollectionView _view;
 
         private ToolboxSettingEntry _selected;
+        private ModuleConfigurationEntry _selectedModule;
         private string _searchText;
         private string _categoryFilter = "Todos";
         private bool _isBusy;
         private string _busyMessage;
         private string _statusMessage;
 
-        public ToolboxDesignerViewModel()
+        public ToolboxDesignerViewModel(string initialCategory = null)
         {
             _view = (ListCollectionView)CollectionViewSource.GetDefaultView(_settings);
             _view.Filter = FilterSettings;
@@ -33,11 +35,17 @@ namespace B1TuneUp.Modules.ToolboxUi
             SaveAllCommand = new RelayCommand(async () => await SaveAllAsync(), () => _settings.Any());
             NewCommand = new RelayCommand(NewSetting);
             DeleteCommand = new RelayCommand(async () => await DeleteSelectedAsync(), () => SelectedSetting != null);
+            SaveModulesCommand = new RelayCommand(async () => await SaveModulesAsync(), () => _modules.Any());
 
-            CategoryOptions = new ObservableCollection<string> { "Todos", "General", "Sistema", "Email / SMTP", "Exchange Rates", "Scheduler", "Integraciones", "Notificaciones", "Personalizado" };
+            CategoryOptions = new ObservableCollection<string> { "Todos", "Modules", "General", "Sistema", "Email / SMTP", "Exchange Rates", "Scheduler", "Integraciones", "Notificaciones", "Personalizado" };
+            if (!string.IsNullOrWhiteSpace(initialCategory))
+            {
+                _categoryFilter = initialCategory;
+            }
         }
 
         public ICollectionView SettingsView => _view;
+        public ObservableCollection<ModuleConfigurationEntry> Modules => _modules;
 
         public ObservableCollection<string> CategoryOptions { get; }
 
@@ -51,6 +59,18 @@ namespace B1TuneUp.Modules.ToolboxUi
                 OnPropertyChanged();
                 SaveCommand.RaiseCanExecuteChanged();
                 DeleteCommand.RaiseCanExecuteChanged();
+            }
+        }
+
+        public ModuleConfigurationEntry SelectedModule
+        {
+            get => _selectedModule;
+            set
+            {
+                if (_selectedModule == value) return;
+                _selectedModule = value;
+                OnPropertyChanged();
+                SaveModulesCommand.RaiseCanExecuteChanged();
             }
         }
 
@@ -101,6 +121,7 @@ namespace B1TuneUp.Modules.ToolboxUi
         public RelayCommand SaveAllCommand { get; }
         public RelayCommand NewCommand { get; }
         public RelayCommand DeleteCommand { get; }
+        public RelayCommand SaveModulesCommand { get; }
 
         public event PropertyChangedEventHandler PropertyChanged;
 
@@ -116,8 +137,14 @@ namespace B1TuneUp.Modules.ToolboxUi
                     {
                         _settings.Add(item);
                     }
+                    _modules.Clear();
+                    foreach (var module in ModuleActivationService.GetAll())
+                    {
+                        _modules.Add(module.Clone());
+                    }
                     _view.Refresh();
                     SelectedSetting = _settings.FirstOrDefault();
+                    SelectedModule = _modules.FirstOrDefault();
                     StatusMessage = $"{_settings.Count} configuraciones cargadas.";
                 });
             });
@@ -143,8 +170,27 @@ namespace B1TuneUp.Modules.ToolboxUi
                     {
                         ToolboxSettingService.Save(setting);
                     }
+                    foreach (var module in _modules)
+                    {
+                        ModuleActivationService.Save(module);
+                    }
                 });
                 StatusMessage = "Todas las configuraciones se guardaron correctamente.";
+            });
+        }
+
+        private async Task SaveModulesAsync()
+        {
+            await RunSafeAsync("Guardando mÃ³dulos...", async () =>
+            {
+                await Task.Run(() =>
+                {
+                    foreach (var module in _modules)
+                    {
+                        ModuleActivationService.Save(module);
+                    }
+                });
+                StatusMessage = "ConfiguraciÃ³n de mÃ³dulos actualizada.";
             });
         }
 

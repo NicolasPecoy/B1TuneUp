@@ -155,6 +155,8 @@
                                 <Button Content="Actualizar" Command="{Binding RefreshCommand}" Background="{DynamicResource PrimaryDarkBrush}" />
                                 <Button Content="Nuevo" Command="{Binding NewValidationCommand}" Background="{DynamicResource AccentAltBrush}" />
                                 <Button Content="Duplicar" Command="{Binding DuplicateValidationCommand}" Background="{DynamicResource AccentAltBrush}" />
+                                <Button Content="Exportar" Command="{Binding ExportCommand}" Background="{DynamicResource PrimaryDarkBrush}" />
+                                <Button Content="Importar" Command="{Binding ImportCommand}" Background="{DynamicResource PrimaryDarkBrush}" />
                                 <Button Content="Eliminar" Command="{Binding DeleteValidationCommand}" Background="#FFB33939" />
                             </WrapPanel>
                         </StackPanel>
@@ -227,12 +229,16 @@
                                         <TextBox Text="{Binding SelectedValidation.AppliesToUser, UpdateSourceTrigger=PropertyChanged}" />
                                         <TextBlock Text="Grupo de usuarios" Style="{StaticResource LabelStyle}" />
                                         <TextBox Text="{Binding SelectedValidation.AppliesToUserGroup, UpdateSourceTrigger=PropertyChanged}" />
+                                        <TextBlock Text="Excluir usuarios" Style="{StaticResource LabelStyle}" />
+                                        <TextBox Text="{Binding SelectedValidation.ExcludedUsers, UpdateSourceTrigger=PropertyChanged}" />
                                         <TextBlock Text="Localizacion (pais, idioma)" Style="{StaticResource LabelStyle}" />
                                         <TextBox Text="{Binding SelectedValidation.ScopeLocalization, UpdateSourceTrigger=PropertyChanged}" />
                                         <TextBlock Text="Variante / rollout" Style="{StaticResource LabelStyle}" />
                                         <TextBox Text="{Binding SelectedValidation.ScopeVariant, UpdateSourceTrigger=PropertyChanged}" />
                                     </StackPanel>
                                     <StackPanel Grid.Column="1">
+                                        <TextBlock Text="Excluir grupos" Style="{StaticResource LabelStyle}" />
+                                        <TextBox Text="{Binding SelectedValidation.ExcludedUserGroups, UpdateSourceTrigger=PropertyChanged}" />
                                         <TextBlock Text="Dependencias (token1; token2)" Style="{StaticResource LabelStyle}" />
                                         <TextBox Text="{Binding SelectedValidation.ScopeDependsOn, UpdateSourceTrigger=PropertyChanged}" />
                                         <TextBlock Text="Paquetes (packageA,packageB)" Style="{StaticResource LabelStyle}" />

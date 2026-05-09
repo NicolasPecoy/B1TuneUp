@@ -91,6 +91,7 @@ namespace B1TuneUp.Models
         public static string DetermineCategory(string code)
         {
             if (string.IsNullOrWhiteSpace(code)) return "General";
+            if (code.StartsWith("MODULECFG_", StringComparison.OrdinalIgnoreCase)) return "Modules";
             if (code.StartsWith("SMTP_", StringComparison.OrdinalIgnoreCase)) return "Email / SMTP";
             if (code.StartsWith("EXCH_", StringComparison.OrdinalIgnoreCase)) return "Exchange Rates";
             if (code.StartsWith("SYS_", StringComparison.OrdinalIgnoreCase)) return "Sistema";
@@ -138,6 +139,10 @@ namespace B1TuneUp.Models
                 case "SYS_USE_FLAGS_DOC":
                     return "Activa iconos de bandera por país en documentos A/R y A/P (según dirección Bill To del documento).";
                 default:
+                    if (code.StartsWith("MODULECFG_", StringComparison.OrdinalIgnoreCase))
+                    {
+                        return "ConfiguraciÃ³n centralizada de activaciÃ³n, permisos y alcance por mÃ³dulo.";
+                    }
                     return string.Empty;
             }
         }

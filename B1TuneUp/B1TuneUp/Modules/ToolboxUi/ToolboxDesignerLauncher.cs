@@ -4,9 +4,9 @@ namespace B1TuneUp.Modules.ToolboxUi
 {
     public static class ToolboxDesignerLauncher
     {
-        public static void Show()
+        public static void Show(string initialCategory = null)
         {
-            WpfWindowHost.ShowSingleton(() => new ToolboxDesignerWindow());
+            WpfWindowHost.ShowSingleton(() => new ToolboxDesignerWindow(initialCategory));
         }
     }
 }

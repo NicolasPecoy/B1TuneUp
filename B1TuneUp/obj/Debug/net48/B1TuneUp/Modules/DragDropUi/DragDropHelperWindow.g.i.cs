@@ -53,8 +53,7 @@ namespace B1TuneUp.Modules.DragDropUi {
                 return;
             }
             _contentLoaded = true;
-            System.Uri resourceLocater = new System.Uri("/B1TuneUp;V1.0.0.0;component/b1tuneup/modules/dragdropui/dragdrophelperwindow.xam" +
-                    "l", System.UriKind.Relative);
+            System.Uri resourceLocater = new System.Uri("/B1TuneUp;component/b1tuneup/modules/dragdropui/dragdrophelperwindow.xaml", System.UriKind.Relative);
             
             #line 1 "..\..\..\..\..\..\B1TuneUp\Modules\DragDropUi\DragDropHelperWindow.xaml"
             System.Windows.Application.LoadComponent(this, resourceLocater);

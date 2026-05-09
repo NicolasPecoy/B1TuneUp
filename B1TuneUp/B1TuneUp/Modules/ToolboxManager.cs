@@ -16,6 +16,13 @@ namespace B1TuneUp.Modules
         {
             // Aplicar configuraciones generales desde la tabla @BTUN_TBOX
             EnsureDefaultSettings();
+            foreach (var module in ModuleActivationService.GetAll())
+            {
+                if (ToolboxSettingService.GetByCode(ModuleActivationService.BuildSettingCode(module.Key)) == null)
+                {
+                    ModuleActivationService.Save(module);
+                }
+            }
             ApplyPeriodLock();
             ApplyGeneralValidations();
             ApplySystemSettings();
@@ -458,7 +465,11 @@ namespace B1TuneUp.Modules
         {
             // Lógica para eventos automáticos de Toolbox
             // Por ejemplo, autocompletar campos o formatear textos
-            UseFlagsManager.HandleItemEvent(oForm, pVal);
+            if (oForm == null) return;
+            if (ModuleActivationService.IsEnabled("UseFlags"))
+            {
+                UseFlagsManager.HandleItemEvent(oForm, pVal);
+            }
         }
     }
 }

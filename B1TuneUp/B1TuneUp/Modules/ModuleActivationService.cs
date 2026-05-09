@@ -28,7 +28,10 @@ namespace B1TuneUp.Modules
             new ModuleConfigurationEntry { Key = "QuickCopy", Name = "Quick Copy", Description = "Copiado rápido entre documentos de marketing.", SortOrder = 80 },
             new ModuleConfigurationEntry { Key = "UseFlags", Name = "Use Flags", Description = "Banderas visuales por país en BP y documentos.", SortOrder = 90 },
             new ModuleConfigurationEntry { Key = "ActionPad", Name = "Action Pad", Description = "Botoneras contextuales y automatizaciones inline.", SortOrder = 100 },
-            new ModuleConfigurationEntry { Key = "Search", Name = "B1 Search", Description = "Búsquedas configurables y apertura de resultados.", SortOrder = 110 }
+            new ModuleConfigurationEntry { Key = "Search", Name = "B1 Search", Description = "Búsquedas configurables y apertura de resultados.", SortOrder = 110 },
+            new ModuleConfigurationEntry { Key = "UniversalFunctions", Name = "Universal Functions", Description = "Funciones reutilizables invocables desde macros, menus, validaciones y botones.", SortOrder = 120 },
+            new ModuleConfigurationEntry { Key = "Authorization", Name = "Authorization & Scoping", Description = "Grupos, superusuarios y scoping por usuario/grupo.", SortOrder = 130 },
+            new ModuleConfigurationEntry { Key = "ConfigCenter", Name = "B1TuneUp Config Center", Description = "Centro de configuracion, diagnostico, repair e import/export.", SortOrder = 140 }
         };
 
         public static IReadOnlyList<ModuleConfigurationEntry> GetAll()

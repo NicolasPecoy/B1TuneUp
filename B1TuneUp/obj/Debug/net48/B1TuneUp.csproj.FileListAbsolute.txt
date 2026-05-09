@@ -88,3 +88,5 @@ E:\B1TuneUp\B1TuneUp\bin\Debug\net48\System.Threading.Tasks.Extensions.dll
 E:\B1TuneUp\B1TuneUp\bin\Debug\net48\System.ValueTuple.dll
 E:\B1TuneUp\B1TuneUp\obj\Debug\net48\B1TuneUp\Modules\ActionPadInlineDesigner\ActionPadInlineDesignerWindow.baml
 E:\B1TuneUp\B1TuneUp\obj\Debug\net48\B1TuneUp\Modules\ActionPadInlineDesigner\ActionPadInlineDesignerWindow.g.cs
+E:\B1TuneUp\B1TuneUp\obj\Debug\net48\B1TuneUp\Modules\ConfigCenter\ConfigCenterWindow.baml
+E:\B1TuneUp\B1TuneUp\obj\Debug\net48\B1TuneUp\Modules\ConfigCenter\ConfigCenterWindow.g.cs

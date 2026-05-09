@@ -50,6 +50,11 @@ namespace B1TuneUp.Modules
         public static bool MatchesScope(string allowedUsers, string allowedGroups, string deniedUsers, string deniedGroups)
         {
             var context = GetCurrentContext();
+            if (context.IsSuperUser)
+            {
+                return true;
+            }
+
             if (MatchesAny(deniedUsers, context.UserCode, context.UserName))
             {
                 return false;
@@ -187,6 +192,16 @@ namespace B1TuneUp.Modules
                         }
                         rs.MoveNext();
                     }
+
+                    foreach (var group in AuthorizationAdminService.GetGroupsForUser(context.UserCode, context.UserName))
+                    {
+                        if (!context.GroupCodes.Any(existing => string.Equals(existing, group, StringComparison.OrdinalIgnoreCase)))
+                        {
+                            context.GroupCodes.Add(group);
+                        }
+                    }
+
+                    context.IsSuperUser = AuthorizationAdminService.IsSuperUser(context.UserCode, context.UserName);
                 }
                 catch (Exception ex)
                 {
@@ -212,6 +227,7 @@ namespace B1TuneUp.Modules
         {
             public string UserCode { get; set; }
             public string UserName { get; set; }
+            public bool IsSuperUser { get; set; }
             public List<string> GroupCodes { get; } = new List<string>();
         }
     }

@@ -88,3 +88,5 @@ E:\B1TuneUp\B1TuneUp\obj\Release\net48\B1TuneUp_MarkupCompile.cache
 E:\B1TuneUp\B1TuneUp\obj\Release\net48\B1TuneUp_MarkupCompile.lref
 E:\B1TuneUp\B1TuneUp\obj\Release\net48\B1TuneUp\Modules\ProcessStepsUi\ProcessStepsWindow.baml
 E:\B1TuneUp\B1TuneUp\obj\Release\net48\B1TuneUp.g.resources
+E:\B1TuneUp\B1TuneUp\obj\Release\net48\B1TuneUp\Modules\ConfigCenter\ConfigCenterWindow.baml
+E:\B1TuneUp\B1TuneUp\obj\Release\net48\B1TuneUp\Modules\ConfigCenter\ConfigCenterWindow.g.cs

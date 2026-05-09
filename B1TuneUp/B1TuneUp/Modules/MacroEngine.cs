@@ -160,6 +160,15 @@ namespace B1TuneUp.Modules
                     string codeName = ExtractParameter(command, "Code");
                     DynamicCodeEngine.RunCode(codeName, activeForm);
                 }
+                else if (command.StartsWith("UF("))
+                {
+                    string functionCode = ExtractParameter(command, "UF");
+                    string result = UniversalFunctionService.Execute(functionCode, activeForm, rowOverride);
+                    if (!string.IsNullOrWhiteSpace(result))
+                    {
+                        B1App.Instance.Application.SetStatusBarMessage(result.Length > 200 ? result.Substring(0, 200) + "..." : result, BoMessageTime.bmt_Short, false);
+                    }
+                }
                 else if (command.StartsWith("ShowPad()"))
                 {
                     ActionPadManager.ShowPadForForm(activeForm);
@@ -921,7 +930,7 @@ namespace B1TuneUp.Modules
             }
         }
 
-        private static string ProcessSqlVariables(string input, Form activeForm, int rowOverride = -1)
+        public static string ProcessSqlVariables(string input, Form activeForm, int rowOverride = -1)
         {
             if (string.IsNullOrEmpty(input)) return input;
             if (activeForm == null) activeForm = SapUiSafe.TryGetActiveForm();

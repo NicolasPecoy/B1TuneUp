@@ -19,6 +19,7 @@ using B1TuneUp.Modules.MacroEngineUi;
 using B1TuneUp.Modules.FormEnhancementUi;
 using B1TuneUp.Modules.AutomationDashboardUi;
 using B1TuneUp.Modules.PlacementEnhancementUi;
+using B1TuneUp.Modules.ConfigCenter;
 using B1TuneUp.Utils;
 using B1TuneUp.Modules.LanguageSelectorUi;
 
@@ -42,6 +43,7 @@ namespace B1TuneUp.Modules
         private const string FormEnhancementMenuId = "BTUN_FORMEX";
         private const string AutomationDashboardMenuId = "BTUN_AUTOD";
         private const string PlacementEnhancementMenuId = "BTUN_ITEMUI";
+        private const string ConfigCenterMenuId = "BTUN_CONFIG";
         private static Dictionary<string, string> _menuActions = new Dictionary<string, string>();
         private static readonly Color MenuIconBackground = ColorTranslator.FromHtml("#1F4E79");
         private static readonly Color MenuIconForeground = Color.White;
@@ -100,6 +102,7 @@ namespace B1TuneUp.Modules
                 EnsureFormEnhancementMenu();
                 EnsureAutomationDashboardMenu();
                 EnsurePlacementEnhancementMenu();
+                EnsureConfigCenterMenu();
             }
             catch { }
         }
@@ -728,6 +731,37 @@ namespace B1TuneUp.Modules
             }
         }
 
+        private static void EnsureConfigCenterMenu()
+        {
+            var app = B1App.Instance.Application;
+            var menus = app.Menus;
+            if (menus.Exists(ConfigCenterMenuId)) return;
+
+            string parentId = "43520";
+            MenuItem parent = null;
+            try { parent = menus.Item(parentId); } catch { }
+            if (parent == null)
+            {
+                try { parent = menus.Item("0"); } catch { }
+            }
+            if (parent == null) return;
+
+            try
+            {
+                MenuCreationParams creationParams = (MenuCreationParams)app.CreateObject(BoCreatableObjectType.cot_MenuCreationParams);
+                creationParams.Type = BoMenuType.mt_STRING;
+                creationParams.UniqueID = ConfigCenterMenuId;
+                creationParams.String = "B1TuneUp Config Center";
+                creationParams.Position = 9005;
+                parent.SubMenus.AddEx(creationParams);
+                app.SetStatusBarMessage("B1TuneUp Config Center disponible en el menu.", BoMessageTime.bmt_Short, false);
+            }
+            catch (Exception ex)
+            {
+                app.SetStatusBarMessage($"Error creando B1TuneUp Config Center: {ex.Message}", BoMessageTime.bmt_Short, true);
+                LogMenuError(ex, "EnsureConfigCenterMenu");
+            }
+        }
         private static void ApplyMenuIcon(SAPbouiCOM.MenuCreationParams creationParams, string key, string label)
         {
             try
@@ -754,6 +788,15 @@ namespace B1TuneUp.Modules
                 catch (Exception ex)
                 {
                     B1App.Instance.Application.SetStatusBarMessage($"Error abriendo selector de idioma: {ex.Message}", BoMessageTime.bmt_Short, true);
+                    LogMenuError(ex, $"HandleMenuEvent:{pVal.MenuUID}");
+                }
+            }
+            else if (!pVal.BeforeAction && pVal.MenuUID == ConfigCenterMenuId)
+            {
+                try { ConfigCenterLauncher.Show(); }
+                catch (Exception ex)
+                {
+                    B1App.Instance.Application.SetStatusBarMessage($"Error abriendo Config Center: {ex.Message}", BoMessageTime.bmt_Short, true);
                     LogMenuError(ex, $"HandleMenuEvent:{pVal.MenuUID}");
                 }
             }

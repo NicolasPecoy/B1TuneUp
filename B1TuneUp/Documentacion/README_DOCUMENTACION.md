@@ -93,3 +93,50 @@ Incluye versión de B1TuneUp y referencia del documento cuando reportes sugerenci
 ---
 
 **Última actualización:** 3 de abril de 2026 – Equipo de Documentación B1TuneUp.
+
+---
+
+## Actualizacion mayo 2026
+
+La documentacion debe leerse ahora junto con el nuevo **B1TuneUp Config Center**, que concentra administracion de modulos, metadata, Universal Functions, triggers, autorizaciones, soporte, lifecycle/licencias y samples.
+
+### Documentos recomendados por tarea
+
+| Tarea | Donde mirar | Pantalla relacionada |
+|-------|-------------|----------------------|
+| Activar/desactivar modulos | `GUIA_RAPIDA_B1TUNEUP.md` seccion Config Center | Modules / Diagnostics |
+| Reparar metadata | `GUIA_TECNICA_B1TUNEUP.md` + esta nota | Metadata |
+| Crear Universal Functions | `GUIA_RAPIDA_B1TUNEUP.md` nuevos ejemplos | Universal Functions |
+| Enganchar eventos | `DOCUMENTACION_COMPLETA_B1TUNEUP.md` + Event Triggers | Event Triggers |
+| Revisar permisos | Guia rapida + soporte | Authorization |
+| Buscar configuraciones | Esta nota | Consultant Workbench |
+| Diagnosticar soporte | Esta nota | Support |
+| Generar licencia premium owner | Esta nota | Lifecycle / Samples |
+
+### Licenciamiento premium
+
+La licencia comercial/offline usa tokens firmados:
+
+```text
+B1TL1.<payload-base64url>.<signature-base64url>
+```
+
+El payload contiene producto, cliente, edicion, compania, instalacion, hardware key, fecha de emision, expiracion, modulos y cantidad maxima de usuarios. La validacion se realiza en `ProductLifecycleService`.
+
+Para generar tu licencia propia:
+
+1. Abre **B1TuneUp Config Center**.
+2. Entra en **Lifecycle / Samples**.
+3. Presiona **Generate Owner Premium**.
+4. Copia el token generado si queres guardarlo fuera de SAP.
+5. Verifica que `License / Trial` indique `LicensedPremium`.
+
+Para un esquema comercial estricto, el secreto `PRODUCT_LICENSE_OWNER_SECRET` no deberia distribuirse con clientes. La practica recomendada es generar licencias en un portal interno y pegar solamente el token firmado en la instalacion cliente.
+
+### Flujo de soporte recomendado
+
+1. Pedir al cliente que abra **Support**.
+2. Ejecutar **Run Health Checks**.
+3. Exportar **Support Package**.
+4. Revisar `health.json`, `lifecycle.json`, `diagnostics.json`, `config-package.json`, `audit-summary.json` y logs incluidos.
+5. Usar **Consultant Workbench** para encontrar reglas/triggers/funciones relacionadas con el formulario reportado.

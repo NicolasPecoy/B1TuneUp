@@ -70,6 +70,7 @@ namespace B1TuneUp.Modules.ConfigCenter
             RunHealthChecksCommand = new RelayCommand(async () => await RunHealthChecksAsync());
             ExportSupportPackageCommand = new RelayCommand(async () => await ExportSupportPackageAsync());
             SaveLicenseCommand = new RelayCommand(async () => await SaveLicenseAsync());
+            GenerateOwnerLicenseCommand = new RelayCommand(async () => await GenerateOwnerLicenseAsync());
             RunUpgradeCommand = new RelayCommand(async () => await RunUpgradeAsync());
             InstallSampleCommand = new RelayCommand(async () => await InstallSampleAsync(), () => SelectedSample != null);
         }
@@ -243,6 +244,7 @@ namespace B1TuneUp.Modules.ConfigCenter
         public RelayCommand RunHealthChecksCommand { get; }
         public RelayCommand ExportSupportPackageCommand { get; }
         public RelayCommand SaveLicenseCommand { get; }
+        public RelayCommand GenerateOwnerLicenseCommand { get; }
         public RelayCommand RunUpgradeCommand { get; }
         public RelayCommand InstallSampleCommand { get; }
 
@@ -542,6 +544,16 @@ namespace B1TuneUp.Modules.ConfigCenter
                 ProductLifecycleService.SaveLicense(LicenseKey);
                 LifecycleInfo = ProductLifecycleService.GetInfo();
                 StatusMessage = "Licencia guardada.";
+            });
+        }
+
+        private async Task GenerateOwnerLicenseAsync()
+        {
+            await RunAsync("Generando licencia premium owner...", () =>
+            {
+                LicenseKey = ProductLifecycleService.GenerateOwnerPremiumLicense();
+                LifecycleInfo = ProductLifecycleService.GetInfo();
+                StatusMessage = "Licencia premium owner generada y guardada.";
             });
         }
 

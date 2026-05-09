@@ -302,10 +302,21 @@
                             <TextBox Text="{Binding LifecycleInfo.CompatibilityStatus}" IsReadOnly="True" Background="{DynamicResource SurfaceAltBrush}" />
                             <TextBlock Text="License / Trial" Style="{StaticResource LabelStyle}" />
                             <TextBox Text="{Binding LifecycleInfo.LicenseStatus}" IsReadOnly="True" Background="{DynamicResource SurfaceAltBrush}" />
+                            <TextBlock Text="Edition / Expires" Style="{StaticResource LabelStyle}" />
+                            <UniformGrid Columns="2" Margin="0,0,0,10">
+                                <TextBox Text="{Binding LifecycleInfo.LicenseEdition}" IsReadOnly="True" Background="{DynamicResource SurfaceAltBrush}" Margin="0,0,8,0" />
+                                <TextBox Text="{Binding LifecycleInfo.LicenseExpiresOn}" IsReadOnly="True" Background="{DynamicResource SurfaceAltBrush}" />
+                            </UniformGrid>
+                            <TextBlock Text="Customer / Company DB" Style="{StaticResource LabelStyle}" />
+                            <UniformGrid Columns="2" Margin="0,0,0,10">
+                                <TextBox Text="{Binding LifecycleInfo.LicensedCustomer}" IsReadOnly="True" Background="{DynamicResource SurfaceAltBrush}" Margin="0,0,8,0" />
+                                <TextBox Text="{Binding LifecycleInfo.CompanyDb}" IsReadOnly="True" Background="{DynamicResource SurfaceAltBrush}" />
+                            </UniformGrid>
                             <TextBlock Text="License Key" Style="{StaticResource LabelStyle}" />
-                            <TextBox Text="{Binding LicenseKey, UpdateSourceTrigger=PropertyChanged}" />
+                            <TextBox Text="{Binding LicenseKey, UpdateSourceTrigger=PropertyChanged}" AcceptsReturn="True" Height="70" FontFamily="Consolas" />
                             <StackPanel Orientation="Horizontal">
                                 <Button Content="Save License" Command="{Binding SaveLicenseCommand}" />
+                                <Button Content="Generate Owner Premium" Command="{Binding GenerateOwnerLicenseCommand}" />
                                 <Button Content="Run Guided Upgrade" Command="{Binding RunUpgradeCommand}" />
                             </StackPanel>
                         </StackPanel>

@@ -670,3 +670,75 @@ Con este mapa, cualquier rol puede identificar r?pidamente qu? estudio cubre cad
 **¡Gracias por usar B1TuneUp!** 🎉
 
 > _"El conocimiento compartido es poder multiplicado"_
+
+---
+
+## Actualizacion Mayo 2026: Config Center, licencias premium y operacion
+
+Esta version agrega una capa de producto mas cercana a un paquete comercial tipo B1UP. Las nuevas funciones se administran desde **B1TuneUp Config Center**.
+
+### Como abrir el Config Center
+
+1. Inicia SAP Business One y carga el add-on.
+2. Ve al menu **B1TuneUp > B1TuneUp Config Center**.
+3. Usa **Refresh** para cargar modulos, metadata, funciones, triggers, permisos, health checks y samples.
+
+### Licencia premium para uso propio
+
+B1TuneUp ahora usa una licencia firmada con formato:
+
+```text
+B1TL1.<payload-base64url>.<signature-base64url>
+```
+
+Para generar una licencia premium local:
+
+1. Abre **Config Center > Lifecycle / Samples**.
+2. Presiona **Generate Owner Premium**.
+3. El sistema genera una licencia Premium, la guarda en `BTUN_TBOX` con codigo `PRODUCT_LICENSE_KEY` y actualiza el estado a `LicensedPremium`.
+4. La licencia queda ligada a la compania/base actual cuando esa informacion esta disponible en el SDK.
+
+La firma se calcula con HMAC-SHA256 usando el secreto `PRODUCT_LICENSE_OWNER_SECRET`. Para un producto comercial real, ese secreto debe vivir fuera del add-on, idealmente en un portal/licenser privado. El boton local existe para desarrollo, demos, owner license y escenarios offline controlados.
+
+### Nuevas areas documentadas
+
+- **Metadata robusta**: validacion y repair de UDT/UDF dedicadas desde la pestana Metadata.
+- **Universal Functions**: SQL, Macro, Message, ExternalApp, CrystalReport, LineLoop, HTTP, Email, File, DIObject y DotNetSnippet, con retry, condiciones, variables y chaining.
+- **Event Triggers**: disenador unificado para form load, item events, menu, right-click y data events.
+- **Authorization**: superusuarios, grupos B1TuneUp, usuarios SAP reales y simulador.
+- **Consultant Workbench**: busqueda global, configuracion aplicable al formulario actual, duplicar y activar/desactivar.
+- **Support**: health checks, resumen de audit log y exportacion de support package.
+- **Lifecycle / Samples**: licencia/trial, upgrade guiado, compatibilidad SAP y templates funcionales.
+
+### Ejemplo rapido: crear una Universal Function HTTP
+
+1. En **Universal Functions**, crea `CRM_SYNC_BP`.
+2. Type: `HTTP`.
+3. Payload:
+   ```text
+   https://api.midominio.local/business-partners
+   ```
+4. Parameters:
+   ```json
+   {
+     "method": "POST",
+     "authMode": "Bearer",
+     "authSecret": "TOKEN",
+     "headers": "{\"X-Company\":\"SBODEMO\"}",
+     "body": "{\"cardCode\":\"$[$4.0.0]\"}",
+     "timeoutSeconds": "60"
+   }
+   ```
+5. Guarda y presiona **Test**.
+
+### Ejemplo rapido: ejecutar una UF desde un trigger
+
+1. En **Event Triggers**, crea `ORDR_ON_LOAD`.
+2. Event: `FORM_LOAD`.
+3. FormType: `139`.
+4. Universal Function Code: `CRM_SYNC_BP`.
+5. Activa **Trace enabled** para ver en Audit Log por que se ejecuto o se omitio.
+
+### Support package
+
+En **Support > Export Support Package** se genera un ZIP con health checks, lifecycle/licencia, diagnostico de metadata, paquete de configuracion, resumen de audit log y ultimos logs de archivo.

@@ -153,6 +153,67 @@
                 </Grid>
             </TabItem>
 
+            <TabItem Header="Consultant Workbench">
+                <Grid Margin="0,14,0,0">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                        <RowDefinition Height="210" />
+                    </Grid.RowDefinitions>
+                    <Border Style="{StaticResource PanelStyle}">
+                        <DockPanel>
+                            <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
+                                <Button Content="Search" Command="{Binding SearchCommand}" />
+                                <Button Content="Current Form" Command="{Binding ShowActiveFormConfigCommand}" />
+                                <Button Content="Duplicate" Command="{Binding DuplicateSelectedCommand}" />
+                                <Button Content="Activate" Command="{Binding ActivateSelectedCommand}" />
+                                <Button Content="Deactivate" Command="{Binding DeactivateSelectedCommand}" />
+                            </StackPanel>
+                            <StackPanel>
+                                <TextBlock Text="Global configuration search" Style="{StaticResource LabelStyle}" />
+                                <TextBox Text="{Binding GlobalSearchText, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,12,0" />
+                            </StackPanel>
+                        </DockPanel>
+                    </Border>
+                    <Border Grid.Row="1" Style="{StaticResource PanelStyle}" Margin="0,14,0,14">
+                        <DataGrid ItemsSource="{Binding SearchResults}"
+                                  SelectedItem="{Binding SelectedSearchResult}"
+                                  AutoGenerateColumns="False"
+                                  CanUserAddRows="False">
+                            <DataGrid.Columns>
+                                <DataGridTextColumn Header="Area" Binding="{Binding Area}" Width="140" />
+                                <DataGridTextColumn Header="Code" Binding="{Binding Code}" Width="190" />
+                                <DataGridTextColumn Header="Name" Binding="{Binding Name}" Width="210" />
+                                <DataGridTextColumn Header="Category" Binding="{Binding Category}" Width="140" />
+                                <DataGridTextColumn Header="Tags" Binding="{Binding Tags}" Width="160" />
+                                <DataGridCheckBoxColumn Header="On" Binding="{Binding Active}" Width="55" IsReadOnly="True" />
+                                <DataGridTextColumn Header="Form" Binding="{Binding FormType}" Width="90" />
+                                <DataGridTextColumn Header="Detail" Binding="{Binding Detail}" Width="*" />
+                            </DataGrid.Columns>
+                        </DataGrid>
+                    </Border>
+                    <Border Grid.Row="2" Style="{StaticResource PanelStyle}">
+                        <DockPanel>
+                            <StackPanel DockPanel.Dock="Top" Orientation="Horizontal">
+                                <Button Content="Run Tests" Command="{Binding RunTestsCommand}" />
+                            </StackPanel>
+                            <DataGrid ItemsSource="{Binding TestResults}"
+                                      AutoGenerateColumns="False"
+                                      CanUserAddRows="False"
+                                      Margin="0,12,0,0">
+                                <DataGrid.Columns>
+                                    <DataGridTextColumn Header="Area" Binding="{Binding Area}" Width="150" />
+                                    <DataGridTextColumn Header="Code" Binding="{Binding Code}" Width="210" />
+                                    <DataGridTextColumn Header="Status" Binding="{Binding Status}" Width="90" />
+                                    <DataGridTextColumn Header="ms" Binding="{Binding DurationMs}" Width="80" />
+                                    <DataGridTextColumn Header="Detail" Binding="{Binding Detail}" Width="*" />
+                                </DataGrid.Columns>
+                            </DataGrid>
+                        </DockPanel>
+                    </Border>
+                </Grid>
+            </TabItem>
+
             <TabItem Header="Metadata">
                 <Border Margin="0,14,0,0" Style="{StaticResource PanelStyle}">
                     <DockPanel>
@@ -174,6 +235,103 @@
                         </DataGrid>
                     </DockPanel>
                 </Border>
+            </TabItem>
+
+            <TabItem Header="Support">
+                <Grid Margin="0,14,0,0">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="18" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+                    <Border Style="{StaticResource PanelStyle}">
+                        <DockPanel>
+                            <StackPanel DockPanel.Dock="Top" Orientation="Horizontal">
+                                <Button Content="Run Health Checks" Command="{Binding RunHealthChecksCommand}" />
+                                <Button Content="Export Support Package" Command="{Binding ExportSupportPackageCommand}" />
+                            </StackPanel>
+                            <DataGrid ItemsSource="{Binding HealthChecks}"
+                                      AutoGenerateColumns="False"
+                                      CanUserAddRows="False"
+                                      Margin="0,12,0,0">
+                                <DataGrid.Columns>
+                                    <DataGridTextColumn Header="Area" Binding="{Binding Area}" Width="120" />
+                                    <DataGridTextColumn Header="Check" Binding="{Binding Check}" Width="170" />
+                                    <DataGridTextColumn Header="Status" Binding="{Binding Status}" Width="90" />
+                                    <DataGridTextColumn Header="Detail" Binding="{Binding Detail}" Width="*" />
+                                </DataGrid.Columns>
+                            </DataGrid>
+                        </DockPanel>
+                    </Border>
+                    <Border Grid.Column="2" Style="{StaticResource PanelStyle}">
+                        <DockPanel>
+                            <TextBlock DockPanel.Dock="Top" Text="Operational Log Summary" FontSize="16" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,12" />
+                            <DataGrid ItemsSource="{Binding LogSummary}"
+                                      AutoGenerateColumns="False"
+                                      CanUserAddRows="False">
+                                <DataGrid.Columns>
+                                    <DataGridTextColumn Header="Type" Binding="{Binding Area}" Width="160" />
+                                    <DataGridTextColumn Header="User" Binding="{Binding Code}" Width="140" />
+                                    <DataGridTextColumn Header="Status" Binding="{Binding Status}" Width="100" />
+                                    <DataGridTextColumn Header="Count" Binding="{Binding DurationMs}" Width="80" />
+                                    <DataGridTextColumn Header="Detail" Binding="{Binding Detail}" Width="*" />
+                                </DataGrid.Columns>
+                            </DataGrid>
+                        </DockPanel>
+                    </Border>
+                </Grid>
+            </TabItem>
+
+            <TabItem Header="Lifecycle / Samples">
+                <Grid Margin="0,14,0,0">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="420" />
+                        <ColumnDefinition Width="18" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+                    <Border Style="{StaticResource PanelStyle}">
+                        <StackPanel>
+                            <TextBlock Text="Product lifecycle" FontSize="16" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,12" />
+                            <TextBlock Text="Installed Version" Style="{StaticResource LabelStyle}" />
+                            <TextBox Text="{Binding LifecycleInfo.InstalledVersion}" IsReadOnly="True" Background="{DynamicResource SurfaceAltBrush}" />
+                            <TextBlock Text="Metadata Version" Style="{StaticResource LabelStyle}" />
+                            <TextBox Text="{Binding LifecycleInfo.MetadataVersion}" IsReadOnly="True" Background="{DynamicResource SurfaceAltBrush}" />
+                            <TextBlock Text="SAP Version" Style="{StaticResource LabelStyle}" />
+                            <TextBox Text="{Binding LifecycleInfo.SapVersion}" IsReadOnly="True" Background="{DynamicResource SurfaceAltBrush}" />
+                            <TextBlock Text="Compatibility" Style="{StaticResource LabelStyle}" />
+                            <TextBox Text="{Binding LifecycleInfo.CompatibilityStatus}" IsReadOnly="True" Background="{DynamicResource SurfaceAltBrush}" />
+                            <TextBlock Text="License / Trial" Style="{StaticResource LabelStyle}" />
+                            <TextBox Text="{Binding LifecycleInfo.LicenseStatus}" IsReadOnly="True" Background="{DynamicResource SurfaceAltBrush}" />
+                            <TextBlock Text="License Key" Style="{StaticResource LabelStyle}" />
+                            <TextBox Text="{Binding LicenseKey, UpdateSourceTrigger=PropertyChanged}" />
+                            <StackPanel Orientation="Horizontal">
+                                <Button Content="Save License" Command="{Binding SaveLicenseCommand}" />
+                                <Button Content="Run Guided Upgrade" Command="{Binding RunUpgradeCommand}" />
+                            </StackPanel>
+                        </StackPanel>
+                    </Border>
+                    <Border Grid.Column="2" Style="{StaticResource PanelStyle}">
+                        <DockPanel>
+                            <StackPanel DockPanel.Dock="Top" Orientation="Horizontal">
+                                <Button Content="Install Sample" Command="{Binding InstallSampleCommand}" />
+                            </StackPanel>
+                            <DataGrid ItemsSource="{Binding Samples}"
+                                      SelectedItem="{Binding SelectedSample}"
+                                      AutoGenerateColumns="False"
+                                      CanUserAddRows="False"
+                                      Margin="0,12,0,0">
+                                <DataGrid.Columns>
+                                    <DataGridTextColumn Header="Module" Binding="{Binding Module}" Width="130" />
+                                    <DataGridTextColumn Header="Code" Binding="{Binding Code}" Width="170" />
+                                    <DataGridTextColumn Header="Name" Binding="{Binding Name}" Width="210" />
+                                    <DataGridTextColumn Header="Category" Binding="{Binding Category}" Width="120" />
+                                    <DataGridTextColumn Header="Tags" Binding="{Binding Tags}" Width="150" />
+                                    <DataGridTextColumn Header="Description" Binding="{Binding Description}" Width="*" />
+                                </DataGrid.Columns>
+                            </DataGrid>
+                        </DockPanel>
+                    </Border>
+                </Grid>
             </TabItem>
 
             <TabItem Header="Universal Functions">
@@ -208,6 +366,10 @@
                                 <TextBox Text="{Binding Name, UpdateSourceTrigger=PropertyChanged}" />
                                 <TextBlock Text="Type" Style="{StaticResource LabelStyle}" />
                                 <ComboBox ItemsSource="{Binding DataContext.FunctionTypes, RelativeSource={RelativeSource AncestorType=Window}}" SelectedItem="{Binding Type}" />
+                                <TextBlock Text="Category" Style="{StaticResource LabelStyle}" />
+                                <TextBox Text="{Binding Category, UpdateSourceTrigger=PropertyChanged}" />
+                                <TextBlock Text="Tags" Style="{StaticResource LabelStyle}" />
+                                <TextBox Text="{Binding Tags, UpdateSourceTrigger=PropertyChanged}" />
                                 <CheckBox Content="Active" IsChecked="{Binding Active}" Margin="0,4,0,12" />
                                 <TextBlock Text="Parameters" Style="{StaticResource LabelStyle}" />
                                 <TextBox Text="{Binding Parameters, UpdateSourceTrigger=PropertyChanged}" AcceptsReturn="True" Height="90" />
@@ -288,6 +450,10 @@
                                 <TextBox Text="{Binding Name, UpdateSourceTrigger=PropertyChanged}" />
                                 <TextBlock Text="Event" Style="{StaticResource LabelStyle}" />
                                 <ComboBox ItemsSource="{Binding DataContext.TriggerEvents, RelativeSource={RelativeSource AncestorType=Window}}" SelectedItem="{Binding EventType}" />
+                                <TextBlock Text="Category" Style="{StaticResource LabelStyle}" />
+                                <TextBox Text="{Binding Category, UpdateSourceTrigger=PropertyChanged}" />
+                                <TextBlock Text="Tags" Style="{StaticResource LabelStyle}" />
+                                <TextBox Text="{Binding Tags, UpdateSourceTrigger=PropertyChanged}" />
                                 <TextBlock Text="Form / Item / Column" Style="{StaticResource LabelStyle}" />
                                 <TextBox Text="{Binding FormType, UpdateSourceTrigger=PropertyChanged}" />
                                 <TextBox Text="{Binding ItemId, UpdateSourceTrigger=PropertyChanged}" />

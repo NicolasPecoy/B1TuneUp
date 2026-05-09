@@ -7,6 +7,8 @@ namespace B1TuneUp.Models
         public string Type { get; set; } = "Macro";
         public string Payload { get; set; }
         public string Parameters { get; set; }
+        public string Category { get; set; }
+        public string Tags { get; set; }
         public bool Active { get; set; } = true;
         public string AllowedUsers { get; set; }
         public string AllowedGroups { get; set; }

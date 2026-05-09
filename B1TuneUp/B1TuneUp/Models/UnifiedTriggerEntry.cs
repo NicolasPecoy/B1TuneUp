@@ -4,6 +4,8 @@ namespace B1TuneUp.Models
     {
         public string Code { get; set; }
         public string Name { get; set; }
+        public string Category { get; set; }
+        public string Tags { get; set; }
         public bool Active { get; set; } = true;
         public string FormType { get; set; }
         public string ItemId { get; set; }

@@ -21,11 +21,21 @@ namespace B1TuneUp.Modules.ConfigCenter
         private readonly ObservableCollection<AuthorizationGroupEntry> _groups = new ObservableCollection<AuthorizationGroupEntry>();
         private readonly ObservableCollection<UnifiedTriggerEntry> _triggers = new ObservableCollection<UnifiedTriggerEntry>();
         private readonly ObservableCollection<SapUserEntry> _sapUsers = new ObservableCollection<SapUserEntry>();
+        private readonly ObservableCollection<ConfigurationSearchResult> _searchResults = new ObservableCollection<ConfigurationSearchResult>();
+        private readonly ObservableCollection<TestRunResult> _testResults = new ObservableCollection<TestRunResult>();
+        private readonly ObservableCollection<OperationalHealthEntry> _healthChecks = new ObservableCollection<OperationalHealthEntry>();
+        private readonly ObservableCollection<TestRunResult> _logSummary = new ObservableCollection<TestRunResult>();
+        private readonly ObservableCollection<FunctionalTemplateEntry> _samples = new ObservableCollection<FunctionalTemplateEntry>();
         private ModuleConfigurationEntry _selectedModule;
         private UniversalFunctionEntry _selectedFunction;
         private AuthorizationGroupEntry _selectedGroup;
         private UnifiedTriggerEntry _selectedTrigger;
         private SapUserEntry _selectedSapUser;
+        private ConfigurationSearchResult _selectedSearchResult;
+        private FunctionalTemplateEntry _selectedSample;
+        private ProductLifecycleInfo _lifecycleInfo;
+        private string _globalSearchText;
+        private string _licenseKey;
         private string _simulationResult;
         private string _superUsers;
         private string _statusMessage;
@@ -51,6 +61,17 @@ namespace B1TuneUp.Modules.ConfigCenter
             SaveTriggerCommand = new RelayCommand(async () => await SaveTriggerAsync(), () => SelectedTrigger != null);
             DeleteTriggerCommand = new RelayCommand(async () => await DeleteTriggerAsync(), () => SelectedTrigger != null);
             SimulateAuthorizationCommand = new RelayCommand(SimulateAuthorization, () => SelectedSapUser != null);
+            SearchCommand = new RelayCommand(SearchConfigurations);
+            ShowActiveFormConfigCommand = new RelayCommand(ShowActiveFormConfig);
+            DuplicateSelectedCommand = new RelayCommand(async () => await DuplicateSelectedAsync(), () => SelectedSearchResult != null);
+            ActivateSelectedCommand = new RelayCommand(async () => await SetSelectedActiveAsync(true), () => SelectedSearchResult != null);
+            DeactivateSelectedCommand = new RelayCommand(async () => await SetSelectedActiveAsync(false), () => SelectedSearchResult != null);
+            RunTestsCommand = new RelayCommand(async () => await RunTestsAsync());
+            RunHealthChecksCommand = new RelayCommand(async () => await RunHealthChecksAsync());
+            ExportSupportPackageCommand = new RelayCommand(async () => await ExportSupportPackageAsync());
+            SaveLicenseCommand = new RelayCommand(async () => await SaveLicenseAsync());
+            RunUpgradeCommand = new RelayCommand(async () => await RunUpgradeAsync());
+            InstallSampleCommand = new RelayCommand(async () => await InstallSampleAsync(), () => SelectedSample != null);
         }
 
         public ObservableCollection<ModuleConfigurationEntry> Modules => _modules;
@@ -61,6 +82,11 @@ namespace B1TuneUp.Modules.ConfigCenter
         public ObservableCollection<AuthorizationGroupEntry> Groups => _groups;
         public ObservableCollection<UnifiedTriggerEntry> Triggers => _triggers;
         public ObservableCollection<SapUserEntry> SapUsers => _sapUsers;
+        public ObservableCollection<ConfigurationSearchResult> SearchResults => _searchResults;
+        public ObservableCollection<TestRunResult> TestResults => _testResults;
+        public ObservableCollection<OperationalHealthEntry> HealthChecks => _healthChecks;
+        public ObservableCollection<TestRunResult> LogSummary => _logSummary;
+        public ObservableCollection<FunctionalTemplateEntry> Samples => _samples;
         public string[] FunctionTypes => UniversalFunctionService.SupportedTypes;
         public string[] TriggerEvents => UnifiedTriggerService.SupportedEvents;
 
@@ -122,6 +148,50 @@ namespace B1TuneUp.Modules.ConfigCenter
             }
         }
 
+        public ConfigurationSearchResult SelectedSearchResult
+        {
+            get => _selectedSearchResult;
+            set
+            {
+                if (_selectedSearchResult == value) return;
+                _selectedSearchResult = value;
+                OnPropertyChanged();
+                DuplicateSelectedCommand.RaiseCanExecuteChanged();
+                ActivateSelectedCommand.RaiseCanExecuteChanged();
+                DeactivateSelectedCommand.RaiseCanExecuteChanged();
+            }
+        }
+
+        public FunctionalTemplateEntry SelectedSample
+        {
+            get => _selectedSample;
+            set
+            {
+                if (_selectedSample == value) return;
+                _selectedSample = value;
+                OnPropertyChanged();
+                InstallSampleCommand.RaiseCanExecuteChanged();
+            }
+        }
+
+        public ProductLifecycleInfo LifecycleInfo
+        {
+            get => _lifecycleInfo;
+            set { if (_lifecycleInfo == value) return; _lifecycleInfo = value; OnPropertyChanged(); }
+        }
+
+        public string GlobalSearchText
+        {
+            get => _globalSearchText;
+            set { if (_globalSearchText == value) return; _globalSearchText = value; OnPropertyChanged(); }
+        }
+
+        public string LicenseKey
+        {
+            get => _licenseKey;
+            set { if (_licenseKey == value) return; _licenseKey = value; OnPropertyChanged(); }
+        }
+
         public string SuperUsers
         {
             get => _superUsers;
@@ -164,6 +234,17 @@ namespace B1TuneUp.Modules.ConfigCenter
         public RelayCommand SaveTriggerCommand { get; }
         public RelayCommand DeleteTriggerCommand { get; }
         public RelayCommand SimulateAuthorizationCommand { get; }
+        public RelayCommand SearchCommand { get; }
+        public RelayCommand ShowActiveFormConfigCommand { get; }
+        public RelayCommand DuplicateSelectedCommand { get; }
+        public RelayCommand ActivateSelectedCommand { get; }
+        public RelayCommand DeactivateSelectedCommand { get; }
+        public RelayCommand RunTestsCommand { get; }
+        public RelayCommand RunHealthChecksCommand { get; }
+        public RelayCommand ExportSupportPackageCommand { get; }
+        public RelayCommand SaveLicenseCommand { get; }
+        public RelayCommand RunUpgradeCommand { get; }
+        public RelayCommand InstallSampleCommand { get; }
 
         public event PropertyChangedEventHandler PropertyChanged;
 
@@ -179,12 +260,21 @@ namespace B1TuneUp.Modules.ConfigCenter
                 Replace(_groups, AuthorizationAdminService.GetGroups().Select(g => g.Clone()));
                 Replace(_triggers, UnifiedTriggerService.GetAll().Select(t => t.Clone()));
                 Replace(_sapUsers, AuthorizationAdminService.GetSapUsers());
+                Replace(_searchResults, ConsultantWorkbenchService.Search(GlobalSearchText));
+                Replace(_testResults, Enumerable.Empty<TestRunResult>());
+                Replace(_healthChecks, OperationalDiagnosticsService.RunHealthChecks());
+                Replace(_logSummary, OperationalDiagnosticsService.GetOperationalLogSummary());
+                Replace(_samples, FunctionalTemplateService.GetSamples());
+                LifecycleInfo = ProductLifecycleService.GetInfo();
+                LicenseKey = string.Empty;
                 SuperUsers = AuthorizationAdminService.GetSuperUsers();
                 SelectedModule = Modules.FirstOrDefault();
                 SelectedFunction = Functions.FirstOrDefault();
                 SelectedGroup = Groups.FirstOrDefault();
                 SelectedTrigger = Triggers.FirstOrDefault();
                 SelectedSapUser = SapUsers.FirstOrDefault();
+                SelectedSearchResult = SearchResults.FirstOrDefault();
+                SelectedSample = Samples.FirstOrDefault();
                 StatusMessage = "Configuracion cargada.";
             });
         }
@@ -369,6 +459,115 @@ namespace B1TuneUp.Modules.ConfigCenter
                 fn == null ? SelectedModule?.DeniedUsers : fn.DeniedUsers,
                 fn == null ? SelectedModule?.DeniedGroups : fn.DeniedGroups);
             SimulationResult = $"{result.UserCode}: {(result.Allowed ? "Allowed" : "Denied")} - {result.Detail}";
+        }
+
+        private void SearchConfigurations()
+        {
+            Replace(_searchResults, ConsultantWorkbenchService.Search(GlobalSearchText));
+            SelectedSearchResult = SearchResults.FirstOrDefault();
+            StatusMessage = $"{SearchResults.Count} configuraciones encontradas.";
+        }
+
+        private void ShowActiveFormConfig()
+        {
+            Replace(_searchResults, ConsultantWorkbenchService.GetForActiveForm());
+            SelectedSearchResult = SearchResults.FirstOrDefault();
+            StatusMessage = $"{SearchResults.Count} configuraciones aplicables al formulario activo.";
+        }
+
+        private async Task DuplicateSelectedAsync()
+        {
+            if (SelectedSearchResult == null) return;
+            var selected = SelectedSearchResult;
+            await RunAsync("Duplicando configuracion...", () =>
+            {
+                ConsultantWorkbenchService.Duplicate(selected.Area, selected.Code);
+                Replace(_searchResults, ConsultantWorkbenchService.Search(GlobalSearchText));
+                Replace(_functions, UniversalFunctionService.GetAll().Select(f => f.Clone()));
+                Replace(_triggers, UnifiedTriggerService.GetAll().Select(t => t.Clone()));
+                StatusMessage = "Configuracion duplicada.";
+            });
+        }
+
+        private async Task SetSelectedActiveAsync(bool active)
+        {
+            if (SelectedSearchResult == null) return;
+            var selected = SelectedSearchResult;
+            await RunAsync(active ? "Activando configuracion..." : "Desactivando configuracion...", () =>
+            {
+                ConsultantWorkbenchService.SetActive(selected.Area, selected.Code, active);
+                Replace(_searchResults, ConsultantWorkbenchService.Search(GlobalSearchText));
+                Replace(_modules, ModuleActivationService.GetAll().Select(m => m.Clone()));
+                Replace(_functions, UniversalFunctionService.GetAll().Select(f => f.Clone()));
+                Replace(_triggers, UnifiedTriggerService.GetAll().Select(t => t.Clone()));
+                StatusMessage = active ? "Configuracion activada." : "Configuracion desactivada.";
+            });
+        }
+
+        private async Task RunTestsAsync()
+        {
+            await RunAsync("Ejecutando test runner...", () =>
+            {
+                Replace(_testResults, ConsultantWorkbenchService.RunTests());
+                StatusMessage = $"Test runner finalizado: {TestResults.Count} casos.";
+            });
+        }
+
+        private async Task RunHealthChecksAsync()
+        {
+            await RunAsync("Ejecutando health checks...", () =>
+            {
+                Replace(_healthChecks, OperationalDiagnosticsService.RunHealthChecks());
+                Replace(_logSummary, OperationalDiagnosticsService.GetOperationalLogSummary());
+                LifecycleInfo = ProductLifecycleService.GetInfo();
+                StatusMessage = "Health checks actualizados.";
+            });
+        }
+
+        private async Task ExportSupportPackageAsync()
+        {
+            var dialog = new SaveFileDialog { Filter = "Support package (*.zip)|*.zip", FileName = "b1tuneup-support.zip" };
+            if (dialog.ShowDialog() != true) return;
+            await RunAsync("Exportando soporte...", () =>
+            {
+                OperationalDiagnosticsService.ExportSupportPackage(dialog.FileName);
+                StatusMessage = $"Support package exportado: {dialog.FileName}";
+            });
+        }
+
+        private async Task SaveLicenseAsync()
+        {
+            await RunAsync("Guardando licencia...", () =>
+            {
+                ProductLifecycleService.SaveLicense(LicenseKey);
+                LifecycleInfo = ProductLifecycleService.GetInfo();
+                StatusMessage = "Licencia guardada.";
+            });
+        }
+
+        private async Task RunUpgradeAsync()
+        {
+            await RunAsync("Ejecutando upgrade guiado...", () =>
+            {
+                ProductLifecycleService.RunGuidedUpgrade();
+                Replace(_diagnostics, ConfigurationCenterService.RunDiagnostics());
+                Replace(_metadata, MetadataRegistryService.Validate());
+                LifecycleInfo = ProductLifecycleService.GetInfo();
+                StatusMessage = "Upgrade guiado finalizado.";
+            });
+        }
+
+        private async Task InstallSampleAsync()
+        {
+            if (SelectedSample == null) return;
+            var sample = SelectedSample;
+            await RunAsync("Instalando sample...", () =>
+            {
+                FunctionalTemplateService.InstallSample(sample);
+                Replace(_functions, UniversalFunctionService.GetAll().Select(f => f.Clone()));
+                Replace(_searchResults, ConsultantWorkbenchService.Search(GlobalSearchText));
+                StatusMessage = $"Sample '{sample.Code}' instalado.";
+            });
         }
 
         private async Task RunAsync(string busyMessage, Action action)

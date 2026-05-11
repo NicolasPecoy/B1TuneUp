@@ -90,3 +90,4 @@ E:\B1TuneUp\B1TuneUp\obj\Release\net48\B1TuneUp\Modules\ProcessStepsUi\ProcessSt
 E:\B1TuneUp\B1TuneUp\obj\Release\net48\B1TuneUp.g.resources
 E:\B1TuneUp\B1TuneUp\obj\Release\net48\B1TuneUp\Modules\ConfigCenter\ConfigCenterWindow.baml
 E:\B1TuneUp\B1TuneUp\obj\Release\net48\B1TuneUp\Modules\ConfigCenter\ConfigCenterWindow.g.cs
+E:\B1TuneUp\B1TuneUp\obj\Release\net48\B1TuneUp.sourcelink.json

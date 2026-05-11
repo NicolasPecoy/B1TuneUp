@@ -334,6 +334,89 @@
                 </Grid>
             </TabItem>
 
+            <TabItem Header="Print Delivery Studio">
+                <Grid Margin="0,14,0,0">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="420" />
+                        <ColumnDefinition Width="18" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+                    <Border Style="{StaticResource PanelStyle}">
+                        <DockPanel>
+                            <StackPanel DockPanel.Dock="Top" Orientation="Horizontal">
+                                <Button Content="New Rule" Command="{Binding NewPrintDeliveryRuleCommand}" />
+                                <Button Content="Save" Command="{Binding SavePrintDeliveryRuleCommand}" />
+                                <Button Content="Enqueue Test" Command="{Binding EnqueuePrintDeliveryRuleCommand}" />
+                            </StackPanel>
+                            <ListBox ItemsSource="{Binding PrintDeliveryRules}" SelectedItem="{Binding SelectedPrintDeliveryRule}" DisplayMemberPath="Code" Margin="0,12,0,0" />
+                        </DockPanel>
+                    </Border>
+                    <Border Grid.Column="2" Style="{StaticResource PanelStyle}">
+                        <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="18" />
+                                <RowDefinition Height="*" />
+                            </Grid.RowDefinitions>
+                            <Grid DataContext="{Binding SelectedPrintDeliveryRule}">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="240" />
+                                    <ColumnDefinition Width="18" />
+                                    <ColumnDefinition Width="*" />
+                                </Grid.ColumnDefinitions>
+                                <StackPanel>
+                                    <TextBlock Text="Code / Name" Style="{StaticResource LabelStyle}" />
+                                    <TextBox Text="{Binding Code, UpdateSourceTrigger=PropertyChanged}" />
+                                    <TextBox Text="{Binding Name, UpdateSourceTrigger=PropertyChanged}" />
+                                    <CheckBox Content="Active" IsChecked="{Binding Active}" Margin="0,4,0,8" />
+                                    <TextBlock Text="Document / BP / Language / Branch" Style="{StaticResource LabelStyle}" />
+                                    <TextBox Text="{Binding DocType, UpdateSourceTrigger=PropertyChanged}" />
+                                    <TextBox Text="{Binding CardCode, UpdateSourceTrigger=PropertyChanged}" />
+                                    <TextBox Text="{Binding Language, UpdateSourceTrigger=PropertyChanged}" />
+                                    <TextBox Text="{Binding Branch, UpdateSourceTrigger=PropertyChanged}" />
+                                </StackPanel>
+                                <StackPanel Grid.Column="2">
+                                    <TextBlock Text="Channel / Report / Template" Style="{StaticResource LabelStyle}" />
+                                    <UniformGrid Columns="3">
+                                        <TextBox Text="{Binding Channel, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,8,10" />
+                                        <TextBox Text="{Binding ReportCode, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,8,10" />
+                                        <TextBox Text="{Binding EmailTemplateCode, UpdateSourceTrigger=PropertyChanged}" />
+                                    </UniformGrid>
+                                    <TextBlock Text="Save Path / Schedule" Style="{StaticResource LabelStyle}" />
+                                    <TextBox Text="{Binding SavePath, UpdateSourceTrigger=PropertyChanged}" />
+                                    <TextBox Text="{Binding ScheduleCode, UpdateSourceTrigger=PropertyChanged}" />
+                                    <TextBlock Text="Attachments Query" Style="{StaticResource LabelStyle}" />
+                                    <TextBox Text="{Binding AttachmentsQuery, UpdateSourceTrigger=PropertyChanged}" AcceptsReturn="True" Height="80" FontFamily="Consolas" />
+                                    <TextBlock Text="Condition SQL" Style="{StaticResource LabelStyle}" />
+                                    <TextBox Text="{Binding ConditionSql, UpdateSourceTrigger=PropertyChanged}" AcceptsReturn="True" Height="80" FontFamily="Consolas" />
+                                    <TextBlock Text="Notes" Style="{StaticResource LabelStyle}" />
+                                    <TextBox Text="{Binding Notes, UpdateSourceTrigger=PropertyChanged}" AcceptsReturn="True" Height="70" />
+                                </StackPanel>
+                            </Grid>
+                            <Border Grid.Row="2" Style="{StaticResource PanelStyle}" Padding="8">
+                                <DockPanel>
+                                    <StackPanel DockPanel.Dock="Top" Orientation="Horizontal">
+                                        <Button Content="Resend Selected Queue" Command="{Binding ResendPrintDeliveryCommand}" />
+                                        <Button Content="Refresh" Command="{Binding RefreshCommand}" />
+                                    </StackPanel>
+                                    <DataGrid ItemsSource="{Binding PrintDeliveryQueue}" SelectedItem="{Binding SelectedPrintDeliveryQueue}" AutoGenerateColumns="False" CanUserAddRows="False" Margin="0,12,0,0">
+                                        <DataGrid.Columns>
+                                            <DataGridTextColumn Header="Code" Binding="{Binding Code}" Width="170" />
+                                            <DataGridTextColumn Header="Doc" Binding="{Binding DocType}" Width="70" />
+                                            <DataGridTextColumn Header="Entry" Binding="{Binding DocEntry}" Width="70" />
+                                            <DataGridTextColumn Header="Channel" Binding="{Binding Channel}" Width="90" />
+                                            <DataGridTextColumn Header="Status" Binding="{Binding Status}" Width="90" />
+                                            <DataGridTextColumn Header="Output" Binding="{Binding OutputFile}" Width="210" />
+                                            <DataGridTextColumn Header="Error" Binding="{Binding LastError}" Width="*" />
+                                        </DataGrid.Columns>
+                                    </DataGrid>
+                                </DockPanel>
+                            </Border>
+                        </Grid>
+                    </Border>
+                </Grid>
+            </TabItem>
+
             <TabItem Header="Lifecycle / Samples">
                 <Grid Margin="0,14,0,0">
                     <Grid.ColumnDefinitions>
@@ -475,6 +558,91 @@
                 </Grid>
             </TabItem>
 
+            <TabItem Header="UF Visual Builder">
+                <ScrollViewer Margin="0,14,0,0" VerticalScrollBarVisibility="Auto">
+                    <Border Style="{StaticResource PanelStyle}">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="260" />
+                                <ColumnDefinition Width="18" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <StackPanel>
+                                <TextBlock Text="Target Function" Style="{StaticResource LabelStyle}" />
+                                <ComboBox ItemsSource="{Binding Functions}" SelectedItem="{Binding SelectedFunction}" DisplayMemberPath="Code" />
+                                <TextBlock Text="Type" Style="{StaticResource LabelStyle}" />
+                                <ComboBox ItemsSource="{Binding FunctionTypes}" SelectedItem="{Binding SelectedFunction.Type}" />
+                                <Button Content="Apply Builder" Command="{Binding ApplyUfBuilderCommand}" />
+                                <TextBlock Text="Condition" Style="{StaticResource LabelStyle}" Margin="0,14,0,4" />
+                                <TextBox Text="{Binding UfBuilder.Condition, UpdateSourceTrigger=PropertyChanged}" AcceptsReturn="True" Height="70" />
+                                <TextBlock Text="Result / Branching" Style="{StaticResource LabelStyle}" />
+                                <TextBox Text="{Binding UfBuilder.ResultVariable, UpdateSourceTrigger=PropertyChanged}" />
+                                <TextBox Text="{Binding UfBuilder.OnSuccess, UpdateSourceTrigger=PropertyChanged}" />
+                                <TextBox Text="{Binding UfBuilder.OnError, UpdateSourceTrigger=PropertyChanged}" />
+                            </StackPanel>
+                            <TabControl Grid.Column="2">
+                                <TabItem Header="HTTP">
+                                    <StackPanel Margin="12">
+                                        <TextBlock Text="URL / Method" Style="{StaticResource LabelStyle}" />
+                                        <TextBox Text="{Binding UfBuilder.HttpUrl, UpdateSourceTrigger=PropertyChanged}" />
+                                        <ComboBox Text="{Binding UfBuilder.HttpMethod, UpdateSourceTrigger=PropertyChanged}" IsEditable="True">
+                                            <ComboBoxItem Content="GET" />
+                                            <ComboBoxItem Content="POST" />
+                                            <ComboBoxItem Content="PUT" />
+                                            <ComboBoxItem Content="PATCH" />
+                                            <ComboBoxItem Content="DELETE" />
+                                        </ComboBox>
+                                        <TextBlock Text="Headers JSON or key=value|" Style="{StaticResource LabelStyle}" />
+                                        <TextBox Text="{Binding UfBuilder.HttpHeaders, UpdateSourceTrigger=PropertyChanged}" AcceptsReturn="True" Height="70" FontFamily="Consolas" />
+                                        <TextBlock Text="Auth" Style="{StaticResource LabelStyle}" />
+                                        <UniformGrid Columns="3">
+                                            <TextBox Text="{Binding UfBuilder.HttpAuthMode, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,8,10" />
+                                            <TextBox Text="{Binding UfBuilder.HttpAuthUser, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,8,10" />
+                                            <TextBox Text="{Binding UfBuilder.HttpAuthSecret, UpdateSourceTrigger=PropertyChanged}" />
+                                        </UniformGrid>
+                                        <TextBlock Text="Body" Style="{StaticResource LabelStyle}" />
+                                        <TextBox Text="{Binding UfBuilder.HttpBody, UpdateSourceTrigger=PropertyChanged}" AcceptsReturn="True" Height="120" FontFamily="Consolas" />
+                                    </StackPanel>
+                                </TabItem>
+                                <TabItem Header="DI Object">
+                                    <StackPanel Margin="12">
+                                        <TextBlock Text="Object / Mode / Key" Style="{StaticResource LabelStyle}" />
+                                        <UniformGrid Columns="3">
+                                            <TextBox Text="{Binding UfBuilder.DiObjectType, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,8,10" />
+                                            <TextBox Text="{Binding UfBuilder.DiMode, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,8,10" />
+                                            <TextBox Text="{Binding UfBuilder.DiKey, UpdateSourceTrigger=PropertyChanged}" />
+                                        </UniformGrid>
+                                        <TextBlock Text="Fields JSON" Style="{StaticResource LabelStyle}" />
+                                        <TextBox Text="{Binding UfBuilder.DiFieldsJson, UpdateSourceTrigger=PropertyChanged}" AcceptsReturn="True" Height="120" FontFamily="Consolas" />
+                                        <TextBlock Text="User Fields JSON" Style="{StaticResource LabelStyle}" />
+                                        <TextBox Text="{Binding UfBuilder.DiUserFieldsJson, UpdateSourceTrigger=PropertyChanged}" AcceptsReturn="True" Height="120" FontFamily="Consolas" />
+                                    </StackPanel>
+                                </TabItem>
+                                <TabItem Header="Report / Email / File / Loop">
+                                    <StackPanel Margin="12">
+                                        <TextBlock Text="Email Template Code" Style="{StaticResource LabelStyle}" />
+                                        <TextBox Text="{Binding UfBuilder.EmailTemplateCode, UpdateSourceTrigger=PropertyChanged}" />
+                                        <TextBlock Text="Report Code / Params" Style="{StaticResource LabelStyle}" />
+                                        <TextBox Text="{Binding UfBuilder.ReportCode, UpdateSourceTrigger=PropertyChanged}" />
+                                        <TextBox Text="{Binding UfBuilder.ReportParameters, UpdateSourceTrigger=PropertyChanged}" AcceptsReturn="True" Height="70" FontFamily="Consolas" />
+                                        <TextBlock Text="File Action" Style="{StaticResource LabelStyle}" />
+                                        <UniformGrid Columns="3">
+                                            <TextBox Text="{Binding UfBuilder.FilePath, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,8,10" />
+                                            <TextBox Text="{Binding UfBuilder.FileAction, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,8,10" />
+                                            <TextBox Text="{Binding UfBuilder.FileTarget, UpdateSourceTrigger=PropertyChanged}" />
+                                        </UniformGrid>
+                                        <TextBox Text="{Binding UfBuilder.FileContent, UpdateSourceTrigger=PropertyChanged}" AcceptsReturn="True" Height="70" FontFamily="Consolas" />
+                                        <TextBlock Text="Line Loop" Style="{StaticResource LabelStyle}" />
+                                        <TextBox Text="{Binding UfBuilder.MatrixId, UpdateSourceTrigger=PropertyChanged}" />
+                                        <TextBox Text="{Binding UfBuilder.LoopMacro, UpdateSourceTrigger=PropertyChanged}" AcceptsReturn="True" Height="90" FontFamily="Consolas" />
+                                    </StackPanel>
+                                </TabItem>
+                            </TabControl>
+                        </Grid>
+                    </Border>
+                </ScrollViewer>
+            </TabItem>
+
             <TabItem Header="Event Triggers">
                 <Grid Margin="0,14,0,0">
                     <Grid.ColumnDefinitions>
@@ -539,6 +707,114 @@
                                 <TextBox Text="{Binding DeniedGroups, UpdateSourceTrigger=PropertyChanged}" />
                             </StackPanel>
                         </Grid>
+                    </Border>
+                </Grid>
+            </TabItem>
+
+            <TabItem Header="Validation Advanced">
+                <Grid Margin="0,14,0,0">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="420" />
+                        <ColumnDefinition Width="18" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+                    <Border Style="{StaticResource PanelStyle}">
+                        <StackPanel>
+                            <TextBlock Text="Visual Condition Designer" FontSize="16" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,12" />
+                            <TextBlock Text="Form / Item / Column" Style="{StaticResource LabelStyle}" />
+                            <UniformGrid Columns="3">
+                                <TextBox Text="{Binding ValidationBuilder.FormType, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,8,10" />
+                                <TextBox Text="{Binding ValidationBuilder.ItemId, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,8,10" />
+                                <TextBox Text="{Binding ValidationBuilder.ColumnId, UpdateSourceTrigger=PropertyChanged}" />
+                            </UniformGrid>
+                            <TextBlock Text="Operator / Value / Event" Style="{StaticResource LabelStyle}" />
+                            <UniformGrid Columns="3">
+                                <ComboBox ItemsSource="{Binding ValidationOperators}" SelectedItem="{Binding ValidationBuilder.Operator}" Margin="0,0,8,10" />
+                                <TextBox Text="{Binding ValidationBuilder.CompareValue, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,8,10" />
+                                <TextBox Text="{Binding ValidationBuilder.EventType, UpdateSourceTrigger=PropertyChanged}" />
+                            </UniformGrid>
+                            <TextBlock Text="Severity" Style="{StaticResource LabelStyle}" />
+                            <ComboBox ItemsSource="{Binding ValidationSeverities}" SelectedItem="{Binding ValidationBuilder.Severity}" />
+                            <CheckBox Content="Matrix line validation" IsChecked="{Binding ValidationBuilder.MatrixLineValidation}" Margin="0,4,0,8" />
+                            <CheckBox Content="Requires confirmation" IsChecked="{Binding ValidationBuilder.RequiresConfirmation}" Margin="0,0,0,8" />
+                            <TextBlock Text="Messages ES / EN" Style="{StaticResource LabelStyle}" />
+                            <TextBox Text="{Binding ValidationBuilder.MessageEs, UpdateSourceTrigger=PropertyChanged}" />
+                            <TextBox Text="{Binding ValidationBuilder.MessageEn, UpdateSourceTrigger=PropertyChanged}" />
+                            <TextBlock Text="Auto-fix Macro / Confirm Text" Style="{StaticResource LabelStyle}" />
+                            <TextBox Text="{Binding ValidationBuilder.AutoFixMacro, UpdateSourceTrigger=PropertyChanged}" />
+                            <TextBox Text="{Binding ValidationBuilder.ConfirmText, UpdateSourceTrigger=PropertyChanged}" />
+                            <Button Content="Create Validation Rule" Command="{Binding BuildValidationRuleCommand}" />
+                        </StackPanel>
+                    </Border>
+                    <Border Grid.Column="2" Style="{StaticResource PanelStyle}">
+                        <DockPanel>
+                            <StackPanel DockPanel.Dock="Top" Orientation="Horizontal">
+                                <Button Content="Install Template" Command="{Binding InstallValidationTemplateCommand}" />
+                            </StackPanel>
+                            <DataGrid ItemsSource="{Binding ValidationTemplates}" SelectedItem="{Binding SelectedValidationTemplate}" AutoGenerateColumns="False" CanUserAddRows="False" Margin="0,12,0,0">
+                                <DataGrid.Columns>
+                                    <DataGridTextColumn Header="Process" Binding="{Binding Process}" Width="120" />
+                                    <DataGridTextColumn Header="Code" Binding="{Binding Code}" Width="150" />
+                                    <DataGridTextColumn Header="Name" Binding="{Binding Name}" Width="220" />
+                                    <DataGridTextColumn Header="Severity" Binding="{Binding Severity}" Width="90" />
+                                    <DataGridTextColumn Header="Message" Binding="{Binding Message}" Width="*" />
+                                </DataGrid.Columns>
+                            </DataGrid>
+                        </DockPanel>
+                    </Border>
+                </Grid>
+            </TabItem>
+
+            <TabItem Header="Placement WYSIWYG">
+                <Grid Margin="0,14,0,0">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                        <RowDefinition Height="180" />
+                    </Grid.RowDefinitions>
+                    <Border Style="{StaticResource PanelStyle}">
+                        <DockPanel>
+                            <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
+                                <Button Content="Capture Active Form" Command="{Binding CapturePlacementCommand}" />
+                                <Button Content="Snap" Command="{Binding SnapPlacementCommand}" />
+                                <Button Content="Undo" Command="{Binding UndoPlacementCommand}" />
+                                <Button Content="Preview" Command="{Binding PreviewPlacementCommand}" />
+                                <Button Content="Save Version" Command="{Binding SavePlacementVersionCommand}" />
+                            </StackPanel>
+                            <UniformGrid Columns="4" Margin="0,0,12,0">
+                                <TextBox Text="{Binding PlacementFormType, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,8,0" />
+                                <TextBox Text="{Binding PlacementUser, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,8,0" />
+                                <TextBox Text="{Binding PlacementRole, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,8,0" />
+                                <TextBox Text="{Binding PlacementBranch, UpdateSourceTrigger=PropertyChanged}" />
+                            </UniformGrid>
+                        </DockPanel>
+                    </Border>
+                    <Border Grid.Row="1" Style="{StaticResource PanelStyle}" Margin="0,14,0,14">
+                        <DataGrid ItemsSource="{Binding PlacementItems}" AutoGenerateColumns="False" CanUserAddRows="False">
+                            <DataGrid.Columns>
+                                <DataGridTextColumn Header="Item" Binding="{Binding ItemId}" Width="120" />
+                                <DataGridTextColumn Header="Caption" Binding="{Binding Caption}" Width="180" />
+                                <DataGridTextColumn Header="Type" Binding="{Binding ItemType}" Width="120" />
+                                <DataGridTextColumn Header="Left" Binding="{Binding Left}" Width="70" />
+                                <DataGridTextColumn Header="Top" Binding="{Binding Top}" Width="70" />
+                                <DataGridTextColumn Header="Width" Binding="{Binding Width}" Width="70" />
+                                <DataGridTextColumn Header="Height" Binding="{Binding Height}" Width="70" />
+                                <DataGridTextColumn Header="From" Binding="{Binding FromPane}" Width="65" />
+                                <DataGridTextColumn Header="To" Binding="{Binding ToPane}" Width="65" />
+                                <DataGridCheckBoxColumn Header="Visible" Binding="{Binding Visible}" Width="70" />
+                                <DataGridCheckBoxColumn Header="Enabled" Binding="{Binding Enabled}" Width="70" />
+                            </DataGrid.Columns>
+                        </DataGrid>
+                    </Border>
+                    <Border Grid.Row="2" Style="{StaticResource PanelStyle}">
+                        <DataGrid ItemsSource="{Binding PlacementDiff}" AutoGenerateColumns="False" CanUserAddRows="False">
+                            <DataGrid.Columns>
+                                <DataGridTextColumn Header="Item" Binding="{Binding ItemId}" Width="150" />
+                                <DataGridTextColumn Header="Property" Binding="{Binding Property}" Width="120" />
+                                <DataGridTextColumn Header="Before" Binding="{Binding Before}" Width="160" />
+                                <DataGridTextColumn Header="After" Binding="{Binding After}" Width="*" />
+                            </DataGrid.Columns>
+                        </DataGrid>
                     </Border>
                 </Grid>
             </TabItem>

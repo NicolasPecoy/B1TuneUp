@@ -28,6 +28,10 @@ namespace B1TuneUp.Modules.ConfigCenter
         private readonly ObservableCollection<FunctionalTemplateEntry> _samples = new ObservableCollection<FunctionalTemplateEntry>();
         private readonly ObservableCollection<WorkerJobEntry> _workerJobs = new ObservableCollection<WorkerJobEntry>();
         private readonly ObservableCollection<PrintDeliveryQueueEntry> _printDeliveryQueue = new ObservableCollection<PrintDeliveryQueueEntry>();
+        private readonly ObservableCollection<ValidationTemplateEntry> _validationTemplates = new ObservableCollection<ValidationTemplateEntry>();
+        private readonly ObservableCollection<PlacementDesignerItem> _placementItems = new ObservableCollection<PlacementDesignerItem>();
+        private readonly ObservableCollection<PlacementDiffEntry> _placementDiff = new ObservableCollection<PlacementDiffEntry>();
+        private readonly ObservableCollection<PrintDeliveryRuleEntry> _printDeliveryRules = new ObservableCollection<PrintDeliveryRuleEntry>();
         private ModuleConfigurationEntry _selectedModule;
         private UniversalFunctionEntry _selectedFunction;
         private AuthorizationGroupEntry _selectedGroup;
@@ -39,6 +43,15 @@ namespace B1TuneUp.Modules.ConfigCenter
         private string _globalSearchText;
         private string _licenseKey;
         private string _simulationResult;
+        private UniversalFunctionDesignerState _ufBuilder = new UniversalFunctionDesignerState();
+        private ValidationConditionBuilderState _validationBuilder = new ValidationConditionBuilderState();
+        private ValidationTemplateEntry _selectedValidationTemplate;
+        private PrintDeliveryRuleEntry _selectedPrintDeliveryRule;
+        private PrintDeliveryQueueEntry _selectedPrintDeliveryQueue;
+        private string _placementFormType;
+        private string _placementUser;
+        private string _placementRole;
+        private string _placementBranch;
         private string _superUsers;
         private string _statusMessage;
         private bool _isBusy;
@@ -78,6 +91,18 @@ namespace B1TuneUp.Modules.ConfigCenter
             StartWorkerCommand = new RelayCommand(StartWorker);
             StopWorkerCommand = new RelayCommand(StopWorker);
             RunWorkerTickCommand = new RelayCommand(async () => await RunWorkerTickAsync());
+            ApplyUfBuilderCommand = new RelayCommand(async () => await ApplyUfBuilderAsync(), () => SelectedFunction != null);
+            BuildValidationRuleCommand = new RelayCommand(async () => await BuildValidationRuleAsync());
+            InstallValidationTemplateCommand = new RelayCommand(async () => await InstallValidationTemplateAsync(), () => SelectedValidationTemplate != null);
+            CapturePlacementCommand = new RelayCommand(CapturePlacement);
+            SnapPlacementCommand = new RelayCommand(SnapPlacement);
+            UndoPlacementCommand = new RelayCommand(UndoPlacement);
+            PreviewPlacementCommand = new RelayCommand(PreviewPlacement);
+            SavePlacementVersionCommand = new RelayCommand(async () => await SavePlacementVersionAsync());
+            NewPrintDeliveryRuleCommand = new RelayCommand(NewPrintDeliveryRule);
+            SavePrintDeliveryRuleCommand = new RelayCommand(async () => await SavePrintDeliveryRuleAsync(), () => SelectedPrintDeliveryRule != null);
+            EnqueuePrintDeliveryRuleCommand = new RelayCommand(async () => await EnqueuePrintDeliveryRuleAsync(), () => SelectedPrintDeliveryRule != null);
+            ResendPrintDeliveryCommand = new RelayCommand(async () => await ResendPrintDeliveryAsync(), () => SelectedPrintDeliveryQueue != null);
         }
 
         public ObservableCollection<ModuleConfigurationEntry> Modules => _modules;
@@ -95,8 +120,14 @@ namespace B1TuneUp.Modules.ConfigCenter
         public ObservableCollection<FunctionalTemplateEntry> Samples => _samples;
         public ObservableCollection<WorkerJobEntry> WorkerJobs => _workerJobs;
         public ObservableCollection<PrintDeliveryQueueEntry> PrintDeliveryQueue => _printDeliveryQueue;
+        public ObservableCollection<ValidationTemplateEntry> ValidationTemplates => _validationTemplates;
+        public ObservableCollection<PlacementDesignerItem> PlacementItems => _placementItems;
+        public ObservableCollection<PlacementDiffEntry> PlacementDiff => _placementDiff;
+        public ObservableCollection<PrintDeliveryRuleEntry> PrintDeliveryRules => _printDeliveryRules;
         public string[] FunctionTypes => UniversalFunctionService.SupportedTypes;
         public string[] TriggerEvents => UnifiedTriggerService.SupportedEvents;
+        public string[] ValidationOperators => ValidationAdvancedDesignerService.Operators;
+        public string[] ValidationSeverities => ValidationAdvancedDesignerService.Severities;
 
         public ModuleConfigurationEntry SelectedModule
         {
@@ -188,6 +219,79 @@ namespace B1TuneUp.Modules.ConfigCenter
             set { if (_lifecycleInfo == value) return; _lifecycleInfo = value; OnPropertyChanged(); }
         }
 
+        public UniversalFunctionDesignerState UfBuilder
+        {
+            get => _ufBuilder;
+            set { if (_ufBuilder == value) return; _ufBuilder = value; OnPropertyChanged(); }
+        }
+
+        public ValidationConditionBuilderState ValidationBuilder
+        {
+            get => _validationBuilder;
+            set { if (_validationBuilder == value) return; _validationBuilder = value; OnPropertyChanged(); }
+        }
+
+        public ValidationTemplateEntry SelectedValidationTemplate
+        {
+            get => _selectedValidationTemplate;
+            set
+            {
+                if (_selectedValidationTemplate == value) return;
+                _selectedValidationTemplate = value;
+                OnPropertyChanged();
+                InstallValidationTemplateCommand.RaiseCanExecuteChanged();
+            }
+        }
+
+        public PrintDeliveryRuleEntry SelectedPrintDeliveryRule
+        {
+            get => _selectedPrintDeliveryRule;
+            set
+            {
+                if (_selectedPrintDeliveryRule == value) return;
+                _selectedPrintDeliveryRule = value;
+                OnPropertyChanged();
+                SavePrintDeliveryRuleCommand.RaiseCanExecuteChanged();
+                EnqueuePrintDeliveryRuleCommand.RaiseCanExecuteChanged();
+            }
+        }
+
+        public PrintDeliveryQueueEntry SelectedPrintDeliveryQueue
+        {
+            get => _selectedPrintDeliveryQueue;
+            set
+            {
+                if (_selectedPrintDeliveryQueue == value) return;
+                _selectedPrintDeliveryQueue = value;
+                OnPropertyChanged();
+                ResendPrintDeliveryCommand.RaiseCanExecuteChanged();
+            }
+        }
+
+        public string PlacementFormType
+        {
+            get => _placementFormType;
+            set { if (_placementFormType == value) return; _placementFormType = value; OnPropertyChanged(); }
+        }
+
+        public string PlacementUser
+        {
+            get => _placementUser;
+            set { if (_placementUser == value) return; _placementUser = value; OnPropertyChanged(); }
+        }
+
+        public string PlacementRole
+        {
+            get => _placementRole;
+            set { if (_placementRole == value) return; _placementRole = value; OnPropertyChanged(); }
+        }
+
+        public string PlacementBranch
+        {
+            get => _placementBranch;
+            set { if (_placementBranch == value) return; _placementBranch = value; OnPropertyChanged(); }
+        }
+
         public string GlobalSearchText
         {
             get => _globalSearchText;
@@ -257,6 +361,18 @@ namespace B1TuneUp.Modules.ConfigCenter
         public RelayCommand StartWorkerCommand { get; }
         public RelayCommand StopWorkerCommand { get; }
         public RelayCommand RunWorkerTickCommand { get; }
+        public RelayCommand ApplyUfBuilderCommand { get; }
+        public RelayCommand BuildValidationRuleCommand { get; }
+        public RelayCommand InstallValidationTemplateCommand { get; }
+        public RelayCommand CapturePlacementCommand { get; }
+        public RelayCommand SnapPlacementCommand { get; }
+        public RelayCommand UndoPlacementCommand { get; }
+        public RelayCommand PreviewPlacementCommand { get; }
+        public RelayCommand SavePlacementVersionCommand { get; }
+        public RelayCommand NewPrintDeliveryRuleCommand { get; }
+        public RelayCommand SavePrintDeliveryRuleCommand { get; }
+        public RelayCommand EnqueuePrintDeliveryRuleCommand { get; }
+        public RelayCommand ResendPrintDeliveryCommand { get; }
 
         public event PropertyChangedEventHandler PropertyChanged;
 
@@ -279,6 +395,8 @@ namespace B1TuneUp.Modules.ConfigCenter
                 Replace(_samples, FunctionalTemplateService.GetSamples());
                 Replace(_workerJobs, WorkerQueueService.GetAll());
                 Replace(_printDeliveryQueue, PrintDeliveryQueueService.GetAll());
+                Replace(_validationTemplates, ValidationAdvancedDesignerService.GetTemplates());
+                Replace(_printDeliveryRules, PrintDeliveryRulesService.GetAll());
                 LifecycleInfo = ProductLifecycleService.GetInfo();
                 LicenseKey = string.Empty;
                 SuperUsers = AuthorizationAdminService.GetSuperUsers();
@@ -289,6 +407,9 @@ namespace B1TuneUp.Modules.ConfigCenter
                 SelectedSapUser = SapUsers.FirstOrDefault();
                 SelectedSearchResult = SearchResults.FirstOrDefault();
                 SelectedSample = Samples.FirstOrDefault();
+                SelectedValidationTemplate = ValidationTemplates.FirstOrDefault();
+                SelectedPrintDeliveryRule = PrintDeliveryRules.FirstOrDefault();
+                SelectedPrintDeliveryQueue = PrintDeliveryQueue.FirstOrDefault();
                 StatusMessage = "Configuracion cargada.";
             });
         }
@@ -618,6 +739,126 @@ namespace B1TuneUp.Modules.ConfigCenter
                 Replace(_workerJobs, WorkerQueueService.GetAll());
                 Replace(_printDeliveryQueue, PrintDeliveryQueueService.GetAll());
                 StatusMessage = "Worker ejecutado.";
+            });
+        }
+
+        private async Task ApplyUfBuilderAsync()
+        {
+            if (SelectedFunction == null) return;
+            await RunAsync("Aplicando builder de Universal Function...", () =>
+            {
+                UniversalFunctionDesignerService.ApplyBuilder(SelectedFunction, UfBuilder, SelectedFunction.Type);
+                UniversalFunctionService.Save(SelectedFunction);
+                StatusMessage = $"Builder aplicado a '{SelectedFunction.Code}'.";
+            });
+        }
+
+        private async Task BuildValidationRuleAsync()
+        {
+            await RunAsync("Creando validacion visual...", () =>
+            {
+                var rule = ValidationAdvancedDesignerService.BuildRule(ValidationBuilder);
+                ValidationRuleService.Save(rule);
+                StatusMessage = $"Validacion '{rule.Code}' creada.";
+            });
+        }
+
+        private async Task InstallValidationTemplateAsync()
+        {
+            if (SelectedValidationTemplate == null) return;
+            await RunAsync("Instalando plantilla de validacion...", () =>
+            {
+                ValidationBuilder.Severity = SelectedValidationTemplate.Severity;
+                ValidationBuilder.CompareValue = SelectedValidationTemplate.Condition;
+                ValidationBuilder.MessageEs = SelectedValidationTemplate.Message;
+                ValidationBuilder.AutoFixMacro = SelectedValidationTemplate.Action;
+                var rule = ValidationAdvancedDesignerService.BuildRule(ValidationBuilder);
+                rule.Name = SelectedValidationTemplate.Name;
+                rule.Condition = SelectedValidationTemplate.Condition.Replace("{value}", $"$[{ValidationBuilder.ItemId}.0.0]");
+                rule.Action = string.IsNullOrWhiteSpace(SelectedValidationTemplate.Action) ? rule.Action : SelectedValidationTemplate.Action;
+                ValidationRuleService.Save(rule);
+                StatusMessage = $"Plantilla '{SelectedValidationTemplate.Code}' instalada.";
+            });
+        }
+
+        private void CapturePlacement()
+        {
+            var items = PlacementWysiwygService.CaptureActiveForm();
+            Replace(_placementItems, items);
+            PlacementFormType = B1TuneUp.Utils.SapUiSafe.TryGetActiveForm()?.TypeEx;
+            Replace(_placementDiff, Enumerable.Empty<PlacementDiffEntry>());
+            StatusMessage = $"{PlacementItems.Count} items capturados.";
+        }
+
+        private void SnapPlacement()
+        {
+            var before = PlacementItems.Select(i => i).ToList();
+            var snapped = PlacementWysiwygService.Snap(PlacementItems.ToList(), 5);
+            Replace(_placementItems, snapped);
+            Replace(_placementDiff, PlacementWysiwygService.Diff(before, snapped));
+            StatusMessage = "Snap aplicado.";
+        }
+
+        private void UndoPlacement()
+        {
+            Replace(_placementItems, PlacementWysiwygService.Undo());
+            StatusMessage = "Undo aplicado.";
+        }
+
+        private void PreviewPlacement()
+        {
+            PlacementWysiwygService.Preview(PlacementItems.ToList(), PlacementUser, PlacementRole, PlacementBranch);
+            StatusMessage = "Preview aplicado al formulario activo.";
+        }
+
+        private async Task SavePlacementVersionAsync()
+        {
+            await RunAsync("Guardando version visual...", () =>
+            {
+                PlacementWysiwygService.SaveVersion(PlacementItems.ToList(), PlacementFormType, PlacementUser, PlacementRole, PlacementBranch);
+                StatusMessage = "Version visual guardada.";
+            });
+        }
+
+        private void NewPrintDeliveryRule()
+        {
+            var rule = new PrintDeliveryRuleEntry { Code = "NEW_PD_RULE", Name = "New Print Delivery Rule", Channel = "Email", Active = true };
+            PrintDeliveryRules.Add(rule);
+            SelectedPrintDeliveryRule = rule;
+        }
+
+        private async Task SavePrintDeliveryRuleAsync()
+        {
+            if (SelectedPrintDeliveryRule == null) return;
+            await RunAsync("Guardando regla Print & Delivery...", () =>
+            {
+                PrintDeliveryRulesService.Save(SelectedPrintDeliveryRule);
+                Replace(_printDeliveryRules, PrintDeliveryRulesService.GetAll());
+                StatusMessage = "Regla Print & Delivery guardada.";
+            });
+        }
+
+        private async Task EnqueuePrintDeliveryRuleAsync()
+        {
+            if (SelectedPrintDeliveryRule == null) return;
+            await RunAsync("Encolando Print & Delivery...", () =>
+            {
+                PrintDeliveryRulesService.EnqueueFromRule(SelectedPrintDeliveryRule, "0", SelectedPrintDeliveryRule.CardCode);
+                Replace(_printDeliveryQueue, PrintDeliveryQueueService.GetAll());
+                Replace(_workerJobs, WorkerQueueService.GetAll());
+                StatusMessage = "Print & Delivery encolado.";
+            });
+        }
+
+        private async Task ResendPrintDeliveryAsync()
+        {
+            if (SelectedPrintDeliveryQueue == null) return;
+            await RunAsync("Reenviando Print & Delivery...", () =>
+            {
+                PrintDeliveryRulesService.Resend(SelectedPrintDeliveryQueue.Code);
+                Replace(_printDeliveryQueue, PrintDeliveryQueueService.GetAll());
+                Replace(_workerJobs, WorkerQueueService.GetAll());
+                StatusMessage = "Print & Delivery reenviado.";
             });
         }
 

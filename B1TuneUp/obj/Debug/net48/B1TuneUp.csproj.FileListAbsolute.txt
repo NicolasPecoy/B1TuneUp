@@ -90,3 +90,4 @@ E:\B1TuneUp\B1TuneUp\obj\Debug\net48\B1TuneUp\Modules\ActionPadInlineDesigner\Ac
 E:\B1TuneUp\B1TuneUp\obj\Debug\net48\B1TuneUp\Modules\ActionPadInlineDesigner\ActionPadInlineDesignerWindow.g.cs
 E:\B1TuneUp\B1TuneUp\obj\Debug\net48\B1TuneUp\Modules\ConfigCenter\ConfigCenterWindow.baml
 E:\B1TuneUp\B1TuneUp\obj\Debug\net48\B1TuneUp\Modules\ConfigCenter\ConfigCenterWindow.g.cs
+E:\B1TuneUp\B1TuneUp\obj\Debug\net48\B1TuneUp.sourcelink.json

@@ -20,6 +20,7 @@ using B1TuneUp.Modules.FormEnhancementUi;
 using B1TuneUp.Modules.AutomationDashboardUi;
 using B1TuneUp.Modules.PlacementEnhancementUi;
 using B1TuneUp.Modules.ConfigCenter;
+using B1TuneUp.Modules.ApiStudio;
 using B1TuneUp.Utils;
 using B1TuneUp.Modules.LanguageSelectorUi;
 
@@ -44,6 +45,7 @@ namespace B1TuneUp.Modules
         private const string AutomationDashboardMenuId = "BTUN_AUTOD";
         private const string PlacementEnhancementMenuId = "BTUN_ITEMUI";
         private const string ConfigCenterMenuId = "BTUN_CONFIG";
+        private const string ApiStudioMenuId = "BTUN_APISTD";
         private static Dictionary<string, string> _menuActions = new Dictionary<string, string>();
         private static readonly Color MenuIconBackground = ColorTranslator.FromHtml("#1F4E79");
         private static readonly Color MenuIconForeground = Color.White;
@@ -103,6 +105,7 @@ namespace B1TuneUp.Modules
                 EnsureAutomationDashboardMenu();
                 EnsurePlacementEnhancementMenu();
                 EnsureConfigCenterMenu();
+                EnsureApiStudioMenu();
             }
             catch { }
         }
@@ -762,6 +765,48 @@ namespace B1TuneUp.Modules
                 LogMenuError(ex, "EnsureConfigCenterMenu");
             }
         }
+
+        private static void EnsureApiStudioMenu()
+        {
+            var app = B1App.Instance.Application;
+            var menus = app.Menus;
+            if (menus.Exists(ApiStudioMenuId)) return;
+
+            string parentId = "43520";
+            MenuItem parent = null;
+            try { parent = menus.Item(parentId); } catch { }
+            if (parent == null)
+            {
+                try { parent = menus.Item("0"); } catch { }
+            }
+            if (parent == null) return;
+
+            try
+            {
+                MenuCreationParams creationParams = (MenuCreationParams)app.CreateObject(BoCreatableObjectType.cot_MenuCreationParams);
+                creationParams.Type = BoMenuType.mt_STRING;
+                creationParams.UniqueID = ApiStudioMenuId;
+                string caption = LocalizationManager.GetString("Menu.ApiStudio");
+                if (string.IsNullOrWhiteSpace(caption) || caption == "Menu.ApiStudio")
+                {
+                    caption = "API Studio";
+                }
+                creationParams.String = caption;
+                creationParams.Position = 9006;
+                parent.SubMenus.AddEx(creationParams);
+                var status = LocalizationManager.GetString("ApiStudio.Menu.Description");
+                if (string.IsNullOrWhiteSpace(status) || status == "ApiStudio.Menu.Description")
+                {
+                    status = "API Studio disponible en el menu.";
+                }
+                app.SetStatusBarMessage(status, BoMessageTime.bmt_Short, false);
+            }
+            catch (Exception ex)
+            {
+                app.SetStatusBarMessage($"Error creando API Studio: {ex.Message}", BoMessageTime.bmt_Short, true);
+                LogMenuError(ex, "EnsureApiStudioMenu");
+            }
+        }
         private static void ApplyMenuIcon(SAPbouiCOM.MenuCreationParams creationParams, string key, string label)
         {
             try
@@ -800,7 +845,15 @@ namespace B1TuneUp.Modules
                     LogMenuError(ex, $"HandleMenuEvent:{pVal.MenuUID}");
                 }
             }
-            else if (!pVal.BeforeAction && pVal.MenuUID == IntegrationMenuId)
+            else if (!pVal.BeforeAction && pVal.MenuUID == ApiStudioMenuId)
+            {
+                try { ApiStudioLauncher.Show(); }
+                catch (Exception ex)
+                {
+                    B1App.Instance.Application.SetStatusBarMessage($"Error abriendo API Studio: {ex.Message}", BoMessageTime.bmt_Short, true);
+                    LogMenuError(ex, $"HandleMenuEvent:{pVal.MenuUID}");
+                }
+            }            else if (!pVal.BeforeAction && pVal.MenuUID == IntegrationMenuId)
             {
                 try { IntegrationConfiguratorLauncher.Show(); }
                 catch (Exception ex)

@@ -24,6 +24,8 @@
   ,"Menu.Language":"Language"
   ,"Menu.IntegrationConfigurator":"Integration Studio"
   ,"Integration.Menu.Description":"Configure REST/SOAP integrations with a guided UI"
+  ,"Menu.ApiStudio":"API Studio"
+  ,"ApiStudio.Menu.Description":"Test APIs with collections, environments, history, and Postman-style debugging"
   ,"Menu.UiCustomizer":"UI Customizer"
   ,"UiCustomizer.Menu.Description":"Visual editor for SAP Business One form tweaks"
   ,"Menu.SchedulerStudio":"Scheduler Studio"

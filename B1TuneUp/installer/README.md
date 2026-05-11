@@ -7,6 +7,7 @@ Notes:
 Files:
 - build.ps1 - builds the project using MSBuild and packages the output into a zip
 - deploy.ps1 - copies files to a target directory and registers the add-on with SAP B1 registry keys (example)
+- install-worker-service.ps1 - installs/removes the external B1TuneUp worker Windows Service
 - uninstall.ps1 - removes deployed files and registry entries
 
 Before using: install WiX if you want MSI support, or adapt Inno Setup script for a full installer.
@@ -36,7 +37,27 @@ For your own premium/developer installation:
 3. Click **Generate Owner Premium**.
 4. Confirm that the license status changes to `LicensedPremium`.
 
-For customer deployments, generate the token outside the installed add-on and paste it with **Save License**. Do not ship a production signing secret with customer machines. In a real commercial setup, the signing secret should live in a private licensing portal or build/release system.
+For customer deployments, generate the token outside the installed add-on and paste it with **Save License**. Do not ship a production signing secret with customer machines.
+
+Commercial RSA tokens are also supported:
+
+```text
+B1TRSA.<payload-base64url>.<signature-base64url>
+```
+
+Run `B1TuneUp.LicensePortal` on a private admin server, call `GET /api/license/public-key`, store that XML in `PRODUCT_LICENSE_RSA_PUBLIC_KEY`, then issue licenses with `POST /api/license/activate` or the offline request/response endpoint.
+
+## Worker service
+
+The worker is built from `B1TuneUp.WorkerService` and can run without SAP Client open:
+
+```powershell
+B1TuneUp.WorkerService.exe --once
+B1TuneUp.WorkerService.exe
+powershell -ExecutionPolicy Bypass -File installer\install-worker-service.ps1 -InstallDir "C:\Program Files\B1TuneUp"
+```
+
+Configure queue DB, DI API reconnect, report bridge and print bridge in `B1TuneUp.WorkerService.exe.config`. Logs and heartbeat are written under the configured `LogDirectory`.
 
 ## Upgrade flow
 

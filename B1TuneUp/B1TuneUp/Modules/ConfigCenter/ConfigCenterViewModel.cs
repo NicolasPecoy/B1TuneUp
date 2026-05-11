@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using System.Windows;
 using B1TuneUp.Models;
 using B1TuneUp.Modules.IntegrationUi;
+using B1TuneUp.Utils;
 using Microsoft.Win32;
 
 namespace B1TuneUp.Modules.ConfigCenter
@@ -32,6 +33,12 @@ namespace B1TuneUp.Modules.ConfigCenter
         private readonly ObservableCollection<PlacementDesignerItem> _placementItems = new ObservableCollection<PlacementDesignerItem>();
         private readonly ObservableCollection<PlacementDiffEntry> _placementDiff = new ObservableCollection<PlacementDiffEntry>();
         private readonly ObservableCollection<PrintDeliveryRuleEntry> _printDeliveryRules = new ObservableCollection<PrintDeliveryRuleEntry>();
+        private readonly ObservableCollection<SearchConfigEntry> _searchConfigs = new ObservableCollection<SearchConfigEntry>();
+        private readonly ObservableCollection<AdvancedSearchResult> _searchStudioResults = new ObservableCollection<AdvancedSearchResult>();
+        private readonly ObservableCollection<SearchUsageEntry> _searchHistory = new ObservableCollection<SearchUsageEntry>();
+        private readonly ObservableCollection<SearchUsageEntry> _searchFavorites = new ObservableCollection<SearchUsageEntry>();
+        private readonly ObservableCollection<PldLayoutRuleEntry> _pldRules = new ObservableCollection<PldLayoutRuleEntry>();
+        private readonly ObservableCollection<SpoolJobEntry> _spoolJobs = new ObservableCollection<SpoolJobEntry>();
         private ModuleConfigurationEntry _selectedModule;
         private UniversalFunctionEntry _selectedFunction;
         private AuthorizationGroupEntry _selectedGroup;
@@ -48,11 +55,19 @@ namespace B1TuneUp.Modules.ConfigCenter
         private ValidationTemplateEntry _selectedValidationTemplate;
         private PrintDeliveryRuleEntry _selectedPrintDeliveryRule;
         private PrintDeliveryQueueEntry _selectedPrintDeliveryQueue;
+        private SearchConfigEntry _selectedSearchConfig;
+        private PldLayoutRuleEntry _selectedPldRule;
         private string _placementFormType;
         private string _placementUser;
         private string _placementRole;
         private string _placementBranch;
         private string _superUsers;
+        private string _searchStudioText;
+        private string _pldDocType;
+        private string _pldDocEntry;
+        private string _pldCardCode;
+        private string _pldLanguage;
+        private string _pldBranch;
         private string _statusMessage;
         private bool _isBusy;
 
@@ -103,6 +118,13 @@ namespace B1TuneUp.Modules.ConfigCenter
             SavePrintDeliveryRuleCommand = new RelayCommand(async () => await SavePrintDeliveryRuleAsync(), () => SelectedPrintDeliveryRule != null);
             EnqueuePrintDeliveryRuleCommand = new RelayCommand(async () => await EnqueuePrintDeliveryRuleAsync(), () => SelectedPrintDeliveryRule != null);
             ResendPrintDeliveryCommand = new RelayCommand(async () => await ResendPrintDeliveryAsync(), () => SelectedPrintDeliveryQueue != null);
+            NewSearchConfigCommand = new RelayCommand(NewSearchConfig);
+            SaveSearchConfigCommand = new RelayCommand(async () => await SaveSearchConfigAsync(), () => SelectedSearchConfig != null);
+            TestSearchConfigCommand = new RelayCommand(TestSearchConfig, () => SelectedSearchConfig != null);
+            FavoriteSearchCommand = new RelayCommand(FavoriteSearch, () => SelectedSearchConfig != null);
+            NewPldRuleCommand = new RelayCommand(NewPldRule);
+            SavePldRuleCommand = new RelayCommand(async () => await SavePldRuleAsync(), () => SelectedPldRule != null);
+            EnqueuePldSpoolCommand = new RelayCommand(async () => await EnqueuePldSpoolAsync());
         }
 
         public ObservableCollection<ModuleConfigurationEntry> Modules => _modules;
@@ -124,6 +146,12 @@ namespace B1TuneUp.Modules.ConfigCenter
         public ObservableCollection<PlacementDesignerItem> PlacementItems => _placementItems;
         public ObservableCollection<PlacementDiffEntry> PlacementDiff => _placementDiff;
         public ObservableCollection<PrintDeliveryRuleEntry> PrintDeliveryRules => _printDeliveryRules;
+        public ObservableCollection<SearchConfigEntry> SearchConfigs => _searchConfigs;
+        public ObservableCollection<AdvancedSearchResult> SearchStudioResults => _searchStudioResults;
+        public ObservableCollection<SearchUsageEntry> SearchHistory => _searchHistory;
+        public ObservableCollection<SearchUsageEntry> SearchFavorites => _searchFavorites;
+        public ObservableCollection<PldLayoutRuleEntry> PldRules => _pldRules;
+        public ObservableCollection<SpoolJobEntry> SpoolJobs => _spoolJobs;
         public string[] FunctionTypes => UniversalFunctionService.SupportedTypes;
         public string[] TriggerEvents => UnifiedTriggerService.SupportedEvents;
         public string[] ValidationOperators => ValidationAdvancedDesignerService.Operators;
@@ -268,6 +296,32 @@ namespace B1TuneUp.Modules.ConfigCenter
             }
         }
 
+        public SearchConfigEntry SelectedSearchConfig
+        {
+            get => _selectedSearchConfig;
+            set
+            {
+                if (_selectedSearchConfig == value) return;
+                _selectedSearchConfig = value;
+                OnPropertyChanged();
+                SaveSearchConfigCommand.RaiseCanExecuteChanged();
+                TestSearchConfigCommand.RaiseCanExecuteChanged();
+                FavoriteSearchCommand.RaiseCanExecuteChanged();
+            }
+        }
+
+        public PldLayoutRuleEntry SelectedPldRule
+        {
+            get => _selectedPldRule;
+            set
+            {
+                if (_selectedPldRule == value) return;
+                _selectedPldRule = value;
+                OnPropertyChanged();
+                SavePldRuleCommand.RaiseCanExecuteChanged();
+            }
+        }
+
         public string PlacementFormType
         {
             get => _placementFormType;
@@ -308,6 +362,42 @@ namespace B1TuneUp.Modules.ConfigCenter
         {
             get => _superUsers;
             set { if (_superUsers == value) return; _superUsers = value; OnPropertyChanged(); }
+        }
+
+        public string SearchStudioText
+        {
+            get => _searchStudioText;
+            set { if (_searchStudioText == value) return; _searchStudioText = value; OnPropertyChanged(); }
+        }
+
+        public string PldDocType
+        {
+            get => _pldDocType;
+            set { if (_pldDocType == value) return; _pldDocType = value; OnPropertyChanged(); }
+        }
+
+        public string PldDocEntry
+        {
+            get => _pldDocEntry;
+            set { if (_pldDocEntry == value) return; _pldDocEntry = value; OnPropertyChanged(); }
+        }
+
+        public string PldCardCode
+        {
+            get => _pldCardCode;
+            set { if (_pldCardCode == value) return; _pldCardCode = value; OnPropertyChanged(); }
+        }
+
+        public string PldLanguage
+        {
+            get => _pldLanguage;
+            set { if (_pldLanguage == value) return; _pldLanguage = value; OnPropertyChanged(); }
+        }
+
+        public string PldBranch
+        {
+            get => _pldBranch;
+            set { if (_pldBranch == value) return; _pldBranch = value; OnPropertyChanged(); }
         }
 
         public string StatusMessage
@@ -373,6 +463,13 @@ namespace B1TuneUp.Modules.ConfigCenter
         public RelayCommand SavePrintDeliveryRuleCommand { get; }
         public RelayCommand EnqueuePrintDeliveryRuleCommand { get; }
         public RelayCommand ResendPrintDeliveryCommand { get; }
+        public RelayCommand NewSearchConfigCommand { get; }
+        public RelayCommand SaveSearchConfigCommand { get; }
+        public RelayCommand TestSearchConfigCommand { get; }
+        public RelayCommand FavoriteSearchCommand { get; }
+        public RelayCommand NewPldRuleCommand { get; }
+        public RelayCommand SavePldRuleCommand { get; }
+        public RelayCommand EnqueuePldSpoolCommand { get; }
 
         public event PropertyChangedEventHandler PropertyChanged;
 
@@ -397,6 +494,12 @@ namespace B1TuneUp.Modules.ConfigCenter
                 Replace(_printDeliveryQueue, PrintDeliveryQueueService.GetAll());
                 Replace(_validationTemplates, ValidationAdvancedDesignerService.GetTemplates());
                 Replace(_printDeliveryRules, PrintDeliveryRulesService.GetAll());
+                Replace(_searchConfigs, SearchConfigService.GetAll());
+                Replace(_searchStudioResults, Enumerable.Empty<AdvancedSearchResult>());
+                Replace(_searchHistory, SearchProductService.GetHistory());
+                Replace(_searchFavorites, SearchProductService.GetFavorites());
+                Replace(_pldRules, PldIndustrialService.GetRules());
+                Replace(_spoolJobs, PldIndustrialService.GetSpool());
                 LifecycleInfo = ProductLifecycleService.GetInfo();
                 LicenseKey = string.Empty;
                 SuperUsers = AuthorizationAdminService.GetSuperUsers();
@@ -410,6 +513,8 @@ namespace B1TuneUp.Modules.ConfigCenter
                 SelectedValidationTemplate = ValidationTemplates.FirstOrDefault();
                 SelectedPrintDeliveryRule = PrintDeliveryRules.FirstOrDefault();
                 SelectedPrintDeliveryQueue = PrintDeliveryQueue.FirstOrDefault();
+                SelectedSearchConfig = SearchConfigs.FirstOrDefault();
+                SelectedPldRule = PldRules.FirstOrDefault();
                 StatusMessage = "Configuracion cargada.";
             });
         }
@@ -862,6 +967,88 @@ namespace B1TuneUp.Modules.ConfigCenter
             });
         }
 
+        private void NewSearchConfig()
+        {
+            var entry = new SearchConfigEntry
+            {
+                Code = "NEW_SEARCH",
+                Name = "New B1 Search",
+                Query = "SELECT TOP 50 CardCode AS [Key], CardName AS Title, CardType AS Subtitle FROM OCRD WHERE CardName LIKE '%{search}%'",
+                Active = true,
+                PageSize = 50,
+                CacheSeconds = 30
+            };
+            SearchConfigs.Add(entry);
+            SelectedSearchConfig = entry;
+        }
+
+        private async Task SaveSearchConfigAsync()
+        {
+            if (SelectedSearchConfig == null) return;
+            await RunAsync("Guardando busqueda...", () =>
+            {
+                SearchSqlSecurityService.ValidateSelectOnly(SelectedSearchConfig.Query);
+                SearchConfigService.Save(SelectedSearchConfig);
+                Replace(_searchConfigs, SearchConfigService.GetAll());
+                StatusMessage = "Busqueda guardada.";
+            });
+        }
+
+        private void TestSearchConfig()
+        {
+            if (SelectedSearchConfig == null) return;
+            try
+            {
+                SearchConfigService.Save(SelectedSearchConfig);
+                Replace(_searchStudioResults, AdvancedSearchService.Search(SearchStudioText, 0, SelectedSearchConfig.PageSize));
+                Replace(_searchHistory, SearchProductService.GetHistory());
+                StatusMessage = $"{SearchStudioResults.Count} resultados de prueba.";
+            }
+            catch (Exception ex)
+            {
+                ExceptionLogger.LogHandled(ex, "ConfigCenterViewModel.TestSearchConfig");
+                StatusMessage = ex.Message;
+                MessageBox.Show(ex.Message, "B1TuneUp", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+
+        private void FavoriteSearch()
+        {
+            if (SelectedSearchConfig == null) return;
+            SearchProductService.ToggleFavorite(SelectedSearchConfig.Code, SearchStudioText);
+            Replace(_searchFavorites, SearchProductService.GetFavorites());
+            StatusMessage = "Busqueda marcada como favorita para el usuario.";
+        }
+
+        private void NewPldRule()
+        {
+            var rule = new PldLayoutRuleEntry { Code = "NEW_PLD_RULE", Name = "New PLD/Crystal Rule", Active = true, LayoutType = "PLD", Priority = 50 };
+            PldRules.Add(rule);
+            SelectedPldRule = rule;
+        }
+
+        private async Task SavePldRuleAsync()
+        {
+            if (SelectedPldRule == null) return;
+            await RunAsync("Guardando regla PLD/Crystal...", () =>
+            {
+                PldIndustrialService.SaveRule(SelectedPldRule);
+                Replace(_pldRules, PldIndustrialService.GetRules());
+                StatusMessage = "Regla PLD/Crystal guardada.";
+            });
+        }
+
+        private async Task EnqueuePldSpoolAsync()
+        {
+            await RunAsync("Encolando spool PLD/Crystal...", () =>
+            {
+                PldIndustrialService.Enqueue(PldDocType, PldDocEntry, PldCardCode, PldLanguage, PldBranch);
+                Replace(_spoolJobs, PldIndustrialService.GetSpool());
+                Replace(_workerJobs, WorkerQueueService.GetAll());
+                StatusMessage = "Spool PLD/Crystal encolado.";
+            });
+        }
+
         private async Task RunAsync(string busyMessage, Action action)
         {
             try
@@ -872,6 +1059,7 @@ namespace B1TuneUp.Modules.ConfigCenter
             }
             catch (Exception ex)
             {
+                ExceptionLogger.LogHandled(ex, "ConfigCenterViewModel.RunAsync:" + busyMessage);
                 StatusMessage = ex.Message;
                 MessageBox.Show(ex.Message, "B1TuneUp", MessageBoxButton.OK, MessageBoxImage.Error);
             }

@@ -4,6 +4,10 @@ VisualStudioVersion = 17.5.2.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "B1TuneUp", "B1TuneUp.csproj", "{3245BEBA-4E20-3B8C-BEAC-2A7845F26718}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "B1TuneUp.WorkerService", "B1TuneUp.WorkerService\B1TuneUp.WorkerService.csproj", "{0BB9D5D3-2DBB-4F4D-8BF8-BE2C3B2B5C44}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "B1TuneUp.LicensePortal", "B1TuneUp.LicensePortal\B1TuneUp.LicensePortal.csproj", "{B5CF6B2A-2D1C-4D9A-BE6C-66A8E627F12C}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -14,6 +18,14 @@ Global
 		{3245BEBA-4E20-3B8C-BEAC-2A7845F26718}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{3245BEBA-4E20-3B8C-BEAC-2A7845F26718}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{3245BEBA-4E20-3B8C-BEAC-2A7845F26718}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0BB9D5D3-2DBB-4F4D-8BF8-BE2C3B2B5C44}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0BB9D5D3-2DBB-4F4D-8BF8-BE2C3B2B5C44}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0BB9D5D3-2DBB-4F4D-8BF8-BE2C3B2B5C44}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0BB9D5D3-2DBB-4F4D-8BF8-BE2C3B2B5C44}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B5CF6B2A-2D1C-4D9A-BE6C-66A8E627F12C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B5CF6B2A-2D1C-4D9A-BE6C-66A8E627F12C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B5CF6B2A-2D1C-4D9A-BE6C-66A8E627F12C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B5CF6B2A-2D1C-4D9A-BE6C-66A8E627F12C}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

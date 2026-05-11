@@ -7,6 +7,9 @@ namespace B1TuneUp.Models
         public string Query { get; set; }
         public string Action { get; set; }
         public string Description { get; set; }
+        public string FormType { get; set; }
+        public string AutocompleteField { get; set; }
+        public string ResultActions { get; set; }
         public string Category { get; set; }
         public string Tags { get; set; }
         public string AllowedUsers { get; set; }

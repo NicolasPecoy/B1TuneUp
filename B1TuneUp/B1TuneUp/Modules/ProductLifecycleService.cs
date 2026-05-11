@@ -17,8 +17,11 @@ namespace B1TuneUp.Modules
         private const string LicenseKeyCode = "PRODUCT_LICENSE_KEY";
         private const string OwnerSigningSecretCode = "PRODUCT_LICENSE_OWNER_SECRET";
         private const string TrialStartCode = "PRODUCT_TRIAL_START";
+        private const string RsaPublicKeyCode = "PRODUCT_LICENSE_RSA_PUBLIC_KEY";
+        private const string RevokedLicensesCode = "PRODUCT_LICENSE_REVOKED_IDS";
         private const string MinimumSapVersion = "10.0";
         private const string LicensePrefix = "B1TL1";
+        private const string RsaLicensePrefix = "B1TRSA";
         private static readonly JsonSerializerOptions JsonOptions = new JsonSerializerOptions
         {
             PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
@@ -67,6 +70,35 @@ namespace B1TuneUp.Modules
                 Value = licenseKey ?? string.Empty
             });
             AuditLogManager.LogAction("ProductLifecycle", "Licencia actualizada.", "License");
+        }
+
+        public static string GenerateOfflineActivationRequest(string customer = null, string edition = "Premium")
+        {
+            var request = new ProductLicenseActivationRequest
+            {
+                Customer = string.IsNullOrWhiteSpace(customer) ? SafeCompanyName() : customer,
+                CompanyDb = SafeCompanyDb(),
+                InstallationNumber = SafeInstallationNumber(),
+                HardwareKey = SafeHardwareKey(),
+                RequestedEdition = string.IsNullOrWhiteSpace(edition) ? "Premium" : edition,
+                RequestedModules = ModuleActivationService.GetAll().Select(m => m.Key).OrderBy(k => k).ToList(),
+                RequestedOn = DateTime.UtcNow.ToString("O")
+            };
+            string json = JsonSerializer.Serialize(request, JsonOptions);
+            AuditLogManager.LogAction("ProductLifecycle", "Offline activation request generated.", "License");
+            return Base64UrlEncode(Encoding.UTF8.GetBytes(json));
+        }
+
+        public static void SaveRsaPublicKey(string publicKeyXml)
+        {
+            ToolboxSettingService.Save(new ToolboxSettingEntry
+            {
+                Code = RsaPublicKeyCode,
+                Category = "Product",
+                Description = "Commercial RSA public key",
+                Value = publicKeyXml ?? string.Empty
+            });
+            AuditLogManager.LogAction("ProductLifecycle", "RSA public key updated.", "License");
         }
 
         public static string GenerateOwnerPremiumLicense(int months = 120, string customer = null)
@@ -126,7 +158,7 @@ namespace B1TuneUp.Modules
             payload = null;
             if (!string.IsNullOrWhiteSpace(key))
             {
-                if (TryReadSignedLicense(key, out payload, out detail))
+                if (TryReadSignedLicense(key, out payload, out detail) || TryReadRsaLicense(key, out payload, out detail))
                 {
                     DateTime expires;
                     if (DateTime.TryParse(payload.ExpiresOn, out expires) && DateTime.Today > expires.Date)
@@ -138,6 +170,11 @@ namespace B1TuneUp.Modules
                     {
                         detail = "Licencia firmada valida, pero no corresponde a esta compania/instalacion.";
                         return "InvalidScope";
+                    }
+                    if (IsLocallyRevoked(payload.LicenseId))
+                    {
+                        detail = "Licencia revocada por lista local.";
+                        return "Revoked";
                     }
                     detail = $"{payload.Edition} valida para {payload.Customer} hasta {payload.ExpiresOn}.";
                     return string.Equals(payload.Edition, "Premium", StringComparison.OrdinalIgnoreCase) ? "LicensedPremium" : "Licensed";
@@ -187,6 +224,55 @@ namespace B1TuneUp.Modules
             catch (Exception ex)
             {
                 detail = ex.Message;
+                ExceptionLogger.LogHandled(ex, "ProductLifecycleService.TryReadSignedLicense");
+                return false;
+            }
+        }
+
+        private static bool TryReadRsaLicense(string token, out ProductLicensePayload payload, out string detail)
+        {
+            payload = null;
+            detail = string.Empty;
+            try
+            {
+                string[] parts = (token ?? string.Empty).Trim().Split('.');
+                if (parts.Length != 3 || !string.Equals(parts[0], RsaLicensePrefix, StringComparison.OrdinalIgnoreCase))
+                {
+                    detail = "Formato de licencia RSA invalido.";
+                    return false;
+                }
+
+                string publicKey = GetRsaPublicKey();
+                if (string.IsNullOrWhiteSpace(publicKey))
+                {
+                    detail = "No hay llave publica RSA configurada.";
+                    return false;
+                }
+
+                byte[] signature = Base64UrlDecode(parts[2]);
+                using (var rsa = new RSACryptoServiceProvider())
+                {
+                    rsa.FromXmlString(publicKey);
+                    if (!rsa.VerifyData(Encoding.UTF8.GetBytes(parts[1]), CryptoConfig.MapNameToOID("SHA256"), signature))
+                    {
+                        detail = "Firma RSA invalida.";
+                        return false;
+                    }
+                }
+
+                string json = Encoding.UTF8.GetString(Base64UrlDecode(parts[1]));
+                payload = JsonSerializer.Deserialize<ProductLicensePayload>(json, JsonOptions);
+                if (payload == null || !string.Equals(payload.Product, "B1TuneUp", StringComparison.OrdinalIgnoreCase))
+                {
+                    detail = "Payload de licencia RSA invalido.";
+                    return false;
+                }
+                return true;
+            }
+            catch (Exception ex)
+            {
+                detail = ex.Message;
+                ExceptionLogger.LogHandled(ex, "ProductLifecycleService.TryReadRsaLicense");
                 return false;
             }
         }
@@ -218,12 +304,27 @@ namespace B1TuneUp.Modules
             return secret;
         }
 
+        private static string GetRsaPublicKey()
+        {
+            string env = Environment.GetEnvironmentVariable("B1TUNEUP_LICENSE_PUBLIC_KEY_XML");
+            if (!string.IsNullOrWhiteSpace(env)) return env;
+            return ToolboxSettingService.GetByCode(RsaPublicKeyCode)?.Value ?? string.Empty;
+        }
+
         private static bool MatchesCurrentCompany(ProductLicensePayload payload)
         {
             if (payload == null) return false;
             return MatchesOptional(payload.CompanyDb, SafeCompanyDb())
                    && MatchesOptional(payload.InstallationNumber, SafeInstallationNumber())
                    && MatchesOptional(payload.HardwareKey, SafeHardwareKey());
+        }
+
+        private static bool IsLocallyRevoked(string licenseId)
+        {
+            if (string.IsNullOrWhiteSpace(licenseId)) return false;
+            string revoked = ToolboxSettingService.GetByCode(RevokedLicensesCode)?.Value ?? string.Empty;
+            return revoked.Split(new[] { ',', ';', '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries)
+                .Any(id => string.Equals(id.Trim(), licenseId, StringComparison.OrdinalIgnoreCase));
         }
 
         private static bool MatchesOptional(string licensedValue, string actualValue)
@@ -235,19 +336,19 @@ namespace B1TuneUp.Modules
         private static string SafeSapVersion()
         {
             try { return B1App.Instance.Company.Version.ToString(); }
-            catch { return string.Empty; }
+            catch (Exception ex) { ExceptionLogger.LogHandled(ex, "ProductLifecycleService.SafeSapVersion"); return string.Empty; }
         }
 
         private static string SafeCompanyName()
         {
             try { return B1App.Instance.Company.CompanyName ?? string.Empty; }
-            catch { return string.Empty; }
+            catch (Exception ex) { ExceptionLogger.LogHandled(ex, "ProductLifecycleService.SafeCompanyName"); return string.Empty; }
         }
 
         private static string SafeCompanyDb()
         {
             try { return B1App.Instance.Company.CompanyDB ?? string.Empty; }
-            catch { return string.Empty; }
+            catch (Exception ex) { ExceptionLogger.LogHandled(ex, "ProductLifecycleService.SafeCompanyDb"); return string.Empty; }
         }
 
         private static string SafeInstallationNumber()
@@ -262,7 +363,7 @@ namespace B1TuneUp.Modules
                     if (prop != null) return prop.GetValue(company, null)?.ToString() ?? string.Empty;
                 }
             }
-            catch { return string.Empty; }
+            catch (Exception ex) { ExceptionLogger.LogHandled(ex, "ProductLifecycleService.SafeInstallationNumber"); return string.Empty; }
             return string.Empty;
         }
 

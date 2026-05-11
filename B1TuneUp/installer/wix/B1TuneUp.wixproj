@@ -21,12 +21,15 @@
     <WixSource Include="Product.wxs" />
     <WixSource Include="RegisterAddOn.wxs" />
     <WixSource Include="Components.wxs" />
+    <WixSource Include="WorkerComponents.wxs" />
   </ItemGroup>
 
   <Target Name="BeforeBuild">
     <!-- Harvest build output into Components.wxs using heat.exe -->
     <Message Text="Harvesting files from: $(ProjectDir)..\..\..\B1TuneUp\B1TuneUp\bin\$(Configuration)" Importance="high" />
     <Exec Command='&quot;$(WixToolPath)\heat.exe&quot; dir &quot;$(ProjectDir)..\..\..\B1TuneUp\B1TuneUp\bin\$(Configuration)&quot; -ag -scom -sreg -dr INSTALLFOLDER -cg B1TuneUpComponents -var var.SourceDir -out &quot;$(ProjectDir)Components.wxs&quot;' />
+    <Message Text="Harvesting worker files from: $(ProjectDir)..\..\..\B1TuneUp\B1TuneUp\B1TuneUp.WorkerService\bin\$(Configuration)" Importance="high" />
+    <Exec Command='&quot;$(WixToolPath)\heat.exe&quot; dir &quot;$(ProjectDir)..\..\..\B1TuneUp\B1TuneUp\B1TuneUp.WorkerService\bin\$(Configuration)&quot; -ag -scom -sreg -dr INSTALLFOLDER -cg B1TuneUpWorkerComponents -var var.SourceDir -out &quot;$(ProjectDir)WorkerComponents.wxs&quot;' />
   </Target>
 
   <Import Project="$(WixToolPath)\Wix.targets" />

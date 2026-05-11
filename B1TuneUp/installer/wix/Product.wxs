@@ -16,6 +16,7 @@
     <Feature Id="ProductFeature" Title="B1TuneUp" Level="1">
       <ComponentGroupRef Id="B1TuneUpComponents" />
       <ComponentGroupRef Id="B1TuneUpRegistry" />
+      <ComponentGroupRef Id="B1TuneUpWorkerComponents" />
     </Feature>
 
     <Directory Id="TARGETDIR" Name="SourceDir">

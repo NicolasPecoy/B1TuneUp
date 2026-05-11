@@ -30,6 +30,9 @@ namespace B1TuneUp.Modules
                         Query = ReadString(rs, "U_Query"),
                         Action = ReadString(rs, "U_Action"),
                         Description = ReadString(rs, "U_Desc"),
+                        FormType = ReadString(rs, "U_FormType"),
+                        AutocompleteField = ReadString(rs, "U_AutoField"),
+                        ResultActions = ReadString(rs, "U_ResultActs"),
                         Category = ReadString(rs, "U_Category"),
                         Tags = ReadString(rs, "U_Tags"),
                         AllowedUsers = ReadString(rs, "U_AllowUsers"),
@@ -77,6 +80,9 @@ namespace B1TuneUp.Modules
                 SetField(table, "U_Query", entry.Query);
                 SetField(table, "U_Action", entry.Action);
                 SetField(table, "U_Desc", entry.Description);
+                SetField(table, "U_FormType", entry.FormType);
+                SetField(table, "U_AutoField", entry.AutocompleteField);
+                SetField(table, "U_ResultActs", entry.ResultActions);
                 SetField(table, "U_Category", entry.Category);
                 SetField(table, "U_Tags", entry.Tags);
                 SetField(table, "U_AllowUsers", entry.AllowedUsers);
@@ -129,13 +135,13 @@ namespace B1TuneUp.Modules
         private static void SetField(UserTable table, string field, string value)
         {
             try { table.UserFields.Fields.Item(field).Value = value ?? string.Empty; }
-            catch { }
+            catch (Exception ex) { ExceptionLogger.LogHandled(ex, $"SearchConfigService.SetField:{field}"); }
         }
 
         private static string ReadString(Recordset rs, string field)
         {
             try { return B1TuneUp.Utils.SapUiSafe.SafeField(rs, field); }
-            catch { return string.Empty; }
+            catch (Exception ex) { ExceptionLogger.LogHandled(ex, $"SearchConfigService.ReadString:{field}"); return string.Empty; }
         }
 
         private static int SafeInt(string value, int fallback)

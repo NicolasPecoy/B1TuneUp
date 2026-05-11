@@ -60,7 +60,7 @@ namespace B1TuneUp.Modules
                     action = action.Replace("$[" + pair.Key + "]", pair.Value ?? string.Empty);
                 }
             }
-            catch { }
+            catch (Exception ex) { ExceptionLogger.LogHandled(ex, "AdvancedSearchService.ExecuteAction.Deserialize"); }
             MacroEngine.ExecuteMacro(action, form);
             AuditLogManager.LogAction("AdvancedSearch", $"Action executed for {result.SearchCode}:{result.Key}", "Action");
         }
@@ -91,8 +91,14 @@ namespace B1TuneUp.Modules
                         Action = config.Action,
                         DataJson = JsonSerializer.Serialize(values)
                     });
+                    SearchProductService.TrackHistory(config.Code, text, key);
                     rs.MoveNext();
                 }
+            }
+            catch (Exception ex)
+            {
+                ExceptionLogger.LogHandled(ex, $"AdvancedSearchService.ExecuteConfig:{config.Code}");
+                throw;
             }
             finally
             {
@@ -103,11 +109,8 @@ namespace B1TuneUp.Modules
 
         private static string PrepareSql(string query, string text, int page, int pageSize)
         {
-            string trimmed = query.TrimStart();
-            if (!trimmed.StartsWith("SELECT", StringComparison.OrdinalIgnoreCase))
-            {
-                throw new InvalidOperationException("B1 Search solo permite consultas SELECT.");
-            }
+            SearchSqlSecurityService.ValidateSelectOnly(query);
+            query = SearchSqlSecurityService.ApplyServerPaging(query, page, pageSize, B1App.Instance.IsHana);
             string safeText = Escape(text);
             return query
                 .Replace("%search%", safeText)
@@ -149,7 +152,7 @@ namespace B1TuneUp.Modules
         private static string SafeUser()
         {
             try { return B1App.Instance.Company.UserName; }
-            catch { return string.Empty; }
+            catch (Exception ex) { ExceptionLogger.LogHandled(ex, "AdvancedSearchService.SafeUser"); return string.Empty; }
         }
     }
 }

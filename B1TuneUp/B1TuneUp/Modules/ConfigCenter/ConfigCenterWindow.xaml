@@ -417,6 +417,206 @@
                 </Grid>
             </TabItem>
 
+            <TabItem Header="B1 Search Studio">
+                <Grid Margin="0,14,0,0">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="390" />
+                        <ColumnDefinition Width="18" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+                    <Border Style="{StaticResource PanelStyle}">
+                        <DockPanel>
+                            <StackPanel DockPanel.Dock="Top" Orientation="Horizontal">
+                                <Button Content="New" Command="{Binding NewSearchConfigCommand}" />
+                                <Button Content="Save" Command="{Binding SaveSearchConfigCommand}" />
+                                <Button Content="Test" Command="{Binding TestSearchConfigCommand}" />
+                                <Button Content="Favorite" Command="{Binding FavoriteSearchCommand}" />
+                            </StackPanel>
+                            <ListBox ItemsSource="{Binding SearchConfigs}" SelectedItem="{Binding SelectedSearchConfig}" DisplayMemberPath="Code" Margin="0,12,0,0" />
+                        </DockPanel>
+                    </Border>
+                    <Border Grid.Column="2" Style="{StaticResource PanelStyle}">
+                        <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="18" />
+                                <RowDefinition Height="*" />
+                                <RowDefinition Height="160" />
+                            </Grid.RowDefinitions>
+                            <Grid DataContext="{Binding SelectedSearchConfig}">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="260" />
+                                    <ColumnDefinition Width="18" />
+                                    <ColumnDefinition Width="*" />
+                                </Grid.ColumnDefinitions>
+                                <StackPanel>
+                                    <TextBlock Text="Code / Name" Style="{StaticResource LabelStyle}" />
+                                    <TextBox Text="{Binding Code, UpdateSourceTrigger=PropertyChanged}" />
+                                    <TextBox Text="{Binding Name, UpdateSourceTrigger=PropertyChanged}" />
+                                    <CheckBox Content="Active" IsChecked="{Binding Active}" Margin="0,4,0,8" />
+                                    <TextBlock Text="Category / Tags / Form" Style="{StaticResource LabelStyle}" />
+                                    <TextBox Text="{Binding Category, UpdateSourceTrigger=PropertyChanged}" />
+                                    <TextBox Text="{Binding Tags, UpdateSourceTrigger=PropertyChanged}" />
+                                    <TextBox Text="{Binding FormType, UpdateSourceTrigger=PropertyChanged}" />
+                                    <TextBlock Text="Page / Cache" Style="{StaticResource LabelStyle}" />
+                                    <UniformGrid Columns="2">
+                                        <TextBox Text="{Binding PageSize, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,8,10" />
+                                        <TextBox Text="{Binding CacheSeconds, UpdateSourceTrigger=PropertyChanged}" />
+                                    </UniformGrid>
+                                </StackPanel>
+                                <StackPanel Grid.Column="2">
+                                    <TextBlock Text="Query" Style="{StaticResource LabelStyle}" />
+                                    <TextBox Text="{Binding Query, UpdateSourceTrigger=PropertyChanged}" AcceptsReturn="True" Height="120" FontFamily="Consolas" />
+                                    <TextBlock Text="Action / Multiple Actions / Autocomplete Field" Style="{StaticResource LabelStyle}" />
+                                    <TextBox Text="{Binding Action, UpdateSourceTrigger=PropertyChanged}" />
+                                    <TextBox Text="{Binding ResultActions, UpdateSourceTrigger=PropertyChanged}" />
+                                    <TextBox Text="{Binding AutocompleteField, UpdateSourceTrigger=PropertyChanged}" />
+                                    <TextBlock Text="Authorization" Style="{StaticResource LabelStyle}" />
+                                    <UniformGrid Columns="4">
+                                        <TextBox Text="{Binding AllowedUsers, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,8,10" />
+                                        <TextBox Text="{Binding AllowedGroups, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,8,10" />
+                                        <TextBox Text="{Binding DeniedUsers, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,8,10" />
+                                        <TextBox Text="{Binding DeniedGroups, UpdateSourceTrigger=PropertyChanged}" />
+                                    </UniformGrid>
+                                </StackPanel>
+                            </Grid>
+                            <Border Grid.Row="2" Style="{StaticResource PanelStyle}" Padding="8">
+                                <DockPanel>
+                                    <StackPanel DockPanel.Dock="Top" Orientation="Horizontal">
+                                        <TextBox Text="{Binding SearchStudioText, UpdateSourceTrigger=PropertyChanged}" Width="280" Margin="0,8,8,0" />
+                                        <Button Content="Test Search" Command="{Binding TestSearchConfigCommand}" />
+                                    </StackPanel>
+                                    <DataGrid ItemsSource="{Binding SearchStudioResults}" AutoGenerateColumns="False" CanUserAddRows="False" Margin="0,12,0,0">
+                                        <DataGrid.Columns>
+                                            <DataGridTextColumn Header="Search" Binding="{Binding SearchCode}" Width="120" />
+                                            <DataGridTextColumn Header="Key" Binding="{Binding Key}" Width="140" />
+                                            <DataGridTextColumn Header="Title" Binding="{Binding Title}" Width="220" />
+                                            <DataGridTextColumn Header="Subtitle" Binding="{Binding Subtitle}" Width="220" />
+                                            <DataGridTextColumn Header="Rank" Binding="{Binding Rank}" Width="70" />
+                                            <DataGridTextColumn Header="Action" Binding="{Binding Action}" Width="*" />
+                                        </DataGrid.Columns>
+                                    </DataGrid>
+                                </DockPanel>
+                            </Border>
+                            <Grid Grid.Row="3" Margin="0,14,0,0">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="18" />
+                                    <ColumnDefinition Width="*" />
+                                </Grid.ColumnDefinitions>
+                                <Border Style="{StaticResource PanelStyle}" Padding="8">
+                                    <DockPanel>
+                                        <TextBlock DockPanel.Dock="Top" Text="History" FontSize="14" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,8" />
+                                        <DataGrid ItemsSource="{Binding SearchHistory}" AutoGenerateColumns="False" CanUserAddRows="False">
+                                            <DataGrid.Columns>
+                                                <DataGridTextColumn Header="User" Binding="{Binding UserCode}" Width="90" />
+                                                <DataGridTextColumn Header="Search" Binding="{Binding SearchCode}" Width="120" />
+                                                <DataGridTextColumn Header="Text" Binding="{Binding SearchText}" Width="*" />
+                                            </DataGrid.Columns>
+                                        </DataGrid>
+                                    </DockPanel>
+                                </Border>
+                                <Border Grid.Column="2" Style="{StaticResource PanelStyle}" Padding="8">
+                                    <DockPanel>
+                                        <TextBlock DockPanel.Dock="Top" Text="Favorites" FontSize="14" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,8" />
+                                        <DataGrid ItemsSource="{Binding SearchFavorites}" AutoGenerateColumns="False" CanUserAddRows="False">
+                                            <DataGrid.Columns>
+                                                <DataGridTextColumn Header="User" Binding="{Binding UserCode}" Width="90" />
+                                                <DataGridTextColumn Header="Search" Binding="{Binding SearchCode}" Width="120" />
+                                                <DataGridTextColumn Header="Text" Binding="{Binding SearchText}" Width="*" />
+                                            </DataGrid.Columns>
+                                        </DataGrid>
+                                    </DockPanel>
+                                </Border>
+                            </Grid>
+                        </Grid>
+                    </Border>
+                </Grid>
+            </TabItem>
+
+            <TabItem Header="Crystal / PLD">
+                <Grid Margin="0,14,0,0">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="390" />
+                        <ColumnDefinition Width="18" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+                    <Border Style="{StaticResource PanelStyle}">
+                        <DockPanel>
+                            <StackPanel DockPanel.Dock="Top" Orientation="Horizontal">
+                                <Button Content="New Rule" Command="{Binding NewPldRuleCommand}" />
+                                <Button Content="Save" Command="{Binding SavePldRuleCommand}" />
+                            </StackPanel>
+                            <ListBox ItemsSource="{Binding PldRules}" SelectedItem="{Binding SelectedPldRule}" DisplayMemberPath="Code" Margin="0,12,0,0" />
+                        </DockPanel>
+                    </Border>
+                    <Border Grid.Column="2" Style="{StaticResource PanelStyle}">
+                        <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="18" />
+                                <RowDefinition Height="*" />
+                            </Grid.RowDefinitions>
+                            <Grid DataContext="{Binding SelectedPldRule}">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="260" />
+                                    <ColumnDefinition Width="18" />
+                                    <ColumnDefinition Width="*" />
+                                </Grid.ColumnDefinitions>
+                                <StackPanel>
+                                    <TextBlock Text="Code / Name" Style="{StaticResource LabelStyle}" />
+                                    <TextBox Text="{Binding Code, UpdateSourceTrigger=PropertyChanged}" />
+                                    <TextBox Text="{Binding Name, UpdateSourceTrigger=PropertyChanged}" />
+                                    <CheckBox Content="Active" IsChecked="{Binding Active}" Margin="0,4,0,8" />
+                                    <TextBlock Text="Scope" Style="{StaticResource LabelStyle}" />
+                                    <TextBox Text="{Binding DocType, UpdateSourceTrigger=PropertyChanged}" />
+                                    <TextBox Text="{Binding CardCode, UpdateSourceTrigger=PropertyChanged}" />
+                                    <TextBox Text="{Binding Language, UpdateSourceTrigger=PropertyChanged}" />
+                                    <TextBox Text="{Binding Branch, UpdateSourceTrigger=PropertyChanged}" />
+                                </StackPanel>
+                                <StackPanel Grid.Column="2">
+                                    <TextBlock Text="Layout / Output" Style="{StaticResource LabelStyle}" />
+                                    <UniformGrid Columns="3">
+                                        <TextBox Text="{Binding LayoutCode, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,8,10" />
+                                        <TextBox Text="{Binding LayoutType, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,8,10" />
+                                        <TextBox Text="{Binding Priority, UpdateSourceTrigger=PropertyChanged}" />
+                                    </UniformGrid>
+                                    <TextBox Text="{Binding PrinterName, UpdateSourceTrigger=PropertyChanged}" />
+                                    <TextBox Text="{Binding ExportPath, UpdateSourceTrigger=PropertyChanged}" />
+                                    <TextBlock Text="Notes" Style="{StaticResource LabelStyle}" />
+                                    <TextBox Text="{Binding Notes, UpdateSourceTrigger=PropertyChanged}" AcceptsReturn="True" Height="90" />
+                                </StackPanel>
+                            </Grid>
+                            <Border Grid.Row="2" Style="{StaticResource PanelStyle}" Padding="8">
+                                <DockPanel>
+                                    <StackPanel DockPanel.Dock="Top" Orientation="Horizontal">
+                                        <TextBox Text="{Binding PldDocType, UpdateSourceTrigger=PropertyChanged}" Width="100" Margin="0,8,8,0" />
+                                        <TextBox Text="{Binding PldDocEntry, UpdateSourceTrigger=PropertyChanged}" Width="100" Margin="0,8,8,0" />
+                                        <TextBox Text="{Binding PldCardCode, UpdateSourceTrigger=PropertyChanged}" Width="120" Margin="0,8,8,0" />
+                                        <TextBox Text="{Binding PldLanguage, UpdateSourceTrigger=PropertyChanged}" Width="90" Margin="0,8,8,0" />
+                                        <TextBox Text="{Binding PldBranch, UpdateSourceTrigger=PropertyChanged}" Width="90" Margin="0,8,8,0" />
+                                        <Button Content="Queue Spool" Command="{Binding EnqueuePldSpoolCommand}" />
+                                        <Button Content="Refresh" Command="{Binding RefreshCommand}" />
+                                    </StackPanel>
+                                    <DataGrid ItemsSource="{Binding SpoolJobs}" AutoGenerateColumns="False" CanUserAddRows="False" Margin="0,12,0,0">
+                                        <DataGrid.Columns>
+                                            <DataGridTextColumn Header="Code" Binding="{Binding Code}" Width="170" />
+                                            <DataGridTextColumn Header="Doc" Binding="{Binding DocType}" Width="70" />
+                                            <DataGridTextColumn Header="Entry" Binding="{Binding DocEntry}" Width="80" />
+                                            <DataGridTextColumn Header="Layout" Binding="{Binding LayoutCode}" Width="160" />
+                                            <DataGridTextColumn Header="Type" Binding="{Binding LayoutType}" Width="70" />
+                                            <DataGridTextColumn Header="Status" Binding="{Binding Status}" Width="90" />
+                                            <DataGridTextColumn Header="Output" Binding="{Binding OutputFile}" Width="230" />
+                                            <DataGridTextColumn Header="Error" Binding="{Binding LastError}" Width="*" />
+                                        </DataGrid.Columns>
+                                    </DataGrid>
+                                </DockPanel>
+                            </Border>
+                        </Grid>
+                    </Border>
+                </Grid>
+            </TabItem>
+
             <TabItem Header="Lifecycle / Samples">
                 <Grid Margin="0,14,0,0">
                     <Grid.ColumnDefinitions>

@@ -742,3 +742,53 @@ La firma se calcula con HMAC-SHA256 usando el secreto `PRODUCT_LICENSE_OWNER_SEC
 ### Support package
 
 En **Support > Export Support Package** se genera un ZIP con health checks, lifecycle/licencia, diagnostico de metadata, paquete de configuracion, resumen de audit log y ultimos logs de archivo.
+
+### Worker externo real
+
+La solucion incluye `B1TuneUp.WorkerService`, un proceso separado del SAP Client para colas, scheduling, reportes e integraciones. Puede correr como consola:
+
+```powershell
+B1TuneUp.WorkerService.exe --once
+B1TuneUp.WorkerService.exe
+```
+
+O como Windows Service usando:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File installer\install-worker-service.ps1 -InstallDir "C:\Program Files\B1TuneUp"
+```
+
+El worker lee jobs `WORKERJOB_*` desde `@BTUN_TBOX`, escribe logs propios en `Logs\B1TuneUp.Worker.log`, mantiene heartbeat JSON y soporta `Http`, `Command`, `ReportExport`, `PrintDelivery`, `UniversalFunction`, `Macro` y `DiPing`. La conexion DI API se configura por `App.config` o variables `B1TUNEUP_WORKER_*`.
+
+### Portal/licenciamiento comercial
+
+`B1TuneUp.LicensePortal` es un licenser HTTP minimo para activaciones comerciales. Genera tokens RSA:
+
+```text
+B1TRSA.<payload-base64url>.<signature-base64url>
+```
+
+Endpoints principales:
+
+- `GET /api/license/public-key`: llave publica XML para configurar en `PRODUCT_LICENSE_RSA_PUBLIC_KEY`.
+- `POST /api/license/activate`: genera activacion online.
+- `POST /api/license/offline/response`: toma un request offline y devuelve token.
+- `POST /api/license/revoke/{activationId}`: marca activacion revocada en el portal.
+- `POST /api/license/renew/{activationId}`: renueva vencimiento.
+
+El add-on mantiene compatibilidad con licencias owner `B1TL1` y valida tambien tokens comerciales `B1TRSA` con firma asimetrica.
+
+### Crystal / PLD industrial
+
+La pestana **Crystal / PLD** permite mantener reglas de layout por documento, BP, idioma y sucursal. Una regla puede seleccionar PLD o Crystal, impresora, path de exportacion y prioridad. El boton **Queue Spool** crea spool y job de worker para export/print server-side.
+
+### B1 Search Studio
+
+La pestana **B1 Search Studio** agrega configuracion visual de busquedas con:
+
+- query SELECT con paginacion server-side SQL/HANA,
+- autorizacion por usuario/grupo,
+- autocomplete field,
+- acciones multiples por resultado,
+- historial y favoritos por usuario,
+- validacion SQL mas estricta antes de guardar o probar.

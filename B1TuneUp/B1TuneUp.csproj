@@ -12,6 +12,13 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Compile Remove="B1TuneUp.WorkerService\**\*.cs" />
+    <Compile Remove="B1TuneUp.LicensePortal\**\*.cs" />
+    <None Remove="B1TuneUp.WorkerService\**\*" />
+    <None Remove="B1TuneUp.LicensePortal\**\*" />
+  </ItemGroup>
+
+  <ItemGroup>
     <!-- SAP Business One SDK reference removed for build in this environment; using internal stubs -->
     <Reference Include="SAPBusinessOneSDK">
       <HintPath>..\SAPBusinessOneSDK.dll</HintPath>

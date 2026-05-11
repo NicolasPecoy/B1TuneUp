@@ -3,6 +3,7 @@ using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using System.Text;
 using System.Threading.Tasks;
 using B1TuneUp.Modules.IntegrationUi;
 
@@ -89,8 +90,11 @@ namespace B1TuneUp.Modules.ApiStudio
             set
             {
                 if (_selectedRequest == value) return;
+                if (_selectedRequest != null) _selectedRequest.PropertyChanged -= SelectedRequestOnPropertyChanged;
                 _selectedRequest = value;
+                if (_selectedRequest != null) _selectedRequest.PropertyChanged += SelectedRequestOnPropertyChanged;
                 OnPropertyChanged();
+                OnPropertyChanged(nameof(CurlCommand));
                 UpdatePreviewUrl();
                 RaiseCommandStates();
             }
@@ -105,6 +109,7 @@ namespace B1TuneUp.Modules.ApiStudio
                 _selectedEnvironment = value;
                 OnPropertyChanged();
                 if (_workspace != null) _workspace.ActiveEnvironmentId = value?.Id;
+                OnPropertyChanged(nameof(CurlCommand));
                 UpdatePreviewUrl();
                 RaiseCommandStates();
             }
@@ -170,6 +175,8 @@ namespace B1TuneUp.Modules.ApiStudio
             private set { if (_previewUrl != value) { _previewUrl = value; OnPropertyChanged(); } }
         }
 
+        public string CurlCommand => BuildCurlCommand();
+
         public event PropertyChangedEventHandler PropertyChanged;
 
         public void Load()
@@ -214,6 +221,12 @@ namespace B1TuneUp.Modules.ApiStudio
             if (result == null) return;
             SelectedCollection = result.Collection;
             SelectedRequest = result.Request;
+        }
+
+        public void RefreshGeneratedArtifacts()
+        {
+            OnPropertyChanged(nameof(CurlCommand));
+            UpdatePreviewUrl();
         }
 
         private void NewCollection()
@@ -453,6 +466,57 @@ namespace B1TuneUp.Modules.ApiStudio
             catch
             {
                 PreviewUrl = SelectedRequest?.Url;
+            }
+        }
+
+        private string BuildCurlCommand()
+        {
+            if (SelectedRequest == null) return string.Empty;
+            var builder = new StringBuilder();
+            var method = string.IsNullOrWhiteSpace(SelectedRequest.Method) ? "GET" : SelectedRequest.Method.Trim().ToUpperInvariant();
+            var url = ApiStudioHttpRunner.ResolveVariables(SelectedRequest.Url, SelectedEnvironment) ?? string.Empty;
+            var headers = ApiStudioHttpRunner.ParseHeaders(ApiStudioHttpRunner.ResolveVariables(SelectedRequest.Headers, SelectedEnvironment));
+            var body = ApiStudioHttpRunner.ResolveVariables(SelectedRequest.Body, SelectedEnvironment);
+
+            builder.Append("curl --location --insecure --request ")
+                   .Append(method)
+                   .Append(" '")
+                   .Append(EscapeCurl(url))
+                   .Append("'");
+
+            foreach (var header in headers)
+            {
+                builder.Append(" \\\n  --header '")
+                       .Append(EscapeCurl(header.Key))
+                       .Append(": ")
+                       .Append(EscapeCurl(header.Value))
+                       .Append("'");
+            }
+
+            if (!string.IsNullOrWhiteSpace(body) && method != "GET" && method != "HEAD")
+            {
+                builder.Append(" \\\n  --data-raw '")
+                       .Append(EscapeCurl(body))
+                       .Append("'");
+            }
+
+            return builder.ToString();
+        }
+
+        private string EscapeCurl(string value)
+        {
+            return (value ?? string.Empty).Replace("'", "'\"'\"'");
+        }
+
+        private void SelectedRequestOnPropertyChanged(object sender, PropertyChangedEventArgs e)
+        {
+            if (e.PropertyName == nameof(ApiRequest.Url) ||
+                e.PropertyName == nameof(ApiRequest.Method) ||
+                e.PropertyName == nameof(ApiRequest.Headers) ||
+                e.PropertyName == nameof(ApiRequest.Body))
+            {
+                OnPropertyChanged(nameof(CurlCommand));
+                UpdatePreviewUrl();
             }
         }
 

@@ -13,6 +13,7 @@ namespace B1TuneUp.Modules.ApiStudio
     public partial class ApiStudioWindow : Window
     {
         private readonly ApiStudioViewModel _viewModel;
+        private TextBox _activeBodyBox;
 
         public ApiStudioWindow()
         {
@@ -68,6 +69,11 @@ namespace B1TuneUp.Modules.ApiStudio
 
         private void ViewModelOnPropertyChanged(object sender, PropertyChangedEventArgs e)
         {
+            if (e.PropertyName == nameof(ApiStudioViewModel.SelectedRequest) ||
+                e.PropertyName == nameof(ApiStudioViewModel.LastResponse))
+            {
+                RefreshHighlightedBodies();
+            }
         }
 
         private void OnTreeSelectedItemChanged(object sender, RoutedPropertyChangedEventArgs<object> e)
@@ -81,6 +87,111 @@ namespace B1TuneUp.Modules.ApiStudio
             {
                 _viewModel.SelectSearchResult(result);
             }
+        }
+
+        private void OnBodyTextChanged(object sender, TextChangedEventArgs e)
+        {
+            _viewModel.RefreshGeneratedArtifacts();
+            RefreshHighlightedBodies();
+        }
+
+        private void OnBodyGotKeyboardFocus(object sender, KeyboardFocusChangedEventArgs e)
+        {
+            _activeBodyBox = sender as TextBox;
+        }
+
+        private void RefreshHighlightedBodies()
+        {
+            ApiStudioSyntaxHighlighter.Apply(RequestHighlightViewer, RequestBodyBox?.Text);
+            ApiStudioSyntaxHighlighter.Apply(ResponseHighlightViewer, ResponseBodyBox?.Text);
+        }
+
+        private void OnWindowPreviewKeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.Key == Key.F && (Keyboard.Modifiers & ModifierKeys.Control) == ModifierKeys.Control)
+            {
+                ShowFindPanel();
+                e.Handled = true;
+            }
+            else if (e.Key == Key.Escape && FindPanel.Visibility == Visibility.Visible)
+            {
+                HideFindPanel();
+                e.Handled = true;
+            }
+        }
+
+        private void ShowFindPanel()
+        {
+            if (_activeBodyBox == null)
+            {
+                _activeBodyBox = ResponseBodyBox?.IsKeyboardFocusWithin == true ? ResponseBodyBox : RequestBodyBox;
+            }
+
+            if (_activeBodyBox != null && !string.IsNullOrEmpty(_activeBodyBox.SelectedText))
+            {
+                FindTextBox.Text = _activeBodyBox.SelectedText;
+            }
+
+            FindStatusText.Text = _activeBodyBox == ResponseBodyBox ? "response" : "request";
+            FindPanel.Visibility = Visibility.Visible;
+            FindTextBox.Focus();
+            FindTextBox.SelectAll();
+        }
+
+        private void HideFindPanel()
+        {
+            FindPanel.Visibility = Visibility.Collapsed;
+            _activeBodyBox?.Focus();
+        }
+
+        private void OnFindTextBoxKeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.Key == Key.Enter)
+            {
+                FindNext();
+                e.Handled = true;
+            }
+            else if (e.Key == Key.Escape)
+            {
+                HideFindPanel();
+                e.Handled = true;
+            }
+        }
+
+        private void OnFindNextClick(object sender, RoutedEventArgs e) => FindNext();
+
+        private void OnFindCloseClick(object sender, RoutedEventArgs e) => HideFindPanel();
+
+        private void FindNext()
+        {
+            var target = _activeBodyBox ?? RequestBodyBox;
+            var term = FindTextBox.Text;
+            if (target == null || string.IsNullOrEmpty(term))
+            {
+                FindStatusText.Text = "sin texto";
+                return;
+            }
+
+            var text = target.Text ?? string.Empty;
+            var start = target.SelectionStart + target.SelectionLength;
+            var index = text.IndexOf(term, start, System.StringComparison.OrdinalIgnoreCase);
+            if (index < 0 && start > 0)
+            {
+                index = text.IndexOf(term, 0, System.StringComparison.OrdinalIgnoreCase);
+            }
+
+            if (index < 0)
+            {
+                FindStatusText.Text = "no encontrado";
+                return;
+            }
+
+            target.Focus();
+            target.Select(index, term.Length);
+            var line = target.GetLineIndexFromCharacterIndex(index);
+            target.ScrollToLine(line);
+            FindStatusText.Text = $"{(target == ResponseBodyBox ? "response" : "request")} L{line + 1}";
+            FindTextBox.Focus();
         }
 
         private void OnCloseClick(object sender, RoutedEventArgs e) => Close();

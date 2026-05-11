@@ -10,7 +10,8 @@
         Background="{DynamicResource WindowBackgroundBrush}"
         WindowStartupLocation="CenterScreen"
         Topmost="True"
-        ShowInTaskbar="False">
+        ShowInTaskbar="False"
+        PreviewKeyDown="OnWindowPreviewKeyDown">
     <Window.Resources>
         <Color x:Key="PrimaryColor">#1F4E79</Color>
         <Color x:Key="PrimaryDarkColor">#0F263D</Color>
@@ -119,19 +120,22 @@
             </Grid>
         </Border>
 
-        <Grid Grid.Row="1" Margin="18">
+        <ScrollViewer Grid.Row="1"
+                      VerticalScrollBarVisibility="Auto"
+                      HorizontalScrollBarVisibility="Disabled">
+        <Grid Margin="18" MinHeight="1180">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="315" />
                 <ColumnDefinition Width="14" />
                 <ColumnDefinition Width="*" />
             </Grid.ColumnDefinitions>
 
-            <Border Style="{StaticResource CardStyle}">
+            <Border Style="{StaticResource CardStyle}" MinHeight="1120">
                 <Grid>
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto" />
                         <RowDefinition Height="Auto" />
-                        <RowDefinition Height="180" />
+                        <RowDefinition Height="300" />
                         <RowDefinition Height="Auto" />
                         <RowDefinition Height="*" />
                         <RowDefinition Height="Auto" />
@@ -177,9 +181,9 @@
                 </Grid>
             </Border>
 
-            <TabControl Grid.Column="2">
+            <TabControl Grid.Column="2" MinHeight="1120">
                 <TabItem Header="Request / Response">
-            <Grid Margin="0,10,0,0">
+            <Grid Margin="0,10,0,0" MinHeight="1060">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="*" />
@@ -212,7 +216,7 @@
                     </Grid>
                 </Border>
 
-                <Border Grid.Row="1" Style="{StaticResource CardStyle}" Margin="0,12,0,0">
+                <Border Grid.Row="1" Style="{StaticResource CardStyle}" Margin="0,12,0,0" MinHeight="470">
                     <TabControl>
                         <TabItem Header="Request">
                             <Grid Margin="0,10,0,0">
@@ -250,11 +254,14 @@
                                 </StackPanel>
 
                                 <TextBlock Grid.Row="2" Grid.ColumnSpan="3" Text="Body" Style="{StaticResource LabelStyle}" />
-                                <TextBox Grid.Row="2" Grid.ColumnSpan="3" Text="{Binding SelectedRequest.Body, UpdateSourceTrigger=PropertyChanged}"
+                                <TextBox x:Name="RequestBodyBox"
+                                         Grid.Row="2" Grid.ColumnSpan="3" Text="{Binding SelectedRequest.Body, UpdateSourceTrigger=PropertyChanged}"
                                          Margin="0,20,0,0"
                                          AcceptsReturn="True" AcceptsTab="True" TextWrapping="NoWrap"
                                          FontFamily="Consolas" FontSize="12"
-                                         HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto" />
+                                         HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto"
+                                         TextChanged="OnBodyTextChanged"
+                                         GotKeyboardFocus="OnBodyGotKeyboardFocus" />
                                 <WrapPanel Grid.Row="3" Grid.ColumnSpan="3" Margin="0,10,0,0">
                                     <Button Content="Beautify JSON" Command="{Binding BeautifyRequestJsonCommand}" Background="{DynamicResource AccentAltBrush}" />
                                     <Button Content="Beautify XML" Command="{Binding BeautifyRequestXmlCommand}" Background="{DynamicResource AccentAltBrush}" />
@@ -266,10 +273,30 @@
                                      Margin="0,10,0,0" AcceptsReturn="True" TextWrapping="Wrap"
                                      VerticalScrollBarVisibility="Auto" />
                         </TabItem>
+                        <TabItem Header="Vista coloreada">
+                            <RichTextBox x:Name="RequestHighlightViewer"
+                                         Margin="0,10,0,0"
+                                         IsReadOnly="True"
+                                         BorderBrush="{DynamicResource BorderBrush}"
+                                         Background="{DynamicResource SurfaceBrush}"
+                                         HorizontalScrollBarVisibility="Auto"
+                                         VerticalScrollBarVisibility="Auto" />
+                        </TabItem>
+                        <TabItem Header="cURL">
+                            <TextBox Text="{Binding CurlCommand}"
+                                     Margin="0,10,0,0"
+                                     IsReadOnly="True"
+                                     FontFamily="Consolas"
+                                     FontSize="12"
+                                     AcceptsReturn="True"
+                                     TextWrapping="NoWrap"
+                                     HorizontalScrollBarVisibility="Auto"
+                                     VerticalScrollBarVisibility="Auto" />
+                        </TabItem>
                     </TabControl>
                 </Border>
 
-                <Border Grid.Row="3" Style="{StaticResource CardStyle}">
+                <Border Grid.Row="3" Style="{StaticResource CardStyle}" MinHeight="470">
                     <TabControl>
                         <TabItem Header="Respuesta">
                             <Grid Margin="0,10,0,0">
@@ -284,10 +311,13 @@
                                     <TextBlock Text="{Binding LastResponse.DurationMs, StringFormat={}{0} ms}" Margin="0,2,16,0" Foreground="{DynamicResource TextSecondaryBrush}" />
                                     <TextBlock Text="{Binding LastResponse.ResponseBytes, StringFormat={}{0} bytes}" Margin="0,2,0,0" Foreground="{DynamicResource TextSecondaryBrush}" />
                                 </StackPanel>
-                                <TextBox Grid.Row="1" Text="{Binding LastResponse.Body, UpdateSourceTrigger=PropertyChanged}"
+                                <TextBox x:Name="ResponseBodyBox"
+                                         Grid.Row="1" Text="{Binding LastResponse.Body, UpdateSourceTrigger=PropertyChanged}"
                                          Margin="0,10,0,0" FontFamily="Consolas" FontSize="12"
                                          AcceptsReturn="True" AcceptsTab="True" TextWrapping="NoWrap"
-                                         HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto" />
+                                         HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto"
+                                         TextChanged="OnBodyTextChanged"
+                                         GotKeyboardFocus="OnBodyGotKeyboardFocus" />
                                 <WrapPanel Grid.Row="2" Margin="0,10,0,0">
                                     <Button Content="Beautify JSON" Command="{Binding BeautifyResponseJsonCommand}" Background="{DynamicResource AccentAltBrush}" />
                                     <Button Content="Beautify XML" Command="{Binding BeautifyResponseXmlCommand}" Background="{DynamicResource AccentAltBrush}" />
@@ -305,6 +335,15 @@
                                      FontFamily="Consolas" FontSize="12" IsReadOnly="True"
                                      AcceptsReturn="True" TextWrapping="NoWrap"
                                      HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto" />
+                        </TabItem>
+                        <TabItem Header="Vista coloreada">
+                            <RichTextBox x:Name="ResponseHighlightViewer"
+                                         Margin="0,10,0,0"
+                                         IsReadOnly="True"
+                                         BorderBrush="{DynamicResource BorderBrush}"
+                                         Background="{DynamicResource SurfaceBrush}"
+                                         HorizontalScrollBarVisibility="Auto"
+                                         VerticalScrollBarVisibility="Auto" />
                         </TabItem>
                     </TabControl>
                 </Border>
@@ -391,6 +430,7 @@
                 </TabItem>
             </TabControl>
         </Grid>
+        </ScrollViewer>
 
         <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Margin="18,0,18,14">
             <TextBlock Text="{Binding BusyMessage}" Foreground="{DynamicResource TextSecondaryBrush}" VerticalAlignment="Center" Margin="0,0,16,0" />
@@ -405,5 +445,28 @@
                 </StackPanel>
             </Border>
         </Grid>
+
+        <Border x:Name="FindPanel"
+                Grid.Row="0"
+                Grid.RowSpan="3"
+                HorizontalAlignment="Right"
+                VerticalAlignment="Top"
+                Margin="0,92,34,0"
+                Background="{DynamicResource SurfaceBrush}"
+                BorderBrush="{DynamicResource BorderBrush}"
+                BorderThickness="1"
+                CornerRadius="8"
+                Padding="10"
+                Visibility="Collapsed">
+            <StackPanel Orientation="Horizontal">
+                <TextBlock Text="Buscar en body" VerticalAlignment="Center" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,0,8,0" />
+                <TextBox x:Name="FindTextBox"
+                         Width="260"
+                         KeyDown="OnFindTextBoxKeyDown" />
+                <Button Content="Buscar" Margin="8,0,0,0" Click="OnFindNextClick" Background="{DynamicResource AccentAltBrush}" />
+                <Button Content="Cerrar" Margin="8,0,0,0" Click="OnFindCloseClick" Background="{DynamicResource PrimaryDarkBrush}" />
+                <TextBlock x:Name="FindStatusText" VerticalAlignment="Center" Foreground="{DynamicResource TextSecondaryBrush}" Margin="8,0,0,0" />
+            </StackPanel>
+        </Border>
     </Grid>
 </Window>

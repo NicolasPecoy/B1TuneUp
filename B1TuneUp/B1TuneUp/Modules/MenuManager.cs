@@ -123,6 +123,7 @@ namespace B1TuneUp.Modules
                     creationParams.UniqueID = menuId;
                     creationParams.String = name;
                     creationParams.Position = position;
+                    ApplyMenuIcon(creationParams, creationParams.UniqueID, creationParams.String);
                     parentMenu.SubMenus.AddEx(creationParams);
                 }
             }
@@ -161,6 +162,7 @@ namespace B1TuneUp.Modules
                 creationParams.UniqueID = langMenuId;
                 creationParams.String = Utils.LocalizationManager.GetString("Menu.Language");
                 creationParams.Position = 9999;
+                ApplyMenuIcon(creationParams, creationParams.UniqueID, creationParams.String);
                 parentMenu.SubMenus.AddEx(creationParams);
             }
             catch { }
@@ -189,6 +191,7 @@ namespace B1TuneUp.Modules
                 creationParams.String = LocalizationManager.GetString("Menu.IntegrationConfigurator");
                 creationParams.Enabled = true;
                 creationParams.Position = 9010;
+                ApplyMenuIcon(creationParams, creationParams.UniqueID, creationParams.String);
                 parentMenu.SubMenus.AddEx(creationParams);
                 app.SetStatusBarMessage(LocalizationManager.GetString("Integration.Menu.Description"), BoMessageTime.bmt_Short, false);
             }
@@ -221,6 +224,7 @@ namespace B1TuneUp.Modules
                 creationParams.UniqueID = UiDesignerMenuId;
                 creationParams.String = LocalizationManager.GetString("Menu.UiCustomizer");
                 creationParams.Position = 9011;
+                ApplyMenuIcon(creationParams, creationParams.UniqueID, creationParams.String);
                 parentMenu.SubMenus.AddEx(creationParams);
                 app.SetStatusBarMessage(LocalizationManager.GetString("UiCustomizer.Menu.Description"), BoMessageTime.bmt_Short, false);
             }
@@ -253,6 +257,7 @@ namespace B1TuneUp.Modules
                 creationParams.UniqueID = SchedulerMenuId;
                 creationParams.String = LocalizationManager.GetString("Menu.SchedulerStudio");
                 creationParams.Position = 9012;
+                ApplyMenuIcon(creationParams, creationParams.UniqueID, creationParams.String);
                 parentMenu.SubMenus.AddEx(creationParams);
                 app.SetStatusBarMessage(LocalizationManager.GetString("Scheduler.Menu.Description"), BoMessageTime.bmt_Short, false);
             }
@@ -285,6 +290,7 @@ namespace B1TuneUp.Modules
                 creationParams.UniqueID = RuleBuilderMenuId;
                 creationParams.String = LocalizationManager.GetString("Menu.RuleBuilder");
                 creationParams.Position = 9013;
+                ApplyMenuIcon(creationParams, creationParams.UniqueID, creationParams.String);
                 parent.SubMenus.AddEx(creationParams);
                 app.SetStatusBarMessage(LocalizationManager.GetString("RuleBuilder.Menu.Description"), BoMessageTime.bmt_Short, false);
             }
@@ -317,6 +323,7 @@ namespace B1TuneUp.Modules
                 creationParams.UniqueID = ProcessDesignerMenuId;
                 creationParams.String = LocalizationManager.GetString("Menu.ProcessDesigner");
                 creationParams.Position = 9014;
+                ApplyMenuIcon(creationParams, creationParams.UniqueID, creationParams.String);
                 parent.SubMenus.AddEx(creationParams);
                 app.SetStatusBarMessage(LocalizationManager.GetString("ProcessDesigner.Menu.Description"), BoMessageTime.bmt_Short, false);
             }
@@ -349,6 +356,7 @@ namespace B1TuneUp.Modules
                 creationParams.UniqueID = AuditLogMenuId;
                 creationParams.String = LocalizationManager.GetString("Menu.AuditLog");
                 creationParams.Position = 9015;
+                ApplyMenuIcon(creationParams, creationParams.UniqueID, creationParams.String);
                 parent.SubMenus.AddEx(creationParams);
                 app.SetStatusBarMessage(LocalizationManager.GetString("AuditLog.Menu.Description"), BoMessageTime.bmt_Short, false);
             }
@@ -386,6 +394,7 @@ namespace B1TuneUp.Modules
                 creationParams.UniqueID = TemplateReportMenuId;
                 creationParams.String = caption;
                 creationParams.Position = 9016;
+                ApplyMenuIcon(creationParams, creationParams.UniqueID, creationParams.String);
                 parent.SubMenus.AddEx(creationParams);
                 app.SetStatusBarMessage("Template & Report Studio disponible desde el menú.", BoMessageTime.bmt_Short, false);
             }
@@ -423,6 +432,7 @@ namespace B1TuneUp.Modules
                 }
                 creationParams.String = caption;
                 creationParams.Position = 9017;
+                ApplyMenuIcon(creationParams, creationParams.UniqueID, creationParams.String);
                 parent.SubMenus.AddEx(creationParams);
                 app.SetStatusBarMessage("Email & Notification Designer disponible en el menú.", BoMessageTime.bmt_Short, false);
             }
@@ -460,6 +470,7 @@ namespace B1TuneUp.Modules
                 }
                 creationParams.String = caption;
                 creationParams.Position = 9018;
+                ApplyMenuIcon(creationParams, creationParams.UniqueID, creationParams.String);
                 parent.SubMenus.AddEx(creationParams);
                 app.SetStatusBarMessage("Toolbox / Settings disponible en el menú.", BoMessageTime.bmt_Short, false);
             }
@@ -497,6 +508,7 @@ namespace B1TuneUp.Modules
                 }
                 creationParams.String = caption;
                 creationParams.Position = 9019;
+                ApplyMenuIcon(creationParams, creationParams.UniqueID, creationParams.String);
                 parent.SubMenus.AddEx(creationParams);
                 app.SetStatusBarMessage("Validation & Mandatory Fields disponible en el menú.", BoMessageTime.bmt_Short, false);
             }
@@ -534,6 +546,7 @@ namespace B1TuneUp.Modules
                 }
                 creationParams.String = caption;
                 creationParams.Position = 9020;
+                ApplyMenuIcon(creationParams, creationParams.UniqueID, creationParams.String);
                 parentMenu.SubMenus.AddEx(creationParams);
                 app.SetStatusBarMessage("Dashboard / Search / Macro Studio disponible en el menu.", BoMessageTime.bmt_Short, false);
             }
@@ -571,6 +584,7 @@ namespace B1TuneUp.Modules
                 }
                 creationParams.String = caption;
                 creationParams.Position = 9021;
+                ApplyMenuIcon(creationParams, creationParams.UniqueID, creationParams.String);
                 parentMenu.SubMenus.AddEx(creationParams);
                 app.SetStatusBarMessage("Action Pad / Quick Copy / Item Actions disponible en el menu.", BoMessageTime.bmt_Short, false);
             }
@@ -608,6 +622,7 @@ namespace B1TuneUp.Modules
                 }
                 creationParams.String = caption;
                 creationParams.Position = 9022;
+                ApplyMenuIcon(creationParams, creationParams.UniqueID, creationParams.String);
                 parentMenu.SubMenus.AddEx(creationParams);
                 app.SetStatusBarMessage("Macro Engine Studio disponible en el menu.", BoMessageTime.bmt_Short, false);
             }
@@ -645,6 +660,7 @@ namespace B1TuneUp.Modules
                 }
                 creationParams.String = caption;
                 creationParams.Position = 9023;
+                ApplyMenuIcon(creationParams, creationParams.UniqueID, creationParams.String);
                 parentMenu.SubMenus.AddEx(creationParams);
                 app.SetStatusBarMessage("Form Enhancements Studio disponible en el menu.", BoMessageTime.bmt_Short, false);
             }
@@ -682,6 +698,7 @@ namespace B1TuneUp.Modules
                 }
                 creationParams.String = caption;
                 creationParams.Position = 9024;
+                ApplyMenuIcon(creationParams, creationParams.UniqueID, creationParams.String);
                 parent.SubMenus.AddEx(creationParams);
                 app.SetStatusBarMessage("Automation Dashboard disponible en el menu.", BoMessageTime.bmt_Short, false);
             }
@@ -719,6 +736,7 @@ namespace B1TuneUp.Modules
                 }
                 creationParams.String = caption;
                 creationParams.Position = 9025;
+                ApplyMenuIcon(creationParams, creationParams.UniqueID, creationParams.String);
                 parent.SubMenus.AddEx(creationParams);
                 var status = LocalizationManager.GetString("PlacementEnhancement.Menu.Description");
                 if (string.IsNullOrWhiteSpace(status) || status == "PlacementEnhancement.Menu.Description")
@@ -756,6 +774,7 @@ namespace B1TuneUp.Modules
                 creationParams.UniqueID = ConfigCenterMenuId;
                 creationParams.String = "B1TuneUp Config Center";
                 creationParams.Position = 9005;
+                ApplyMenuIcon(creationParams, creationParams.UniqueID, creationParams.String);
                 parent.SubMenus.AddEx(creationParams);
                 app.SetStatusBarMessage("B1TuneUp Config Center disponible en el menu.", BoMessageTime.bmt_Short, false);
             }
@@ -793,6 +812,7 @@ namespace B1TuneUp.Modules
                 }
                 creationParams.String = caption;
                 creationParams.Position = 9006;
+                ApplyMenuIcon(creationParams, creationParams.UniqueID, creationParams.String);
                 parent.SubMenus.AddEx(creationParams);
                 var status = LocalizationManager.GetString("ApiStudio.Menu.Description");
                 if (string.IsNullOrWhiteSpace(status) || status == "ApiStudio.Menu.Description")

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Globalization;
 using System.Linq;
 using System.Windows.Forms;
@@ -18,6 +19,8 @@ namespace B1TuneUp.Modules
     {
         private static readonly Dictionary<string, RightClickActionDefinition> _rcActions =
             new Dictionary<string, RightClickActionDefinition>(StringComparer.OrdinalIgnoreCase);
+        private static readonly Color ContextIconBackground = ColorTranslator.FromHtml("#2E75B6");
+        private static readonly Color ContextIconForeground = Color.White;
 
         private static ContextSnapshot _currentContext = ContextSnapshot.Empty;
 
@@ -159,8 +162,18 @@ namespace B1TuneUp.Modules
             creationParams.UniqueID = menuId;
             creationParams.String = caption;
             creationParams.Position = -1;
+            ApplyContextMenuIcon(creationParams, menuId, caption);
 
             menus.Item("1280").SubMenus.AddEx(creationParams);
+        }
+
+        private static void ApplyContextMenuIcon(MenuCreationParams creationParams, string menuId, string caption)
+        {
+            try
+            {
+                creationParams.Image = MenuIconProvider.GetIcon(menuId, caption, ContextIconBackground, ContextIconForeground);
+            }
+            catch { }
         }
 
         private static void RemoveMenu(string menuId)

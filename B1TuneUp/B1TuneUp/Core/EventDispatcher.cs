@@ -270,13 +270,13 @@ namespace B1TuneUp.Core
                         }
                         else if (pVal.EventType == BoEventTypes.et_ITEM_PRESSED || pVal.EventType == BoEventTypes.et_CLICK)
                         {
-                            ValidationManager.ExecuteValidations(oForm, "ITEM_PRESSED", itemId: pVal.ItemUID);
+                            ValidationManager.ExecuteValidations(oForm, "ITEM_PRESSED", itemId: pVal.ItemUID, columnId: pVal.ColUID, row: pVal.Row, beforeAction: pVal.BeforeAction);
                         }
                     }
                 }
 
                 // Valores por defecto en Change (validate/combo select)
-                if (!pVal.BeforeAction && (pVal.EventType == BoEventTypes.et_VALIDATE || pVal.EventType == BoEventTypes.et_COMBO_SELECT))
+                if (!pVal.BeforeAction && (pVal.EventType == BoEventTypes.et_VALIDATE || pVal.EventType == BoEventTypes.et_COMBO_SELECT || pVal.EventType == BoEventTypes.et_CHOOSE_FROM_LIST))
                 {
                     try
                     {
@@ -288,8 +288,11 @@ namespace B1TuneUp.Core
                         {
                             ValidationManager.ExecuteValidations(
                                 oForm,
-                                pVal.EventType == BoEventTypes.et_VALIDATE ? "EDIT_VALIDATE" : "COMBO_SELECT",
-                                itemId: pVal.ItemUID);
+                                pVal.EventType == BoEventTypes.et_VALIDATE ? "EDIT_VALIDATE" : pVal.EventType == BoEventTypes.et_CHOOSE_FROM_LIST ? "CHOOSE_FROM_LIST" : "COMBO_SELECT",
+                                itemId: pVal.ItemUID,
+                                columnId: pVal.ColUID,
+                                row: pVal.Row,
+                                beforeAction: pVal.BeforeAction);
                         }
                         // Invoke any local handlers registered for this item
                         try
@@ -367,7 +370,7 @@ namespace B1TuneUp.Core
                             string validationEvent = BusinessObjectInfo.EventType == BoEventTypes.et_FORM_DATA_ADD
                                 ? "DATA_ADD_BEFORE"
                                 : "DATA_UPDATE_BEFORE";
-                            if (!ValidationManager.ExecuteValidations(oForm, validationEvent))
+                            if (!ValidationManager.ExecuteValidations(oForm, validationEvent, beforeAction: BusinessObjectInfo.BeforeAction))
                             {
                                 BubbleEvent = false;
                                 return;

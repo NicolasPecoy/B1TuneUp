@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.Linq;
 using System.Windows.Forms;
 using SAPbouiCOM;
 using B1TuneUp.Core;
@@ -108,6 +109,9 @@ namespace B1TuneUp.Modules
                 EnsureContextMenu("BTUN_VALID_QUICK", "Nueva Validation aquÃ­", RightClickActionDefinition.Builtin(BuiltinRightClickAction.QuickValidation));
                 EnsureContextMenu("BTUN_MAND_QUICK", "Nuevo Mandatory aquÃ­", RightClickActionDefinition.Builtin(BuiltinRightClickAction.QuickMandatory));
                 EnsureContextMenu("BTUN_MODULE_CFG", "Module Configuration", RightClickActionDefinition.Builtin(BuiltinRightClickAction.ModuleConfiguration));
+                EnsureContextMenu("BTUN_CONS_FIND", "TuneUp: ver configuracion usada aqui", RightClickActionDefinition.Builtin(BuiltinRightClickAction.FindConfiguration));
+                EnsureContextMenu("BTUN_CONS_TRG", "TuneUp: crear trigger aqui", RightClickActionDefinition.Builtin(BuiltinRightClickAction.QuickTrigger));
+                EnsureContextMenu("BTUN_CONS_BAK", "TuneUp: backup configuracion", RightClickActionDefinition.Builtin(BuiltinRightClickAction.BackupConfiguration));
 
                 EnsureContextMenu("BTUN_OPEN_DESIGNER", "Open Visual Designer", "OpenDesigner()");
                 EnsureContextMenu("BTUN_EXPORT_SRF", "Export SRF", "ExportSRF('')");
@@ -251,6 +255,20 @@ namespace B1TuneUp.Modules
                 case BuiltinRightClickAction.FunctionButtons:
                     ExecuteFunctionButtonAction(ctx.ItemUid, ctx);
                     break;
+                case BuiltinRightClickAction.FindConfiguration:
+                    var artifacts = ConsultantConfigurationService.FindUsedOnForm(form);
+                    B1App.Instance.Application.MessageBox(string.Join(Environment.NewLine, artifacts.Count == 0
+                        ? new[] { "No hay configuracion B1TuneUp para este formulario." }
+                        : artifacts.Select(a => $"{a.Area} {a.Code} [{a.EventType}] {a.Summary}").Take(20)));
+                    break;
+                case BuiltinRightClickAction.QuickTrigger:
+                    ConsultantConfigurationService.CreateTriggerFromCurrentContext("ITEM_PRESSED", ctx.ItemUid);
+                    B1App.Instance.Application.SetStatusBarMessage("Trigger creado inactivo para revisar en Event Triggers.", BoMessageTime.bmt_Short, false);
+                    break;
+                case BuiltinRightClickAction.BackupConfiguration:
+                    string backupCode = ConsultantConfigurationService.BackupSnapshot("Manual right-click backup");
+                    B1App.Instance.Application.SetStatusBarMessage($"Backup creado: {backupCode}", BoMessageTime.bmt_Short, false);
+                    break;
             }
         }
 
@@ -323,7 +341,10 @@ namespace B1TuneUp.Modules
             QuickValidation,
             QuickMandatory,
             ModuleConfiguration,
-            FunctionButtons
+            FunctionButtons,
+            FindConfiguration,
+            QuickTrigger,
+            BackupConfiguration
         }
 
         private sealed class RightClickActionDefinition
@@ -386,6 +407,9 @@ namespace B1TuneUp.Modules
                     case "quickmandatory": return BuiltinRightClickAction.QuickMandatory;
                     case "moduleconfiguration": return BuiltinRightClickAction.ModuleConfiguration;
                     case "functionbuttons": return BuiltinRightClickAction.FunctionButtons;
+                    case "findconfiguration": return BuiltinRightClickAction.FindConfiguration;
+                    case "quicktrigger": return BuiltinRightClickAction.QuickTrigger;
+                    case "backupconfiguration": return BuiltinRightClickAction.BackupConfiguration;
                     default: return BuiltinRightClickAction.None;
                 }
             }

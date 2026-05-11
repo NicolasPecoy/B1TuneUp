@@ -792,3 +792,7 @@ La pestana **B1 Search Studio** agrega configuracion visual de busquedas con:
 - acciones multiples por resultado,
 - historial y favoritos por usuario,
 - validacion SQL mas estricta antes de guardar o probar.
+
+### Guia nueva: madurez tipo B1UP para consultores
+
+Se agrego [GUIA_CONSULTOR_B1UP_PARITY.md](./Documentacion/GUIA_CONSULTOR_B1UP_PARITY.md), con detalle operativo de right-click consultor, paquetes QA -> PROD, preview, backup, rollback, B1 Search con indice persistente, Universal Functions nuevas estilo B1UP, trazas profundas de validacion y checklist de go-live.

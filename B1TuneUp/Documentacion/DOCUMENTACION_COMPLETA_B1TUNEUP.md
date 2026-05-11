@@ -389,3 +389,14 @@ Variables, funciones de texto/fecha y comandos clásicos permanecen vigentes (ve
 ---
 
 **Última actualización**: 3 de abril de 2026. Responsable: Equipo B1TuneUp.
+## Actualizacion Mayo 2026: paridad operativa tipo B1UP
+
+La solucion incorpora una capa de madurez orientada a consultores:
+
+- `ConsultantConfigurationService`: inspeccion de configuracion usada por formulario, creacion rapida de triggers/validaciones desde contexto, duplicado de Universal Functions, export/import de paquetes, preview de diferencias, backups y rollback.
+- `SearchIndexService`: indice persistente de B1 Search en `@BTUN_TBOX` (`SEARCHIDX_`), watermarks (`SEARCHWM_`), ranking por relevancia, favoritos e historial.
+- `UniversalFunctionService`: nuevos tipos `ContentCreator`, `SQLReport`, `FileExporter`, `FileImporter`, `CreateActivity`, `Dashboard`, `InternalMessage` y `DataLauncher`, mas `Test()` para pruebas auditables.
+- `ValidationTraceService`: trazas por regla con formulario, item, columna, fila, evento, SQL procesado, resultado, bloqueo y usuario.
+- `RightClickMenuManager`: opciones contextuales para ver configuracion usada, crear trigger inactivo y crear backup manual.
+
+Ver la guia dedicada: [GUIA_CONSULTOR_B1UP_PARITY.md](./GUIA_CONSULTOR_B1UP_PARITY.md).

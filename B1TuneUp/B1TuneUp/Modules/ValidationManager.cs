@@ -1,4 +1,5 @@
-using B1TuneUp.Core;
+ï»¿using B1TuneUp.Core;
+using B1TuneUp.Models;
 using B1TuneUp.Modules;
 using B1TuneUp.Utils;
 using SAPbobsCOM;
@@ -954,7 +955,7 @@ namespace B1TuneUp.Modules
         }
 
         // Main method to execute validations for a given form and event
-        public static bool ExecuteValidations(SAPbouiCOM.Form form, string eventType, string targetSeverity = "", string itemId = null)
+        public static bool ExecuteValidations(SAPbouiCOM.Form form, string eventType, string targetSeverity = "", string itemId = null, string columnId = null, int row = -1, bool beforeAction = false)
         {
             try
             {
@@ -963,7 +964,7 @@ namespace B1TuneUp.Modules
                     .Where(rule => rule.Active)
                     .Where(rule => string.Equals(rule.FormType, form.TypeEx, StringComparison.OrdinalIgnoreCase))
                     .Where(rule => MatchesValidationEvent(rule.EventType, eventType))
-                    .Where(rule => MatchesItem(rule.ItemName, itemId))
+                    .Where(rule => MatchesItem(rule.ItemName, itemId, columnId))
                     .OrderBy(rule => rule.Sequence)
                     .ThenBy(rule => rule.Code)
                     .ToList();
@@ -974,24 +975,26 @@ namespace B1TuneUp.Modules
                     string severity = string.IsNullOrWhiteSpace(rule.Severity) ? "ERROR" : rule.Severity;
                     if (!string.IsNullOrEmpty(targetSeverity) && !severity.Equals(targetSeverity, StringComparison.OrdinalIgnoreCase))
                     {
+                        TraceValidation(rule, form, eventType, itemId, columnId, row, severity, false, false, "Skipped by target severity.", null);
                         continue;
                     }
 
                     if (!AuthorizationScopeService.MatchesValidation(rule))
                     {
+                        TraceValidation(rule, form, eventType, itemId, columnId, row, severity, false, false, "Skipped by authorization scope.", null);
                         continue;
                     }
 
-                    bool conditionResult = EvaluateCondition(rule.Condition, form);
+                    bool conditionResult = EvaluateCondition(rule.Condition, form, row, out var processedCondition, out var reason);
 
                     if (conditionResult)
                     {
-                        string processedMessage = BuildValidationMessage(form, rule.Message, rule.Condition);
+                        string processedMessage = BuildValidationMessage(form, rule.Message, rule.Condition, row);
                         string ruleName = string.IsNullOrWhiteSpace(rule.Name) ? rule.Code : rule.Name;
 
                         if (!string.IsNullOrEmpty(rule.Action))
                         {
-                            MacroEngine.ExecuteMacro(rule.Action, form);
+                            MacroEngine.ExecuteMacro(rule.Action, form, row);
                         }
 
                         AuditLogManager.LogAction("ValidationRule", $"Rule {ruleName} ({severity}) triggered on {form.TypeEx}");
@@ -999,8 +1002,9 @@ namespace B1TuneUp.Modules
                         switch (severity.ToUpperInvariant())
                         {
                             case "ERROR":
-                                ShowMessage(processedMessage, "Validación");
+                                ShowMessage(processedMessage, "ValidaciÃ³n");
                                 allValid = false;
+                                TraceValidation(rule, form, eventType, itemId, columnId, row, severity, true, true, "ERROR severity blocked the event.", processedCondition, processedMessage);
                                 break;
                             case "WARNING":
                                 bool userContinue = HandlePrompt(processedMessage, rule.PromptButtons);
@@ -1008,14 +1012,20 @@ namespace B1TuneUp.Modules
                                 {
                                     allValid = false;
                                 }
+                                TraceValidation(rule, form, eventType, itemId, columnId, row, severity, true, !userContinue || rule.BlockAlways, userContinue ? "WARNING accepted by user." : "WARNING rejected by user.", processedCondition, processedMessage);
                                 break;
                             default: // INFO
                                 if (!string.IsNullOrEmpty(processedMessage))
                                 {
-                                    ShowMessage(processedMessage, "Información");
+                                    ShowMessage(processedMessage, "InformaciÃ³n");
                                 }
+                                TraceValidation(rule, form, eventType, itemId, columnId, row, severity, true, false, "INFO shown.", processedCondition, processedMessage);
                                 break;
                         }
+                    }
+                    else
+                    {
+                        TraceValidation(rule, form, eventType, itemId, columnId, row, severity, false, false, reason, processedCondition);
                     }
                 }
 
@@ -1024,6 +1034,7 @@ namespace B1TuneUp.Modules
             catch (Exception ex)
             {
                 B1App.Instance.Application.SetStatusBarMessage($"Error in validation execution: {ex.Message}", BoMessageTime.bmt_Short, true);
+                ExceptionLogger.LogHandled(ex, "ValidationManager.ExecuteValidations");
                 return false; // Fail on error to be safe
             }
         }
@@ -1058,7 +1069,7 @@ namespace B1TuneUp.Modules
             }
         }
 
-        private static bool MatchesItem(string configuredItem, string runtimeItem)
+        private static bool MatchesItem(string configuredItem, string runtimeItem, string runtimeColumn)
         {
             if (string.IsNullOrWhiteSpace(configuredItem))
             {
@@ -1077,39 +1088,40 @@ namespace B1TuneUp.Modules
                 return true;
             }
 
-            if (configured.StartsWith(runtime + ".", StringComparison.OrdinalIgnoreCase))
+            string runtimeMatrixField = string.IsNullOrWhiteSpace(runtimeColumn) ? runtime : runtime + "." + runtimeColumn.Trim();
+            if (string.Equals(configured, runtimeMatrixField, StringComparison.OrdinalIgnoreCase))
             {
                 return true;
+            }
+
+            if (configured.StartsWith(runtime + ".", StringComparison.OrdinalIgnoreCase) && !string.IsNullOrWhiteSpace(runtimeColumn))
+            {
+                string configuredColumn = configured.Substring(runtime.Length + 1);
+                return string.Equals(configuredColumn, runtimeColumn, StringComparison.OrdinalIgnoreCase);
             }
 
             return false;
         }
 
-        private static bool EvaluateCondition(string condition, SAPbouiCOM.Form form = null)
+        private static bool EvaluateCondition(string condition, SAPbouiCOM.Form form, int rowOverride, out string processedCondition, out string reason)
         {
+            processedCondition = condition ?? string.Empty;
+            reason = "Condition evaluated false.";
+            Recordset rs = null;
             try
             {
-                // If form is null, use the active form
                 if (form == null)
                 {
                     form = SapUiSafe.TryGetActiveForm();
                     if (form == null) return false;
                 }
 
-                // Process variables in the condition (e.g., replace $[CardCode] with actual value)
-                string processedCondition = ProcessVariables(condition, form);
-
-                // Execute the condition as an SQL query to get a boolean result
-                Recordset rs = (Recordset)B1App.Instance.Company.GetBusinessObject(BoObjectTypes.BoRecordset);
-
-                // The condition should return a result that can be evaluated as true/false
-                // For example: SELECT CASE WHEN [some condition] THEN 1 ELSE 0 END
+                processedCondition = ProcessVariables(condition, form, rowOverride);
+                rs = (Recordset)B1App.Instance.Company.GetBusinessObject(BoObjectTypes.BoRecordset);
                 string sql = processedCondition;
 
-                // If it's a simple condition, wrap it appropriately
                 if (!sql.ToUpper().Contains("SELECT"))
                 {
-                    // Assume it's a boolean expression that needs to be embedded in a SELECT
                     sql = B1App.Instance.IsHana ?
                         $"SELECT CASE WHEN ({processedCondition}) THEN 1 ELSE 0 END AS Result" :
                         $"SELECT CASE WHEN ({processedCondition}) THEN 1 ELSE 0 END AS Result";
@@ -1120,21 +1132,29 @@ namespace B1TuneUp.Modules
                 bool result = false;
                 if (!rs.EoF)
                 {
-                    result = Convert.ToInt32(SapUiSafe.SafeField(rs, 0)) == 1;
+                    string raw = SapUiSafe.SafeField(rs, 0);
+                    result = raw.Equals("Y", StringComparison.OrdinalIgnoreCase)
+                        || raw.Equals("TRUE", StringComparison.OrdinalIgnoreCase)
+                        || raw.Equals("VALID", StringComparison.OrdinalIgnoreCase)
+                        || raw == "1";
                 }
 
-                ComObjectManager.Release(rs);
-
+                reason = result ? "Condition evaluated true." : "Condition evaluated false.";
                 return result;
             }
             catch (Exception ex)
             {
                 B1App.Instance.Application.SetStatusBarMessage($"Error evaluating condition: {ex.Message}", BoMessageTime.bmt_Short, true);
-                return false; // Return false on error to be safe
+                reason = "Condition error: " + ex.Message;
+                ExceptionLogger.LogHandled(ex, "ValidationManager.EvaluateCondition");
+                return false;
+            }
+            finally
+            {
+                ComObjectManager.Release(rs);
             }
         }
-
-        private static string ProcessVariables(string input, SAPbouiCOM.Form form)
+        private static string ProcessVariables(string input, SAPbouiCOM.Form form, int rowOverride = -1)
         {
             if (string.IsNullOrEmpty(input) || form == null) return input;
 
@@ -1153,7 +1173,7 @@ namespace B1TuneUp.Modules
                     string fieldName = match.Groups[1].Value;
 
                     // Try to get the value from the form
-                    string value = GetFieldValueFromForm(form, fieldName);
+                    string value = GetFieldValueFromForm(form, fieldName, rowOverride);
 
                     result = result.Replace(fullMatch, value);
                 }
@@ -1166,17 +1186,43 @@ namespace B1TuneUp.Modules
             }
         }
 
+        private static bool EvaluateCondition(string condition, SAPbouiCOM.Form form = null)
+        {
+            return EvaluateCondition(condition, form, -1, out _, out _);
+        }
+
         private static string ReadField(Recordset rs, string fieldName)
         {
             try { return B1TuneUp.Utils.SapUiSafe.SafeField(rs, fieldName); }
             catch { return string.Empty; }
         }
 
-        private static string BuildValidationMessage(SAPbouiCOM.Form form, string template, string condition)
+        private static string BuildValidationMessage(SAPbouiCOM.Form form, string template, string condition, int rowOverride)
         {
             if (string.IsNullOrWhiteSpace(template))
                 return $"Validation failed: {condition}";
-            return ProcessVariables(template, form);
+            return ProcessVariables(template, form, rowOverride);
+        }
+
+        private static void TraceValidation(ValidationRuleEntry rule, SAPbouiCOM.Form form, string eventType, string itemId, string columnId, int row, string severity, bool conditionResult, bool blocked, string reason, string conditionSql, string message = null)
+        {
+            ValidationTraceService.Trace(new ValidationTraceEntry
+            {
+                RuleCode = rule.Code,
+                RuleName = rule.Name,
+                FormType = form?.TypeEx,
+                ItemId = itemId,
+                ColumnId = columnId,
+                Row = row,
+                EventType = eventType,
+                Severity = severity,
+                ConditionResult = conditionResult,
+                Blocked = blocked,
+                Reason = reason,
+                ConditionSql = conditionSql,
+                Message = message,
+                UserCode = SafeString(() => B1App.Instance.Company.UserName)
+            });
         }
 
         private static void ShowMessage(string message, string title)
@@ -1292,15 +1338,29 @@ namespace B1TuneUp.Modules
             public HashSet<string> GroupCodes { get; } = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         }
 
-        private static string GetFieldValueFromForm(SAPbouiCOM.Form form, string fieldName)
+        private static string GetFieldValueFromForm(SAPbouiCOM.Form form, string fieldName, int rowOverride = -1)
         {
             try
             {
-                // Simplified field value extraction
-                // In a real implementation, this would handle various field types and locations
-                Item item = SapUiSafe.TryGetItem(form, fieldName);
+                string itemId = fieldName;
+                string columnId = string.Empty;
+                int dot = (fieldName ?? string.Empty).IndexOf('.');
+                if (dot > 0 && dot < fieldName.Length - 1)
+                {
+                    itemId = fieldName.Substring(0, dot);
+                    columnId = fieldName.Substring(dot + 1);
+                }
+
+                Item item = SapUiSafe.TryGetItem(form, itemId);
                 if (item != null)
                 {
+                    if (item.Type == BoFormItemTypes.it_MATRIX && !string.IsNullOrWhiteSpace(columnId))
+                    {
+                        Matrix matrix = SapUiSafe.TryGetSpecific<Matrix>(item);
+                        int row = rowOverride > 0 ? rowOverride : SapUiSafe.SafeSelectedMatrixRow(matrix);
+                        if (row < 1) row = 1;
+                        return SapUiSafe.SafeMatrixCell(matrix, columnId, row);
+                    }
                     if (item.Type == BoFormItemTypes.it_EDIT || item.Type == BoFormItemTypes.it_EXTEDIT)
                     {
                         return SapUiSafe.TryGetSpecific<EditText>(item)?.Value ?? string.Empty;
@@ -1309,13 +1369,17 @@ namespace B1TuneUp.Modules
                     {
                         return SapUiSafe.SafeComboValue(SapUiSafe.TryGetSpecific<ComboBox>(item));
                     }
+                    else if (item.Type == BoFormItemTypes.it_CHECK_BOX)
+                    {
+                        return SapUiSafe.TryGetSpecific<CheckBox>(item)?.Checked == true ? "Y" : "N";
+                    }
                 }
 
-                // If field not found, return empty string
                 return "";
             }
-            catch
+            catch (Exception ex)
             {
+                ExceptionLogger.LogHandled(ex, $"ValidationManager.GetFieldValueFromForm:{fieldName}");
                 return "";
             }
         }
@@ -1331,3 +1395,10 @@ namespace B1TuneUp.Modules
         }
     }
 }
+
+
+
+
+
+
+

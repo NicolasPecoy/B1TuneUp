@@ -12,6 +12,7 @@ namespace B1TuneUp.Models
         public string ColumnId { get; set; }
         public string EventType { get; set; } = "FORM_LOAD";
         public bool BeforeAction { get; set; }
+        public int Priority { get; set; } = 10;
         public string Condition { get; set; }
         public string UniversalFunctionCode { get; set; }
         public string Macro { get; set; }

@@ -39,7 +39,15 @@ namespace B1TuneUp.Modules
             "Email",
             "File",
             "DIObject",
-            "DotNetSnippet"
+            "DotNetSnippet",
+            "ContentCreator",
+            "SQLReport",
+            "FileExporter",
+            "FileImporter",
+            "CreateActivity",
+            "Dashboard",
+            "InternalMessage",
+            "DataLauncher"
         };
 
         public static IList<UniversalFunctionEntry> GetAll()
@@ -147,8 +155,48 @@ namespace B1TuneUp.Modules
             if (type.Equals("File", StringComparison.OrdinalIgnoreCase)) return ExecuteFile(payload, parameters);
             if (type.Equals("DIObject", StringComparison.OrdinalIgnoreCase)) return ExecuteDiObject(payload);
             if (type.Equals("DotNetSnippet", StringComparison.OrdinalIgnoreCase)) return ExecuteSnippet(entry, form);
+            if (type.Equals("ContentCreator", StringComparison.OrdinalIgnoreCase)) return ExecuteContentCreator(payload, parameters, form, rowOverride);
+            if (type.Equals("SQLReport", StringComparison.OrdinalIgnoreCase)) return ExecuteSqlReport(payload, parameters);
+            if (type.Equals("FileExporter", StringComparison.OrdinalIgnoreCase)) return ExecuteFileExporter(payload, parameters);
+            if (type.Equals("FileImporter", StringComparison.OrdinalIgnoreCase)) return ExecuteFileImporter(payload, parameters, form);
+            if (type.Equals("CreateActivity", StringComparison.OrdinalIgnoreCase)) return ExecuteCreateActivity(payload, parameters);
+            if (type.Equals("Dashboard", StringComparison.OrdinalIgnoreCase)) { DashboardManager.ShowDashboard(); return payload; }
+            if (type.Equals("InternalMessage", StringComparison.OrdinalIgnoreCase)) { B1App.Instance.Application.SetStatusBarMessage(payload, BoMessageTime.bmt_Short, false); return payload; }
+            if (type.Equals("DataLauncher", StringComparison.OrdinalIgnoreCase)) return ExecuteDataLauncher(payload, parameters, form, rowOverride);
 
             throw new InvalidOperationException($"Tipo de Universal Function no soportado: {entry.Type}");
+        }
+
+        public static UniversalFunctionTestResult Test(string code, Form form = null, int rowOverride = -1)
+        {
+            var started = DateTime.UtcNow;
+            var entry = GetByCode(code);
+            var result = new UniversalFunctionTestResult
+            {
+                FunctionCode = code,
+                FunctionType = entry?.Type,
+                StartedAtUtc = started
+            };
+            try
+            {
+                if (entry == null) throw new InvalidOperationException($"Universal Function '{code}' no existe.");
+                result.Chain = SplitParameters(entry.OnSuccessFunction).Concat(SplitParameters(entry.OnErrorFunction)).Distinct(StringComparer.OrdinalIgnoreCase).ToList();
+                result.Result = Execute(entry, form, rowOverride);
+                result.Success = true;
+                return result;
+            }
+            catch (Exception ex)
+            {
+                result.Success = false;
+                result.Error = ex.Message;
+                ExceptionLogger.LogHandled(ex, $"UniversalFunctionService.Test:{code}");
+                return result;
+            }
+            finally
+            {
+                result.FinishedAtUtc = DateTime.UtcNow;
+                AuditLogManager.LogAction("UniversalFunctionTest", $"{code}: {(result.Success ? "OK" : result.Error)}", result.Success ? "Success" : "Error");
+            }
         }
 
         private static string ExecuteSql(string sql)
@@ -313,6 +361,151 @@ namespace B1TuneUp.Modules
             if (string.IsNullOrWhiteSpace(codeName)) codeName = entry.Code;
             DynamicCodeEngine.RunCode(codeName, form);
             return codeName;
+        }
+
+        private static string ExecuteContentCreator(string template, string parameters, Form form, int rowOverride)
+        {
+            var values = ReadStringDictionary(parameters) ?? new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+            string result = template ?? string.Empty;
+            foreach (var pair in values)
+            {
+                result = result.Replace("{{" + pair.Key + "}}", ResolveVariables(MacroEngine.ProcessSqlVariables(pair.Value ?? string.Empty, form, rowOverride)));
+            }
+            result = ResolveVariables(MacroEngine.ProcessSqlVariables(result, form, rowOverride));
+            if (values.TryGetValue("targetFile", out var targetFile) && !string.IsNullOrWhiteSpace(targetFile))
+            {
+                File.WriteAllText(targetFile, result, Encoding.UTF8);
+                return targetFile;
+            }
+            return result;
+        }
+
+        private static string ExecuteSqlReport(string sql, string parameters)
+        {
+            var options = ReadStringDictionary(parameters) ?? new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+            string delimiter = options.TryGetValue("delimiter", out var configuredDelimiter) ? configuredDelimiter : ",";
+            string targetFile = options.TryGetValue("targetFile", out var configuredTarget) ? configuredTarget : string.Empty;
+            var csv = new StringBuilder();
+            Recordset rs = null;
+            try
+            {
+                SearchSqlSecurityService.ValidateSelectOnly(sql);
+                rs = (Recordset)B1App.Instance.Company.GetBusinessObject(BoObjectTypes.BoRecordset);
+                rs.DoQuery(sql);
+                for (int i = 0; i < rs.Fields.Count; i++)
+                {
+                    if (i > 0) csv.Append(delimiter);
+                    csv.Append(EscapeCsv(SapUiSafe.SafeFieldName(rs, i), delimiter));
+                }
+                csv.AppendLine();
+                while (!rs.EoF)
+                {
+                    for (int i = 0; i < rs.Fields.Count; i++)
+                    {
+                        if (i > 0) csv.Append(delimiter);
+                        csv.Append(EscapeCsv(SapUiSafe.SafeField(rs, i), delimiter));
+                    }
+                    csv.AppendLine();
+                    rs.MoveNext();
+                }
+            }
+            finally
+            {
+                ComObjectManager.Release(rs);
+            }
+            if (!string.IsNullOrWhiteSpace(targetFile))
+            {
+                File.WriteAllText(targetFile, csv.ToString(), Encoding.UTF8);
+                return targetFile;
+            }
+            return csv.ToString();
+        }
+
+        private static string ExecuteFileExporter(string payload, string parameters)
+        {
+            var options = ReadStringDictionary(parameters) ?? new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+            string targetFile = options.TryGetValue("targetFile", out var target) ? target : payload;
+            string sql = options.TryGetValue("sql", out var configuredSql) ? configuredSql : payload;
+            return ExecuteSqlReport(sql, JsonSerializer.Serialize(new Dictionary<string, string>
+            {
+                ["targetFile"] = targetFile,
+                ["delimiter"] = options.TryGetValue("delimiter", out var delimiter) ? delimiter : ","
+            }, JsonOptions));
+        }
+
+        private static string ExecuteFileImporter(string path, string parameters, Form form)
+        {
+            var options = ReadStringDictionary(parameters) ?? new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+            string mode = options.TryGetValue("mode", out var configuredMode) ? configuredMode : "MacroPerLine";
+            if (!File.Exists(path)) throw new FileNotFoundException("Archivo de importacion no encontrado.", path);
+            if (mode.Equals("MacroPerLine", StringComparison.OrdinalIgnoreCase))
+            {
+                string macro = options.TryGetValue("macro", out var configuredMacro) ? configuredMacro : string.Empty;
+                int count = 0;
+                foreach (var line in File.ReadAllLines(path))
+                {
+                    Variables["line"] = line ?? string.Empty;
+                    MacroEngine.ExecuteMacro(ResolveVariables(macro), form);
+                    count++;
+                }
+                return count.ToString();
+            }
+            return File.ReadAllText(path, Encoding.UTF8);
+        }
+
+        private static string ExecuteCreateActivity(string payload, string parameters)
+        {
+            var fields = ReadStringDictionary(string.IsNullOrWhiteSpace(parameters) ? payload : parameters)
+                         ?? new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+            object activity = B1App.Instance.Company.GetBusinessObject(BoObjectTypes.oContacts);
+            try
+            {
+                foreach (var field in fields)
+                {
+                    try { activity.GetType().InvokeMember(field.Key, BindingFlags.SetProperty, null, activity, new object[] { field.Value }); }
+                    catch (Exception ex) { ExceptionLogger.LogHandled(ex, $"UniversalFunctionService.CreateActivity.Set:{field.Key}"); }
+                }
+                int result = Convert.ToInt32(activity.GetType().InvokeMember("Add", BindingFlags.InvokeMethod, null, activity, Array.Empty<object>()));
+                if (result != 0) throw new InvalidOperationException(B1App.Instance.Company.GetLastErrorDescription());
+                string newKey;
+                B1App.Instance.Company.GetNewObjectCode(out newKey);
+                return newKey;
+            }
+            finally
+            {
+                ComObjectManager.Release(activity);
+            }
+        }
+
+        private static string ExecuteDataLauncher(string payload, string parameters, Form form, int rowOverride)
+        {
+            var options = ReadStringDictionary(parameters) ?? new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+            if (options.TryGetValue("macro", out var macro) && !string.IsNullOrWhiteSpace(macro))
+            {
+                MacroEngine.ExecuteMacro(macro, form, rowOverride);
+                return macro;
+            }
+            if (options.TryGetValue("formType", out var formType) && !string.IsNullOrWhiteSpace(formType))
+            {
+                B1App.Instance.Application.ActivateMenuItem(formType);
+                return formType;
+            }
+            if (!string.IsNullOrWhiteSpace(payload))
+            {
+                MacroEngine.ExecuteMacro(payload, form, rowOverride);
+                return payload;
+            }
+            return string.Empty;
+        }
+
+        private static string EscapeCsv(string value, string delimiter)
+        {
+            value = value ?? string.Empty;
+            if (value.Contains("\"") || value.Contains("\r") || value.Contains("\n") || value.Contains(delimiter))
+            {
+                return "\"" + value.Replace("\"", "\"\"") + "\"";
+            }
+            return value;
         }
 
         private static UniversalFunctionEntry ReadEntry(ToolboxSettingEntry setting)

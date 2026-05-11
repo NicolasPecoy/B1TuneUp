@@ -439,3 +439,9 @@ FodyWeavers.xsd
 /B1TuneUp/bin/Debug/net48
 /B1TuneUp/bin/Debug
 /B1TuneUp/obj
+
+# Build output (recursive, including nested SDK-style projects)
+**/[Bb]in/
+**/[Bb]in/**
+**/[Oo]bj/
+**/[Oo]bj/**

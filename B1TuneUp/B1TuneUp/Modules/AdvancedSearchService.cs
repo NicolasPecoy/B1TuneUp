@@ -21,6 +21,15 @@ namespace B1TuneUp.Modules
             if (Cache.TryGetValue(cacheKey, out var cached) && cached.Item1 > DateTime.Now) return cached.Item2;
 
             var results = new List<AdvancedSearchResult>();
+            try
+            {
+                results.AddRange(SearchIndexService.Search(text, pageSize));
+            }
+            catch (Exception ex)
+            {
+                ExceptionLogger.LogHandled(ex, "AdvancedSearchService.Search.IndexFallback");
+            }
+
             foreach (var config in SearchConfigService.GetAll().Where(c => c.Active))
             {
                 if (!AuthorizationScopeService.MatchesScope(config.AllowedUsers, config.AllowedGroups, config.DeniedUsers, config.DeniedGroups)) continue;
@@ -28,6 +37,8 @@ namespace B1TuneUp.Modules
             }
 
             var ordered = results
+                .GroupBy(r => (r.SearchCode ?? string.Empty) + "|" + (r.Key ?? string.Empty), StringComparer.OrdinalIgnoreCase)
+                .Select(g => g.OrderByDescending(x => x.Rank).First())
                 .OrderByDescending(r => r.Rank)
                 .ThenBy(r => r.SearchName)
                 .Take(pageSize)

@@ -98,7 +98,7 @@ namespace B1TuneUp.Modules
         private static bool ExecuteMatching(Form form, string eventName, bool beforeAction, string itemId, string columnId, int row)
         {
             bool allow = true;
-            foreach (var trigger in GetAll().Where(t => Matches(t, form, eventName, beforeAction, itemId, columnId)))
+            foreach (var trigger in GetAll().Where(t => Matches(t, form, eventName, beforeAction, itemId, columnId)).OrderBy(t => t.Priority).ThenBy(t => t.Code))
             {
                 try
                 {

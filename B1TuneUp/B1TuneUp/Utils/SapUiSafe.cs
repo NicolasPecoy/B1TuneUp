@@ -210,6 +210,32 @@ namespace B1TuneUp.Utils
             return string.Empty;
         }
 
+        public static int SafeSelectedMatrixRow(Matrix matrix)
+        {
+            if (matrix == null) return -1;
+            try
+            {
+                int row = matrix.GetNextSelectedRow(0, BoOrderType.ot_SelectionOrder);
+                return row > 0 ? row : -1;
+            }
+            catch { return -1; }
+        }
+
+        public static string DescribeForm(SAPbouiCOM.Form form)
+        {
+            if (form == null) return "N/A";
+            try { return $"{form.TypeEx}|{form.UniqueID}|{form.Title}"; }
+            catch { return form.TypeEx ?? "N/A"; }
+        }
+
+        public static string DescribeItem(SAPbouiCOM.Form form, string itemId)
+        {
+            var item = TryGetItem(form, itemId);
+            if (item == null) return itemId ?? string.Empty;
+            try { return $"{item.UniqueID}|{item.Type}|{SafeCaption(item)}"; }
+            catch { return itemId ?? string.Empty; }
+        }
+
         public static bool TrySetMatrixCell(Matrix matrix, string colId, int row, string value)
         {
             if (matrix == null || string.IsNullOrWhiteSpace(colId) || row < 1) return false;
